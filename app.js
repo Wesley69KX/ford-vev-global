@@ -4,14 +4,16 @@ const app = {
     currentLocation: "", collectionName: "",
     adminUser: "vev", adminPass: "ford123", // SENHA DE ACESSO
 
-    // ⚠️ COLE AS CHAVES DO SEU NOVO PROJETO AQUI ⚠️
+
+    // ⚠️ SUAS CHAVES DO PROJETO FORD-VEV ⚠️
     firebaseConfig: {
-        apiKey: "COLE_AQUI",
-        authDomain: "COLE_AQUI",
-        projectId: "COLE_AQUI",
-        storageBucket: "COLE_AQUI",
-        messagingSenderId: "COLE_AQUI",
-        appId: "COLE_AQUI"
+        apiKey: "AIzaSyCY5aZ2WzeY8miMomN3OgR6al4psXGnE3A",
+        authDomain: "ford-vev.firebaseapp.com",
+        projectId: "ford-vev",
+        storageBucket: "ford-vev.firebasestorage.app",
+        messagingSenderId: "391022165832",
+        appId: "1:391022165832:web:cfa6c741c946a030b37d7d",
+        measurementId: "G-EDFWJB8XE3"
     },
 
     // --- AS PERGUNTAS DO SEU FORMULÁRIO ---
