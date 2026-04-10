@@ -1,156 +1,60 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VEV Global Evaluation</title>
-
-    <link rel="icon" type="image/png" href="COLE_O_CODIGO_BASE64_AQUI">
+    <title>App Operacional 2748</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#003478">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     
-    <script src="https://cdn.jsdelivr.net/npm/idb@7/build/umd.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <link rel="icon" id="app-favicon" type="image/png" href="">
 
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
     <style>
-        /* Identidade Ford Embutida */
-        :root { --ford-blue: #003478; --ford-light: #2d96cd; --bg: #f4f6f9; }
-        body { background-color: var(--bg); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; }
-        .login-box h2 { color: var(--ford-blue); }
-        .btn-save, .btn-login-admin { background: var(--ford-blue); color: white; border:none; padding:12px; border-radius:4px; font-weight:bold; cursor:pointer; width:100%; }
-        
-        /* HEADER (Onde a logo fica) */
-        header { background: var(--ford-blue); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .header-left { display: flex; align-items: center; gap: 15px; }
-        .header-logo { height: 40px; max-width: 150px; object-fit: contain; }
-        
-        .btn-action { background: white; color: var(--ford-blue); border: none; padding: 8px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; }
-        
-        /* Formulário de Avaliação */
-        .eval-question { background: white; padding: 15px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid var(--ford-light); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .eval-question h4 { margin: 0 0 10px 0; color: #333; }
-        .eval-options { display: flex; gap: 10px; }
-        .eval-options label { flex: 1; text-align: center; padding: 10px; background: #e9ecef; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.9rem; transition: 0.2s; }
-        .eval-options input[type="radio"] { display: none; }
-        .eval-options input[type="radio"]:checked + label.pass { background: #28a745; color: white; }
-        .eval-options input[type="radio"]:checked + label.fail { background: #dc3545; color: white; }
-        .eval-options input[type="radio"]:checked + label.monitor { background: #ffc107; color: black; }
+        :root { --primary-color: #003478; --bg-color: #f4f6f9; --card-bg: #ffffff; --text-main: #333333; --text-muted: #666666; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-main); }
 
-        /* Modais e Overlays */
-        .login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,52,120,0.9); display:flex; justify-content:center; align-items:center; z-index:1000; }
-        .login-box { background:white; padding:30px; border-radius:8px; width:90%; max-width:400px; text-align:center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        .input-group input { width:100%; padding:10px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box; }
-        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:flex-start; overflow-y:auto; padding:20px; z-index:2000; box-sizing:border-box; }
-        .modal-content { background:white; width:100%; border-radius:8px; overflow:hidden; margin:auto; }
-        .modal-header { padding:15px; display:flex; justify-content:space-between; align-items:center; }
-        .modal-body { padding:20px; }
-        .modal-footer { padding:15px; background:#f8f9fa; border-top:1px solid #ddd; }
+        header { background-color: var(--primary-color); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 100; }
+        .header-logo { max-height: 45px; max-width: 160px; object-fit: contain; }
+        .header-info { text-align: right; line-height: 1.2; }
+        .header-info strong { font-size: 1.1rem; letter-spacing: 0.5px; }
+        .header-info span { font-size: 0.85rem; opacity: 0.8; }
+
+        .container { padding: 25px 20px; max-width: 600px; margin: 0 auto; }
+        h3 { margin-bottom: 15px; color: var(--primary-color); font-size: 1.1rem; text-transform: uppercase; border-bottom: 2px solid #ddd; padding-bottom: 5px; }
+        .menu-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 35px; }
+
+        .card { background: var(--card-bg); border-radius: 10px; padding: 16px; display: flex; align-items: center; gap: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); text-decoration: none; color: var(--text-main); transition: 0.1s ease; border-left: 5px solid var(--primary-color); }
+        .card:active { transform: scale(0.98); background-color: #f8f9fa; }
+        .card.info-card { border-left-color: #6c757d; }
+        .card.danger-card { border-left-color: #dc3545; }
+        
+        .card .icon-box { background: rgba(0, 52, 120, 0.1); color: var(--primary-color); width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .card.info-card .icon-box { background: #f8f9fa; color: #6c757d; }
+        .card.danger-card .icon-box { background: rgba(220,53,69,0.1); color: #dc3545; }
+
+        .card-text { display: flex; flex-direction: column; flex: 1; }
+        .card-text strong { font-size: 1.05rem; margin-bottom: 2px; }
+        .card-text span { font-size: 0.85rem; color: var(--text-muted); }
+        .external-icon { margin-left: auto; color: #bbb; font-size: 22px; }
+
+        .btn-call { background: #28a745; color: white; border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 2px 5px rgba(40, 167, 69, 0.4); }
     </style>
 </head>
 <body>
 
-    <div id="login-screen" class="login-overlay">
-        <div class="login-box">
-            <h2>VEV Global</h2>
-            <p style="color: #666; margin-bottom:20px;">Vehicle Evaluation System</p>
-            <div class="input-group"><input type="text" id="login-user" placeholder="CDSID / User"></div>
-            <div class="input-group" style="margin-top:10px;"><input type="password" id="login-pass" placeholder="Password"></div>
-            <br>
-            <button class="btn-save" onclick="app.checkLogin()">Sign In</button>
+    <header>
+        <img id="app-header-logo" class="header-logo" src="" alt="Logo da Empresa">
+        <div class="header-info">
+            <strong>EJA: 3108</strong><br>
+            <span>CC: 2748</span>
         </div>
-    </div>
+    </header>
 
-    <div id="location-screen" class="login-overlay" style="display:none;">
-        <div class="login-box" style="max-width: 600px; width:90%;">
-            <h3 style="color:var(--ford-blue)">Select Vehicle Program</h3>
-            <div id="sector-list" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;"></div>
-            
-            <div style="border-top:1px solid #eee; padding-top:15px; margin-top:10px;">
-                <div style="display:flex; gap:10px;">
-                    <input type="text" id="new-sector-name" placeholder="New Program (e.g., BRONCO)" style="flex:1; padding:8px; border:1px solid #ccc; border-radius:4px;">
-                    <button onclick="app.addSector()" style="background:#28a745; color:white; border:none; padding:0 15px; border-radius:4px; cursor:pointer;">+</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="app-content" style="display:none;">
-        <header>
-            <div class="header-left">
-                <img src="COLE_O_CODIGO_BASE64_AQUI" class="header-logo" alt="Logo">
-                
-                <div style="font-size: 1.2rem; font-weight: bold; display: flex; flex-direction: column;">
-                    <span style="font-size: 0.7rem; font-weight: normal; letter-spacing: 1px;">PROGRAM</span>
-                    <select id="nav-sector" onchange="app.switchLocation(this.value)" style="background:transparent; color:white; border:none; font-weight:bold; font-size:1.1rem; cursor:pointer; outline:none; padding:0;"></select>
-                </div>
-            </div>
-            <button class="btn-action" onclick="app.openNewEvaluation()">+ New Eval</button>
-        </header>
-
-        <div class="container" style="padding: 15px; max-width:800px; margin:0 auto;">
-            <div id="loading-msg" style="text-align:center; padding:20px; color:var(--ford-blue);">Loading evaluations...</div>
-            <div id="vehicle-list" class="tower-list"></div>
-        </div>
-    </div>
-
-    <div id="modal" class="modal">
-        <form id="vehicle-form" onsubmit="app.saveEvaluation(event)" class="modal-content" style="max-width: 800px;">
-            <div class="modal-header" style="background:var(--ford-blue); color:white;">
-                <h2 id="modal-title" style="margin:0;">Evaluation Form</h2>
-                <span class="close" style="color:white; font-size:24px; cursor:pointer;" onclick="app.closeModal()">&times;</span>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="veh-id">
-                
-                <div class="eval-question" style="background: #e9ecef; border-left: 4px solid #6c757d;">
-                    <div style="display:flex; gap:10px; margin-bottom:10px;">
-                        <div style="flex:1;"><label style="display:block; margin-bottom:5px; font-weight:bold; font-size:0.9rem;">Prototype VIN</label><input type="text" id="f-placa" placeholder="e.g., P703-001" required style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;"></div>
-                        <div style="flex:1;"><label style="display:block; margin-bottom:5px; font-weight:bold; font-size:0.9rem;">Test Type</label>
-                            <select id="f-modelo" required style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
-                                <option value="NVH Route">NVH Route</option>
-                                <option value="Dynamics">Dynamics</option>
-                                <option value="Static Review">Static Review</option>
-                                <option value="Water Ingestion">Water Ingestion</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div style="display:flex; gap:10px;">
-                        <div style="flex:1;"><label style="display:block; margin-bottom:5px; font-weight:bold; font-size:0.9rem;">Mileage (km)</label><input type="number" id="f-km" required style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;"></div>
-                        <div style="flex:1;"><label style="display:block; margin-bottom:5px; font-weight:bold; font-size:0.9rem;">Date</label><input type="date" id="f-manu-ultima" required style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;"></div>
-                    </div>
-                </div>
-
-                <h3 style="color:var(--ford-blue); margin-top:20px; border-bottom: 2px solid #ccc; padding-bottom:5px;">Checklist Items</h3>
-                <div id="dynamic-forms-container">
-                    </div>
-
-                <div class="eval-question" style="margin-top:20px; border-left: 4px solid var(--ford-blue);">
-                    <label style="font-weight:bold; display:block;">Overall Comments / Issue Details</label>
-                    <textarea id="f-obs" rows="4" style="width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;"></textarea>
-                    
-                    <div class="photo-area" style="margin-top:15px;">
-                        <input type="file" id="image-input" multiple onchange="app.handleImagePreview(event)" style="display:none" accept="image/*">
-                        <button type="button" style="background:#6c757d; color:white; border:none; padding:10px; border-radius:4px; cursor:pointer;" onclick="document.getElementById('image-input').click()">📷 Add Photos</button>
-                        <div id="image-preview-container" class="image-preview-container" style="margin-top:10px; display:flex; gap:10px; overflow-x:auto;"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="modal-footer" style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-                <button type="button" class="btn-cancel" style="padding:10px 20px; background:#ccc; border:none; border-radius:4px; cursor:pointer; font-weight:bold;" onclick="app.closeModal()">Cancel</button>
-                <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                    <button type="button" id="btn-pdf" style="padding:10px 20px; background:#28a745; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;" onclick="app.generateEvaluationPDF()">📄 PDF / Share</button>
-                    <button type="submit" id="btn-save-veh" class="btn-save" style="width:auto; padding:10px 20px;">Save Eval</button>
-                </div>
-            </div>
-        </form>
-    </div>
+    <div class="container" id="app-content"></div>
 
     <script src="app.js"></script>
 </body>
