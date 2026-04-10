@@ -1,49 +1,64 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gestão de Frota Gov</title>
+    <title>VEV Global Evaluation</title>
     
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0056b3">
-    <link rel="apple-touch-icon" href="icon-192.png">
+    <meta name="theme-color" content="#003478">
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/idb@7/build/umd.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        /* Identidade Ford Embutida */
+        :root { --ford-blue: #003478; --ford-light: #2d96cd; --bg: #f4f6f9; }
+        body { background-color: var(--bg); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .login-box h2 { color: var(--ford-blue); }
+        .btn-save, .btn-login-admin { background: var(--ford-blue); color: white; border:none; padding:12px; border-radius:4px; font-weight:bold; cursor:pointer; width:100%; }
+        header { background: var(--ford-blue); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-action { background: white; color: var(--ford-blue); border: none; padding: 8px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        
+        /* Formulário de Avaliação Dinâmico */
+        .eval-question { background: white; padding: 15px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid var(--ford-light); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .eval-question h4 { margin: 0 0 10px 0; color: #333; }
+        .eval-options { display: flex; gap: 10px; }
+        .eval-options label { flex: 1; text-align: center; padding: 10px; background: #e9ecef; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.9rem; transition: 0.2s; }
+        .eval-options input[type="radio"] { display: none; }
+        .eval-options input[type="radio"]:checked + label.pass { background: #28a745; color: white; }
+        .eval-options input[type="radio"]:checked + label.fail { background: #dc3545; color: white; }
+        .eval-options input[type="radio"]:checked + label.monitor { background: #ffc107; color: black; }
+    </style>
 </head>
 <body>
 
-    <div id="connection-status" class="status-badge online">Online</div>
-
     <div id="login-screen" class="login-overlay">
         <div class="login-box">
-            <div class="login-logo-container">
-                <img id="app-logo" src="" class="login-logo-img" style="display:none;">
-            </div>
-            <h2>Gestão de Frota</h2>
-            <p style="color: #888; margin-bottom:20px;">Acesso Administrativo</p>
-            <div class="input-group"><input type="text" id="login-user" placeholder="Usuário"></div>
-            <div class="input-group" style="margin-top:10px;"><input type="password" id="login-pass" placeholder="Senha"></div>
+            <h2>VEV Global</h2>
+            <p style="color: #666; margin-bottom:20px;">Vehicle Evaluation System</p>
+            <div class="input-group"><input type="text" id="login-user" placeholder="CDSID / User"></div>
+            <div class="input-group" style="margin-top:10px;"><input type="password" id="login-pass" placeholder="Password"></div>
             <br>
-            <button class="btn-login-admin" onclick="app.checkLogin()">Entrar</button>
+            <button class="btn-save" onclick="app.checkLogin()">Sign In</button>
         </div>
     </div>
 
     <div id="location-screen" class="login-overlay" style="display:none;">
         <div class="login-box" style="max-width: 600px; width:90%;">
-            <h3 style="color:var(--primary)">Selecione o Setor</h3>
-            <div id="sector-list" class="location-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;"></div>
+            <h3 style="color:var(--ford-blue)">Select Vehicle Program</h3>
+            <div id="sector-list" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;"></div>
             
             <div style="border-top:1px solid #eee; padding-top:15px; margin-top:10px;">
                 <div style="display:flex; gap:10px;">
-                    <input type="text" id="new-sector-name" placeholder="Novo Setor" style="flex:1;">
-                    <button onclick="app.addSector()" style="background:#28a745; color:white; border:none; padding:0 15px;">+</button>
+                    <input type="text" id="new-sector-name" placeholder="New Program (e.g., BRONCO)" style="flex:1; padding:8px;">
+                    <button onclick="app.addSector()" style="background:#28a745; color:white; border:none; padding:0 15px; border-radius:4px;">+</button>
                 </div>
             </div>
         </div>
@@ -51,141 +66,70 @@
 
     <div id="app-content" style="display:none;">
         <header>
-            <div class="header-top">
-                <div style="display:flex; align-items:center; gap:10px; width:100%;">
-                    <img id="header-logo" src="" style="height:35px; display:none; border-radius:4px;">
-                    <select id="nav-sector" onchange="app.switchLocation(this.value)" style="flex:1; font-weight:bold; color:var(--primary); border:none; background:transparent; font-size:1.1rem; cursor:pointer;"></select>
-                </div>
+            <div style="font-size: 1.2rem; font-weight: bold;">
+                Program: <select id="nav-sector" onchange="app.switchLocation(this.value)" style="background:transparent; color:white; border:none; font-weight:bold; font-size:1.2rem; cursor:pointer; outline:none;"></select>
             </div>
-            
-            <div class="header-actions">
-                <button class="btn-action" style="background:#0056b3" onclick="app.openDashboard()">📊 Dash</button>
-                <button class="btn-action" style="background:#28a745" onclick="app.openNewVehicle()">+ Novo</button>
-                <button class="btn-action" style="background:#17a2b8" onclick="app.openWorkshops()">🔧 Oficinas</button>
-                <button class="btn-action btn-checklist" onclick="app.openChecklist()">📋 Check</button>
-                <button class="btn-action" style="background:#6f42c1" onclick="app.openStock()">📦 Estoque</button>
-                <button class="btn-global-pdf" onclick="app.openReportModal()">📅 Relatórios</button>
-                <button class="btn-sync" onclick="app.syncNow()">🔄 Sync</button>
-            </div>
+            <button class="btn-action" onclick="app.openNewEvaluation()">+ New Eval</button>
         </header>
 
-        <div class="container">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <input type="text" id="search" class="search-bar" placeholder="🔍 Placa ou Modelo..." onkeyup="app.filterList()" style="flex:1; margin-right:10px; margin-bottom:0;">
-                <span style="font-size:12px; color:#666;">Total: <strong id="total-card">0</strong></span>
-            </div>
-            
-            <div id="loading-msg" style="text-align:center; padding:20px; color:#0056b3; font-weight:bold;">
-                <span class="material-icons" style="animation:spin 1s infinite linear;">autorenew</span> Carregando...
-            </div>
-            
+        <div class="container" style="padding: 15px;">
+            <div id="loading-msg" style="text-align:center; padding:20px; color:var(--ford-blue);">Loading evaluations...</div>
             <div id="vehicle-list" class="tower-list"></div>
         </div>
     </div>
 
-    <div id="dashboard-modal" class="modal">
-        <div class="modal-content" style="max-width: 800px;">
-            <div class="modal-header">
-                <h2>📊 Visão Geral da Frota</h2>
-                <span class="close" onclick="document.getElementById('dashboard-modal').style.display='none'">&times;</span>
-            </div>
-            <div class="modal-body">
-                <div class="dashboard-grid">
-                    <div class="dash-card">
-                        <div class="dash-number" id="dash-total" style="color:#0056b3">0</div>
-                        <div class="dash-label">Total Veículos</div>
-                    </div>
-                    <div class="dash-card">
-                        <div class="dash-number" id="dash-maintenance" style="color:#dc3545">0</div>
-                        <div class="dash-label">Em Manutenção</div>
-                    </div>
-                </div>
-                <h3>📍 Carros em Oficina (Agora)</h3>
-                <div id="dashboard-workshops-list"></div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-save" onclick="app.generateDashboardPDF()">📄 Baixar Relatório do Painel (Snapshot)</button>
-            </div>
-        </div>
-    </div>
-
     <div id="modal" class="modal">
-        <form id="vehicle-form" onsubmit="app.saveVehicle(event)" class="modal-content">
-            <div class="modal-header">
-                <h2 id="modal-title">Veículo</h2>
-                <span class="close" onclick="app.closeModal()">&times;</span>
+        <form id="vehicle-form" onsubmit="app.saveEvaluation(event)" class="modal-content" style="max-width: 800px;">
+            <div class="modal-header" style="background:var(--ford-blue); color:white;">
+                <h2 id="modal-title">Evaluation Form</h2>
+                <span class="close" style="color:white;" onclick="app.closeModal()">&times;</span>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="veh-id">
                 
-                <div id="view-only-msg" style="display:none; background:#e9ecef; color:#666; padding:10px; text-align:center; margin-bottom:15px; border-radius:5px; font-weight:bold;">
-                    👁️ Modo de Visualização (Somente Leitura)
-                </div>
-
-                <div class="form-section">
-                    <h3>Dados</h3>
-                    <div class="form-row">
-                        <div><label>Placa</label><input type="text" id="f-placa" required oninput="app.formatPlate(this)" maxlength="8"></div>
-                        <div><label>Modelo</label><input type="text" id="f-modelo" required></div>
-                    </div>
-                    <div class="form-row">
-                        <div><label>Status</label>
-                            <select id="f-status" onchange="app.toggleWorkshopSelect()">
-                                <option value="Operando">Operando</option>
-                                <option value="Manutenção">Manutenção</option>
-                                <option value="Baixado">Baixado</option>
+                <div class="eval-question" style="background: #e9ecef; border-left: 4px solid #6c757d;">
+                    <div style="display:flex; gap:10px; margin-bottom:10px;">
+                        <div style="flex:1;"><label>Prototype VIN</label><input type="text" id="f-placa" placeholder="e.g., P703-001" required style="width:100%; padding:8px;"></div>
+                        <div style="flex:1;"><label>Test Type</label>
+                            <select id="f-modelo" required style="width:100%; padding:8px;">
+                                <option value="NVH Route">NVH Route</option>
+                                <option value="Dynamics">Dynamics</option>
+                                <option value="Static Review">Static Review</option>
+                                <option value="Water Ingestion">Water Ingestion</option>
                             </select>
                         </div>
-                        <div><label>Km</label><input type="number" id="f-km" required></div>
                     </div>
-                    
-                    <div id="div-oficina" style="display:none; background:#fff3cd; padding:10px; border-radius:6px; margin-top:10px;">
-                        <label style="color:#856404; font-weight:bold;">Em qual oficina está?</label>
-                        <select id="f-oficina">
-                            <option value="">Selecione a Oficina...</option>
-                        </select>
+                    <div style="display:flex; gap:10px;">
+                        <div style="flex:1;"><label>Mileage (km)</label><input type="number" id="f-km" required style="width:100%; padding:8px;"></div>
+                        <div style="flex:1;"><label>Date</label><input type="date" id="f-manu-ultima" required style="width:100%; padding:8px;"></div>
                     </div>
                 </div>
 
-                <div class="form-section">
-                    <h3>Manutenção</h3>
-                    <div class="two-col">
-                        <div><label>Data Serviço</label><input type="date" id="f-manu-ultima"></div>
-                        <div><label>Próx. Km</label><input type="text" id="f-manu-proxima"></div>
+                <h3 style="color:var(--ford-blue); margin-top:20px; border-bottom: 2px solid #ccc; padding-bottom:5px;">Checklist Items</h3>
+                <div id="dynamic-forms-container">
                     </div>
-                    <label>Serviço Realizado</label><textarea id="f-pecas" rows="2"></textarea>
-                    <label>Pendências</label><textarea id="f-pendencias" rows="2" style="border-color:orange;"></textarea>
-                </div>
 
-                <div class="form-section">
-                    <h3>Fotos & Obs</h3>
-                    <textarea id="f-obs" rows="2"></textarea>
+                <div class="eval-question" style="margin-top:20px; border-left: 4px solid var(--ford-blue);">
+                    <label>Overall Comments / Issue Details</label>
+                    <textarea id="f-obs" rows="4" style="width:100%; padding:8px; margin-top:5px;"></textarea>
                     
-                    <div class="photo-area">
-                        <div id="photo-buttons">
-                            <input type="file" id="image-input" multiple onchange="app.handleImagePreview(event)" style="display:none" accept="image/*">
-                            <button type="button" class="btn btn-secondary" onclick="document.getElementById('image-input').click()">+ Fotos</button>
-                        </div>
-                        <div id="image-preview-container" class="image-preview-container"></div>
+                    <div class="photo-area" style="margin-top:15px;">
+                        <input type="file" id="image-input" multiple onchange="app.handleImagePreview(event)" style="display:none" accept="image/*">
+                        <button type="button" style="background:#6c757d; color:white; border:none; padding:10px; border-radius:4px; cursor:pointer;" onclick="document.getElementById('image-input').click()">📷 Add Photos</button>
+                        <div id="image-preview-container" class="image-preview-container" style="margin-top:10px; display:flex; gap:10px; overflow-x:auto;"></div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-cancel" onclick="app.closeModal()">Fechar</button>
-                <button type="submit" id="btn-save-veh" class="btn-save">Salvar</button>
+            
+            <div class="modal-footer" style="display:flex; justify-content:space-between;">
+                <button type="button" class="btn-cancel" style="padding:10px 20px; background:#ccc; border:none; border-radius:4px; cursor:pointer;" onclick="app.closeModal()">Cancel</button>
+                <div style="display:flex; gap:10px;">
+                    <button type="button" id="btn-pdf" style="padding:10px 20px; background:#28a745; color:white; border:none; border-radius:4px; cursor:pointer;" onclick="app.generateEvaluationPDF()">📄 Send PDF via WApp</button>
+                    <button type="submit" id="btn-save-veh" class="btn-save" style="width:auto; padding:10px 20px;">Save Eval</button>
+                </div>
             </div>
         </form>
     </div>
-
-    <div id="workshops-modal" class="modal"><div class="modal-content" style="max-width: 500px;"><div class="modal-header"><h2>🔧 Oficinas</h2><span class="close" onclick="document.getElementById('workshops-modal').style.display='none'">&times;</span></div><div class="modal-body"><div style="display:flex; gap:10px; margin-bottom:20px;"><input type="text" id="new-workshop-name" placeholder="Nome da Oficina"><button class="btn-save" onclick="app.addWorkshop()" style="width:auto;">Add</button></div><div id="workshops-list" style="max-height:300px; overflow-y:auto;"></div></div></div></div>
-    
-    <div id="report-modal" class="modal"><div class="modal-content" style="max-width: 400px;"><div class="modal-header"><h2>📅 Relatórios</h2><span class="close" onclick="document.getElementById('report-modal').style.display='none'">&times;</span></div><div class="modal-body"><label>Tipo:</label><select id="rep-type" style="margin-bottom:15px;"><option value="sector">Apenas Setor Atual</option><option value="global">🌍 GLOBAL (Todas Secretarias)</option></select><label>Início:</label><input type="date" id="rep-start" style="margin-bottom:15px;"><label>Fim:</label><input type="date" id="rep-end"><div style="margin-top:20px; display:flex; gap:10px;"><button class="btn-save" onclick="app.generatePeriodReport()">Gerar PDF</button></div></div></div></div>
-    
-    <div id="stock-modal" class="modal"><div class="modal-content"><div class="modal-header"><h2>📦 Estoque</h2><span class="close" onclick="document.getElementById('stock-modal').style.display='none'">&times;</span></div><div class="modal-body"><div style="background:#e9ecef; padding:10px; border-radius:8px; margin-bottom:15px; display:flex; gap:5px;"><input type="text" id="stock-new-name" placeholder="Peça" style="flex:2;margin:0;"><input type="number" id="stock-new-min" placeholder="Mín" style="flex:1;margin:0;"><button type="button" class="btn-save" onclick="app.createStockItem()" style="flex:1;margin:0;">Add</button></div><div id="stock-list" style="max-height:300px; overflow-y:auto;"></div><div id="stock-history-panel" style="display:none; border-top:2px solid #ddd; padding-top:15px; margin-top:15px;"><h4 id="hist-item-name"></h4><div style="display:flex; gap:5px; margin-bottom:10px;"><select id="hist-type" style="margin:0;"><option value="SAIDA">⬇️ SAÍDA</option><option value="ENTRADA">⬆️ ENTRADA</option></select><input type="number" id="hist-qtd" placeholder="Qtd" style="margin:0;"><button onclick="app.addStockMovement()" style="background:#333; color:white; border:none; padding:5px 15px; border-radius:5px;">OK</button></div><div id="hist-table-body"></div></div></div></div></div>
-    
-    <div id="checklist-screen" class="checklist-overlay" style="display:none;"><div class="checklist-header"><button onclick="app.closeChecklist()" class="btn-back">Voltar</button><h2>Checklist</h2><button onclick="app.generateChecklistPDF()" class="btn-save-check">PDF</button></div><div class="checklist-content"><div class="check-section"><input type="text" id="chk-placa" placeholder="Placa"><div class="two-col"><input type="date" id="chk-data"><input type="number" id="chk-km" placeholder="Km"></div><input type="text" id="chk-resp" placeholder="Responsável"></div><div id="checklist-items-container"></div><div class="check-section"><div class="signature-pad-wrapper"><canvas id="signature-pad"></canvas></div><button type="button" class="btn-clear-sig" onclick="app.clearSignature()">Limpar</button></div><div style="height:60px;"></div></div></div>
-    
-    <div id="sync-screen" class="sync-overlay"><div class="sync-content"><span id="sync-spinner" class="material-icons sync-spinner">autorenew</span><h3 id="sync-title">Sincronizando...</h3></div></div>
 
     <script src="app.js"></script>
 </body>
