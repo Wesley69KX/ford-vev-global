@@ -6,21 +6,21 @@ const app = {
         this.converterLogoParaBase64('logo.png');
     },
 
-    login() {
-        const pass = document.getElementById('pass-input').value;
-        if (pass === "2748") {
-            document.getElementById('login-view').style.display = 'none';
-            document.getElementById('main-view').style.display = 'block';
-            this.init();
-        } else { alert("Acesso Negado."); }
+    // --- CONTROLE DA JANELA (MODAL) ---
+    abrirModal() {
+        document.getElementById('modal-laudo').style.display = 'flex';
     },
 
+    fecharModal() {
+        document.getElementById('modal-laudo').style.display = 'none';
+    },
+
+    // --- PROCESSAMENTO DE FOTOS HD ---
     handleFotos(e) {
         const files = Array.from(e.target.files);
         files.forEach(file => {
             const reader = new FileReader();
             reader.onload = (ev) => {
-                // Alta Qualidade: 1600px e 95% de nitidez
                 this.comprimir(ev.target.result, 1600, 1600, (img) => {
                     this.fotos.push(img);
                     this.renderGaleria();
@@ -52,11 +52,12 @@ const app = {
         g.innerHTML = this.fotos.map((f, i) => `
             <div style="position:relative">
                 <img src="${f}" class="thumb">
-                <div onclick="app.fotos.splice(${i},1);app.renderGaleria()" style="position:absolute; top:-5px; right:-5px; background:red; color:white; border-radius:50%; width:18px; height:18px; font-size:12px; display:flex; align-items:center; justify-content:center; cursor:pointer">×</div>
+                <div onclick="app.fotos.splice(${i},1);app.renderGaleria()" style="position:absolute; top:-5px; right:-5px; background:red; color:white; border-radius:50%; width:20px; height:20px; font-size:14px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:bold;">×</div>
             </div>
         `).join('');
     },
 
+    // --- CORREÇÃO DA LOGO ---
     converterLogoParaBase64(url) {
         const img = new Image();
         img.src = url;
@@ -68,12 +69,12 @@ const app = {
         };
     },
 
+    // --- GERAÇÃO DO PDF FORMAL ---
     async gerarPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         const id = document.getElementById('f-id').value || "S/N";
 
-        // LOGO PROPORCIONAL
         if (this.logoBase64Cache) {
             const props = doc.getImageProperties(this.logoBase64Cache);
             const w = 40; 
@@ -84,13 +85,13 @@ const app = {
         doc.setFont("helvetica", "bold");
         doc.setFontSize(14);
         doc.setTextColor(0, 52, 120);
-        doc.text("RELATÓRIO TÉCNICO VEV GLOBAL", 200, 20, { align: "right" });
+        doc.text("LAUDO TÉCNICO DE INVARIA", 196, 20, { align: "right" });
 
         doc.autoTable({
             startY: 30,
             head: [['Campo', 'Informação Técnica']],
             body: [
-                ['Identificação/VIN', id],
+                ['Veículo / Placa', id],
                 ['Data do Registro', new Date().toLocaleDateString('pt-BR')],
                 ['Inspetor Responsável', 'EJA: 3108 / CC: 2748']
             ],
@@ -100,12 +101,12 @@ const app = {
         doc.setFontSize(11);
         doc.text("PARECER TÉCNICO:", 14, doc.lastAutoTable.finalY + 15);
         doc.setFont("helvetica", "normal");
-        const obs = doc.splitTextToSize(document.getElementById('f-obs').value || "Inspeção realizada. Nenhuma anomalia crítica registrada no momento do laudo.", 180);
+        const obs = doc.splitTextToSize(document.getElementById('f-obs').value || "Nenhuma anomalia crítica registrada no momento do laudo.", 180);
         doc.text(obs, 14, doc.lastAutoTable.finalY + 22);
 
         if (this.fotos.length > 0) {
             doc.addPage();
-            doc.text("ANEXOS FOTOGRÁFICOS (EVIDÊNCIAS HD)", 105, 15, { align: "center" });
+            doc.text("ANEXOS FOTOGRÁFICOS (EVIDÊNCIAS)", 105, 15, { align: "center" });
             let y = 25;
             for (let f of this.fotos) {
                 if (y + 70 > 280) { doc.addPage(); y = 20; }
@@ -114,7 +115,24 @@ const app = {
             }
         }
 
-        doc.save(`VEV_Relatorio_${id}.pdf`);
+        const fileName = `Laudo_Invaria_${id}.pdf`;
+        
+        // Fecha a janela do laudo e limpa os campos
+        this.fecharModal();
+        document.getElementById('f-id').value = '';
+        document.getElementById('f-obs').value = '';
+        this.fotos = [];
+        this.renderGaleria();
+
+        if (navigator.share && navigator.canShare) {
+            try {
+                const blob = doc.output('blob');
+                const file = new File([blob], fileName, { type: "application/pdf" });
+                await navigator.share({ files: [file], title: fileName });
+            } catch (e) { doc.save(fileName); }
+        } else {
+            doc.save(fileName);
+        }
     }
 };
 
