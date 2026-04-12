@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ford VEV - Sistema de Auditoria</title>
+    <title>Ford VEV - Central CC: 2748</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="logo.png">
@@ -13,90 +13,105 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
     <style>
-        :root { --ford-blue: #003478; --gray-100: #f8fafc; --gray-200: #e2e8f0; --text-dark: #1e293b; }
+        :root { --ford-blue: #003478; --bg: #f1f5f9; --card: #ffffff; --text: #1e293b; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', -apple-system, sans-serif; background-color: var(--gray-100); color: var(--text-dark); }
+        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
 
-        header { background: #fff; border-bottom: 1px solid var(--gray-200); padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
-        .header-logo { height: 35px; }
-
-        .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        /* LOGIN */
+        .login-screen { position: fixed; inset: 0; background: var(--ford-blue); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .login-card { background: white; padding: 2rem; border-radius: 1rem; width: 90%; max-width: 380px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3); }
         
-        /* Estilo Card Moderno */
-        .card { background: #fff; border-radius: 12px; border: 1px solid var(--gray-200); padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
-        h3 { font-size: 0.875rem; color: var(--ford-blue); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; font-weight: 700; border-bottom: 1px solid var(--gray-100); padding-bottom: 0.5rem; }
+        /* APP LAYOUT */
+        header { background: white; border-bottom: 1px solid #e2e8f0; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
+        .container { max-width: 700px; margin: 0 auto; padding: 1.5rem 1rem 5rem 1rem; }
+        
+        h2 { font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin: 1.5rem 0 0.75rem 0.5rem; font-weight: 800; }
 
-        /* Inputs Formais */
-        .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 0.4rem; color: #64748b; }
-        input, textarea, select { width: 100%; padding: 0.75rem; border: 1px solid var(--gray-200); border-radius: 8px; font-size: 0.95rem; outline: none; transition: all 0.2s; }
-        input:focus { border-color: var(--ford-blue); box-shadow: 0 0 0 3px rgba(0,52,120,0.1); }
+        /* CARDS DE FORMULÁRIOS (ESTILO ANTIGO MELHORADO) */
+        .grid-forms { display: grid; gap: 0.75rem; }
+        .card-form { background: white; padding: 1rem; border-radius: 0.75rem; display: flex; align-items: center; gap: 1rem; text-decoration: none; color: inherit; border: 1px solid #e2e8f0; transition: 0.2s; border-left: 4px solid var(--ford-blue); }
+        .card-form:active { background: #f8fafc; transform: scale(0.98); }
+        .icon-circle { width: 40px; height: 40px; border-radius: 50%; background: #f1f5f9; color: var(--ford-blue); display: flex; align-items: center; justify-content: center; }
 
-        /* Checklist */
-        .check-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--gray-100); }
-        .check-item span { font-size: 0.9rem; }
-        .check-btns { display: flex; gap: 0.5rem; }
-        .btn-status { border: 1px solid var(--gray-200); padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.75rem; cursor: pointer; background: #fff; }
-        .btn-status.active { background: var(--ford-blue); color: #fff; border-color: var(--ford-blue); }
+        /* ÁREA DE RELATÓRIO (MODERNA) */
+        .report-box { background: white; padding: 1.5rem; border-radius: 1rem; border: 1px solid #e2e8f0; }
+        .input-group { margin-bottom: 1rem; }
+        label { display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.4rem; color: #475569; }
+        input, textarea { width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-size: 0.95rem; outline: none; }
+        
+        .camera-trigger { background: #f8fafc; border: 2px dashed #cbd5e1; padding: 1.5rem; border-radius: 0.75rem; text-align: center; cursor: pointer; color: #64748b; font-weight: 600; margin: 1rem 0; }
+        .gallery { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .thumb { width: 100%; aspect-ratio: 1; border-radius: 0.5rem; object-fit: cover; border: 1px solid #e2e8f0; }
 
-        /* Câmera e Fotos */
-        .camera-area { text-align: center; border: 2px dashed var(--gray-200); padding: 2rem; border-radius: 12px; cursor: pointer; }
-        .camera-area:hover { border-color: var(--ford-blue); background: var(--gray-100); }
-        .gallery { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 1rem; }
-        .photo-thumb { width: 100%; aspect-ratio: 1; border-radius: 8px; object-fit: cover; }
-
-        /* Botão Principal */
-        .btn-generate { background: var(--ford-blue); color: #fff; width: 100%; padding: 1rem; border-radius: 12px; border: none; font-weight: 700; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 2rem; box-shadow: 0 10px 15px -3px rgba(0,52,120,0.2); }
+        .btn-main { background: var(--ford-blue); color: white; border: none; padding: 1rem; border-radius: 0.75rem; width: 100%; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 10px 15px -3px rgba(0,52,120,0.2); }
     </style>
 </head>
 <body>
 
-    <header>
-        <img src="logo.png" class="header-logo" alt="Ford VEV">
-        <div style="text-align: right">
-            <div style="font-weight: 800; color: var(--ford-blue)">EJA: 3108</div>
-            <div style="font-size: 0.7rem; color: #64748b">CC: 2748</div>
+    <div id="login-view" class="login-screen">
+        <div class="login-card">
+            <img src="logo.png" style="height: 40px; margin-bottom: 1rem;" onerror="this.style.display='none'">
+            <h1 style="color: var(--ford-blue); font-size: 1.2rem; margin-bottom: 0.5rem;">Acesso Operacional</h1>
+            <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 1.5rem;">CC: 2748 | EJA: 3108</p>
+            <input type="password" id="pass-input" placeholder="Senha de Acesso" style="text-align: center; margin-bottom: 1rem;">
+            <button class="btn-main" onclick="app.login()">Entrar no Sistema</button>
         </div>
-    </header>
+    </div>
 
-    <div class="container">
-        <div class="card">
-            <h3>Dados do Veículo</h3>
-            <div class="grid-inputs">
-                <div class="form-group"><label>Placa / VIN</label><input type="text" id="f-id" placeholder="Ex: ABC-1234"></div>
-                <div class="form-group"><label>KM Atual</label><input type="number" id="f-km"></div>
-                <div class="form-group"><label>Número do Motor</label><input type="text" id="f-motor"></div>
-                <div class="form-group"><label>Tipo de Transmissão</label>
-                    <select id="f-trans">
-                        <option>Manual</option>
-                        <option>Automática</option>
-                    </select>
-                </div>
+    <div id="main-view" style="display: none;">
+        <header>
+            <img src="logo.png" style="height: 30px;" alt="Logo" onerror="this.style.display='none'">
+            <div style="text-align: right">
+                <div style="font-weight: 900; color: var(--ford-blue); font-size: 0.9rem;">EJA: 3108</div>
+                <div style="font-size: 0.6rem; font-weight: 700; color: #64748b">FORD VEV GLOBAL</div>
             </div>
-        </div>
+        </header>
 
-        <div class="card">
-            <h3>Itens de Invaria</h3>
-            <div id="checklist-area">
+        <div class="container">
+            <h2>Atividades e Formulários</h2>
+            <div class="grid-forms">
+                <a href="https://forms.office.com/r/LGrPxcte1T" target="_blank" class="card-form">
+                    <div class="icon-circle"><span class="material-icons">fact_check</span></div>
+                    <div><div style="font-weight: 700;">Check List de Segurança</div><div style="font-size: 0.7rem; color: #64748b;">Inspeção Diária Obrigatória</div></div>
+                    <span class="material-icons" style="margin-left: auto; color: #cbd5e1;">open_in_new</span>
+                </a>
+                <a href="https://forms.office.com/r/FmGd5gJF5e" target="_blank" class="card-form">
+                    <div class="icon-circle"><span class="material-icons">local_gas_station</span></div>
+                    <div><div style="font-weight: 700;">Abastecimento</div><div style="font-size: 0.7rem; color: #64748b;">Registro de Litragem e KM</div></div>
+                    <span class="material-icons" style="margin-left: auto; color: #cbd5e1;">open_in_new</span>
+                </a>
+            </div>
+
+            <h2>Relatório de Invaria (Laudo HD)</h2>
+            <div class="report-box">
+                <div class="input-group"><label>Identificação / VIN</label><input type="text" id="f-id" placeholder="Ex: P703-001"></div>
+                <div class="input-group"><label>Parecer Técnico / Ocorrência</label><textarea id="f-obs" rows="3" placeholder="Descreva os detalhes encontrados..."></textarea></div>
+                
+                <div class="camera-trigger" onclick="document.getElementById('camera-input').click()">
+                    <span class="material-icons" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;">add_a_photo</span>
+                    Capturar Evidência (Câmera)
                 </div>
-        </div>
-
-        <div class="card">
-            <h3>Evidências e Laudo</h3>
-            <div class="form-group"><label>Conclusão Técnica</label><textarea id="f-obs" rows="4"></textarea></div>
-            <div class="camera-area" onclick="document.getElementById('camera-input').click()">
-                <span class="material-icons" style="font-size: 32px">add_a_photo</span>
-                <div style="font-weight: 600; margin-top: 5px">Registrar Avaria</div>
                 <input type="file" id="camera-input" accept="image/*" capture="environment" multiple style="display:none" onchange="app.handleFotos(event)">
-            </div>
-            <div id="galeria" class="gallery"></div>
-        </div>
+                <div id="galeria" class="gallery"></div>
 
-        <button class="btn-generate" onclick="app.gerarPDF()">
-            <span class="material-icons">description</span>
-            FINALIZAR E GERAR PDF FORMAL
-        </button>
+                <button class="btn-main" style="margin-top: 1.5rem;" onclick="app.gerarPDF()">
+                    <span class="material-icons">description</span> GERAR PDF FORMAL
+                </button>
+            </div>
+
+            <h2>Informações de Apoio</h2>
+            <div class="grid-forms">
+                <div class="card-form" style="border-left-color: #64748b;">
+                    <div class="icon-circle"><span class="material-icons">vpn_key</span></div>
+                    <div><div style="font-weight: 700;">Senha do Cartão</div><div style="font-family: monospace; font-size: 1.1rem; color: black; font-weight: bold;">958355</div></div>
+                </div>
+                <a href="tel:08007033673" class="card-form" style="border-left-color: #22c55e;">
+                    <div class="icon-circle" style="color: #22c55e;"><span class="material-icons">support_agent</span></div>
+                    <div><div style="font-weight: 700;">Guincho 24h</div><div style="font-size: 0.8rem; font-weight: bold;">0800 703 3673</div></div>
+                    <span class="material-icons" style="margin-left: auto; color: #22c55e;">call</span>
+                </a>
+            </div>
+        </div>
     </div>
 
     <script src="app.js"></script>
