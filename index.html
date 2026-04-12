@@ -13,12 +13,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
     <style>
-        :root { --ford-blue: #003478; --bg: #f1f5f9; --text: #1e293b; --danger: #dc3545; }
+        :root { --ford-blue: #003478; --bg: #f1f5f9; --text: #1e293b; --danger: #dc3545; --warning: #f59e0b; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; padding-bottom: 30px; }
 
         header { background: white; border-bottom: 1px solid #e2e8f0; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
-        .container { max-width: 700px; margin: 0 auto; padding: 1.5rem 1rem 5rem 1rem; }
+        .container { max-width: 700px; margin: 0 auto; padding: 1.5rem 1rem; }
         h2 { font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin: 1.5rem 0 0.75rem 0.5rem; font-weight: 800; }
 
         .grid-forms { display: grid; gap: 0.75rem; }
@@ -28,7 +28,11 @@
         .icon-circle { width: 40px; height: 40px; border-radius: 50%; background: #f1f5f9; color: var(--ford-blue); display: flex; align-items: center; justify-content: center; }
         .card-form.danger .icon-circle { color: var(--danger); background: #fef2f2; }
 
-        /* MODAL (LAUDO) */
+        /* MURAL DE AVISOS */
+        .alert-box { background: #fffbeb; border: 1px solid #fde68a; border-left: 4px solid var(--warning); padding: 1rem; border-radius: 0.75rem; margin-bottom: 1rem; display: flex; gap: 1rem; align-items: flex-start; }
+        .alert-box .icon-circle { background: #fef3c7; color: var(--warning); width: 35px; height: 35px; flex-shrink: 0; }
+
+        /* MODAL */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: flex-end; justify-content: center; z-index: 1000; }
         .modal-content { background: white; width: 100%; max-width: 700px; border-radius: 1.5rem 1.5rem 0 0; padding: 2rem 1.5rem; max-height: 95vh; overflow-y: auto; position: relative; }
         .close-btn { position: absolute; top: 1rem; right: 1.5rem; background: #e2e8f0; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #64748b; font-weight: bold; }
@@ -41,12 +45,11 @@
         label { display: block; font-size: 0.7rem; font-weight: 700; margin-bottom: 0.3rem; color: #64748b; }
         input, textarea { width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-size: 0.9rem; outline: none; }
         
-        .camera-trigger { background: #f8fafc; border: 2px dashed #cbd5e1; padding: 1.5rem; border-radius: 0.75rem; text-align: center; cursor: pointer; color: #64748b; font-weight: 600; margin: 1rem 0; transition: 0.2s; }
-        .camera-trigger:active { border-color: var(--ford-blue); background: #e2e8f0; }
+        .camera-trigger { background: #f8fafc; border: 2px dashed #cbd5e1; padding: 1.5rem; border-radius: 0.75rem; text-align: center; cursor: pointer; color: #64748b; font-weight: 600; margin: 1rem 0; }
         .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         .thumb { width: 100%; aspect-ratio: 1; border-radius: 0.5rem; object-fit: cover; border: 1px solid #e2e8f0; }
 
-        .btn-main { background: var(--ford-blue); color: white; border: none; padding: 1.2rem; border-radius: 0.75rem; width: 100%; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 1.5rem; font-size: 1rem; }
+        .btn-main { background: var(--ford-blue); color: white; border: none; padding: 1.2rem; border-radius: 0.75rem; width: 100%; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1rem; }
     </style>
 </head>
 <body>
@@ -60,6 +63,18 @@
     </header>
 
     <div class="container">
+        
+        <div class="alert-box">
+            <div class="icon-circle"><span class="material-icons">campaign</span></div>
+            <div>
+                <div style="font-weight: 800; font-size: 0.8rem; color: #92400e;">AVISO DA LIDERANÇA</div>
+                <div style="font-size: 0.85rem; color: #b45309; margin-top: 2px;">
+                    "Atenção equipe: Rota alternativa liberada para o trecho sul devido a obras na pista principal. Redobrem a atenção."
+                </div>
+                <div style="font-size: 0.65rem; color: #d97706; margin-top: 5px;">Atualizado às 08:15</div>
+            </div>
+        </div>
+
         <h2>Formulários Operacionais</h2>
         <div class="grid-forms">
             <a href="https://forms.office.com/r/LGrPxcte1T" target="_blank" class="card-form">
@@ -80,9 +95,23 @@
         <div class="grid-forms">
             <div class="card-form" onclick="app.abrirModal()" style="border-left-color: #22c55e;">
                 <div class="icon-circle" style="color: #22c55e; background: #dcfce7;"><span class="material-icons">assignment_turned_in</span></div>
-                <div><div style="font-weight: 700;">Novo Laudo de Invaria</div><div style="font-size: 0.7rem; color: #64748b;">Relatório Técnico Formal (Qualidade Máxima)</div></div>
+                <div><div style="font-weight: 700;">Novo Laudo de Invaria</div><div style="font-size: 0.7rem; color: #64748b;">Relatório HD / 4K</div></div>
             </div>
         </div>
+
+        <h2>Apoio Operacional</h2>
+        <div class="grid-forms">
+            <div class="card-form" style="border-left-color: #64748b;">
+                <div class="icon-circle" style="background: #f1f5f9; color: #64748b;"><span class="material-icons">password</span></div>
+                <div><div style="font-weight: 700;">Senha do Cartão</div><div style="font-family: monospace; font-size: 1.2rem; font-weight: bold; letter-spacing: 2px;">958355</div></div>
+            </div>
+            <a href="tel:08007033673" class="card-form" style="border-left-color: #64748b;">
+                <div class="icon-circle" style="background: #f1f5f9; color: #64748b;"><span class="material-icons">support_agent</span></div>
+                <div><div style="font-weight: 700;">Guincho 24h</div><div style="font-size: 1rem; font-weight: bold;">0800 703 3673</div></div>
+                <span class="material-icons" style="margin-left: auto; color: #22c55e; background: #dcfce7; padding: 8px; border-radius: 50%;">call</span>
+            </a>
+        </div>
+
     </div>
 
     <div id="modal-laudo" class="modal-overlay">
@@ -110,7 +139,7 @@
                 <h4>3. Parecer Técnico</h4>
                 <div class="input-group">
                     <label>Relato da Ocorrência / Observações</label>
-                    <textarea id="f-obs" rows="4" placeholder="Descreva tecnicamente a anomalia ou o status do veículo..."></textarea>
+                    <textarea id="f-obs" rows="4" placeholder="Descreva tecnicamente a anomalia..."></textarea>
                 </div>
             </div>
             
@@ -118,7 +147,7 @@
                 <h4>4. Evidências Fotográficas</h4>
                 <div class="camera-trigger" onclick="document.getElementById('camera-input').click()">
                     <span class="material-icons" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;">photo_camera</span>
-                    Capturar Imagem em Qualidade Máxima (4K/HD)
+                    Capturar Imagem (Qualidade Máxima)
                 </div>
                 <input type="file" id="camera-input" accept="image/*" capture="environment" multiple style="display:none" onchange="app.handleFotos(event)">
                 <div id="galeria" class="gallery"></div>
