@@ -7,7 +7,7 @@ const app = {
         this.converterLogoParaBase64('logo.png');
     },
 
-    // --- PROCESSAMENTO DE MÍDIA ---
+    // --- PROCESSAMENTO DE MÍDIA (AGORA EM ALTA QUALIDADE) ---
     processarFotos(event) {
         const arquivos = event.target.files;
         if (!arquivos) return;
@@ -15,7 +15,8 @@ const app = {
             const reader = new FileReader();
             reader.readAsDataURL(arquivo);
             reader.onload = (e) => {
-                this.comprimirImagem(e.target.result, 800, 800, (foto) => {
+                // MUDANÇA 1: Resolução máxima aumentada para 1600x1600
+                this.comprimirImagem(e.target.result, 1600, 1600, (foto) => {
                     this.fotos.push({ src: foto, descricao: "" });
                     this.atualizarGaleria();
                 });
@@ -32,8 +33,15 @@ const app = {
             if (w > h) { if (w > maxW) { h *= maxW / w; w = maxW; } }
             else { if (h > maxH) { w *= maxH / h; h = maxH; } }
             canvas.width = w; canvas.height = h;
-            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-            callback(canvas.toDataURL('image/jpeg', 0.7));
+            
+            // Suavização para manter qualidade
+            const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(img, 0, 0, w, h);
+            
+            // MUDANÇA 2: Qualidade JPEG de 0.7 (70%) para 0.95 (95% - Alta Qualidade)
+            callback(canvas.toDataURL('image/jpeg', 0.95));
         };
     },
 
@@ -43,7 +51,7 @@ const app = {
         this.fotos.forEach((f, i) => {
             div.innerHTML += `
                 <div class="photo-card" style="margin-bottom:10px;">
-                    <img src="${f.src}" style="width:100px; height:100px; object-fit:cover; border-radius:5px;">
+                    <img src="${f.src}" style="width:100px; height:100px; object-fit:cover; border-radius:5px; border: 1px solid #ccc;">
                     <input type="text" placeholder="Legenda da foto..." onchange="app.fotos[${i}].descricao = this.value" style="display:block; width:100px; font-size:10px; margin-top:2px;">
                     <button onclick="app.removerFoto(${i})" style="background:red; color:white; border:none; padding:2px 5px; cursor:pointer;">X</button>
                 </div>
@@ -88,7 +96,7 @@ const app = {
         doc.setLineWidth(0.5);
         doc.line(14, 25, 196, 25);
 
-        // 2. Informações Gerais (Tabela Simples)
+        // 2. Informações Gerais
         doc.setFontSize(10);
         doc.setFillColor(240, 240, 240);
         doc.rect(14, 30, 182, 25, 'F');
@@ -107,7 +115,7 @@ const app = {
         const relato = doc.splitTextToSize(obs || "Inspeção realizada conforme padrões operacionais. Veículo não apresenta avarias externas ou mecânicas aparentes.", 182);
         doc.text(relato, 14, 72);
 
-        // 4. Anexos Fotográficos (Se houver)
+        // 4. Anexos Fotográficos (Alta Qualidade)
         let y = 80 + (relato.length * 5);
         if (this.fotos.length > 0) {
             doc.setFont("helvetica", "bold");
@@ -119,7 +127,8 @@ const app = {
             for (let i = 0; i < this.fotos.length; i++) {
                 if (y + 55 > 270) { doc.addPage(); y = 20; xPos = 14; }
                 
-                doc.addImage(this.fotos[i].src, 'JPEG', xPos, y, 55, 55);
+                // MUDANÇA 3: Inserção FAST para evitar travamento, mas mantendo a compressão original boa
+                doc.addImage(this.fotos[i].src, 'JPEG', xPos, y, 55, 55, undefined, 'FAST');
                 doc.setFontSize(8);
                 doc.setFont("helvetica", "italic");
                 doc.text(`Fig. ${i+1}: ${this.fotos[i].descricao || 'Sem legenda'}`, xPos, y + 59);
@@ -139,10 +148,14 @@ const app = {
 
         // 6. Enviar/Salvar
         const fileName = `Laudo_${id}_${Date.now()}.pdf`;
-        if (navigator.share) {
-            const blob = doc.output('blob');
-            const file = new File([blob], fileName, { type: "application/pdf" });
-            navigator.share({ files: [file], title: fileName });
+        if (navigator.share && navigator.canShare) {
+            try {
+                const blob = doc.output('blob');
+                const file = new File([blob], fileName, { type: "application/pdf" });
+                await navigator.share({ files: [file], title: fileName });
+            } catch (e) {
+                doc.save(fileName);
+            }
         } else {
             doc.save(fileName);
         }
