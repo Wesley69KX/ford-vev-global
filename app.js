@@ -14,7 +14,8 @@ const app = {
         files.forEach(file => {
             const reader = new FileReader();
             reader.onload = (ev) => {
-                this.comprimir(ev.target.result, 1600, 1600, (img) => {
+                // EXTREME QUALITY: Resolução de 3000px (4K-ish)
+                this.comprimir(ev.target.result, 3000, 3000, (img) => {
                     this.fotos.push(img);
                     this.renderGaleria();
                 });
@@ -33,10 +34,14 @@ const app = {
             else { if (h > maxH) { w *= maxH / h; h = maxH; } }
             canvas.width = w; canvas.height = h;
             const ctx = canvas.getContext('2d');
+            
+            // Forçando a renderização com máxima qualidade do navegador
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = 'high';
             ctx.drawImage(img, 0, 0, w, h);
-            cb(canvas.toDataURL('image/jpeg', 0.95));
+            
+            // QUALIDADE 1.0 = 100% (Sem perdas no JPEG)
+            cb(canvas.toDataURL('image/jpeg', 1.0));
         };
     },
 
@@ -71,10 +76,10 @@ const app = {
         const registro = document.getElementById('f-registro').value || "---";
         const obs = document.getElementById('f-obs').value || "Nenhuma anomalia crítica registrada.";
 
-        // --- LOGO DISCRETA (30% menor) ---
+        // --- LOGO DISCRETA ---
         if (this.logoBase64Cache) {
             const props = doc.getImageProperties(this.logoBase64Cache);
-            const w = 28; // Reduzido de 40 para 28
+            const w = 28; 
             const h = (props.height * w) / props.width;
             doc.addImage(this.logoBase64Cache, 'PNG', 14, 12, w, h);
         }
@@ -87,7 +92,7 @@ const app = {
         doc.setDrawColor(200, 200, 200);
         doc.line(14, 28, 196, 28);
 
-        // --- TABELA DE IDENTIFICAÇÃO (MAIS PROFISSIONAL) ---
+        // --- TABELA DE IDENTIFICAÇÃO ---
         doc.autoTable({
             startY: 35,
             head: [['INFORMAÇÕES DO VEÍCULO E CONDUTOR', 'DETALHES']],
@@ -116,19 +121,20 @@ const app = {
         const splitObs = doc.splitTextToSize(obs, 180);
         doc.text(splitObs, 14, finalY + 18);
 
-        // --- FOTOS EM GRID ORGANIZADO ---
+        // --- FOTOS EM QUALIDADE MÁXIMA ---
         if (this.fotos.length > 0) {
             doc.addPage();
             doc.setFont("helvetica", "bold");
             doc.setFontSize(12);
             doc.setTextColor(0, 52, 120);
-            doc.text("EVIDÊNCIAS FOTOGRÁFICAS (ALTA RESOLUÇÃO)", 105, 15, { align: "center" });
+            doc.text("EVIDÊNCIAS FOTOGRÁFICAS (QUALIDADE MÁXIMA)", 105, 15, { align: "center" });
             
             let y = 25;
             let x = 14;
             this.fotos.forEach((foto, index) => {
                 if (y + 70 > 280) { doc.addPage(); y = 20; x = 14; }
                 
+                // Sem parâmetros de redução ('FAST' removido), injetando a imagem bruta
                 doc.addImage(foto, 'JPEG', x, y, 85, 65);
                 doc.setFontSize(8);
                 doc.text(`Evidência #${index + 1}`, x, y + 70);
@@ -144,12 +150,11 @@ const app = {
             doc.setPage(i);
             doc.setFontSize(8);
             doc.setTextColor(150);
-            doc.text(`Ford VEV Global - Documento Gerado Eletronicamente via Concierge DOT - Página ${i} de ${pageCount}`, 105, 290, {align: "center"});
+            doc.text(`Ford VEV Global - Documento Gerado Eletronicamente via Sistema - Página ${i} de ${pageCount}`, 105, 290, {align: "center"});
         }
 
         const fileName = `Relatorio_VEV_${id}_${Date.now()}.pdf`;
         
-        // Reset e Share
         this.fecharModal();
         this.limparForm();
         
