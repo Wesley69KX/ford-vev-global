@@ -4,22 +4,19 @@ const app = {
 
     init() {
         this.converterLogoParaBase64('logo.png');
-        // Preenche a data de hoje no formato dd/mm para facilitar o turno
         const hoje = new Date();
         document.getElementById('t-data').value = hoje.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'});
     },
 
-    abrirModal(id) { document.getElementById(id).style.display = 'flex'; },
-    fecharModal(id) { document.getElementById(id).style.display = 'none'; },
+    abrirModal(id) { window.appUI.abrirModal(id); },
+    fecharModal(id) { window.appUI.fecharModal(id); },
 
-    // --- LOGICA DE FOTOS E LEGENDAS ---
     handleFotos(e) {
         const files = Array.from(e.target.files);
         files.forEach(file => {
             const reader = new FileReader();
             reader.onload = (ev) => {
                 this.comprimir(ev.target.result, 1600, 1600, (img) => {
-                    // Agora salva a imagem e um espaço para a legenda
                     this.fotos.push({ src: img, legenda: '' });
                     this.renderGaleria();
                 });
@@ -45,14 +42,8 @@ const app = {
         };
     },
 
-    atualizarLegenda(index, valor) {
-        this.fotos[index].legenda = valor;
-    },
-
-    removerFoto(index) {
-        this.fotos.splice(index, 1);
-        this.renderGaleria();
-    },
+    atualizarLegenda(index, valor) { this.fotos[index].legenda = valor; },
+    removerFoto(index) { this.fotos.splice(index, 1); this.renderGaleria(); },
 
     renderGaleria() {
         const g = document.getElementById('galeria-invaria');
@@ -77,7 +68,7 @@ const app = {
     },
 
     // ==========================================
-    // 1. GERAR LAUDO INVARIA (COM FOTOS E LEGENDAS)
+    // 1. GERAR LAUDO INVARIA (FOTOS PROPORCIONAIS)
     // ==========================================
     async gerarPDFInvaria() {
         const { jsPDF } = window.jspdf;
@@ -87,7 +78,6 @@ const app = {
         const motorista = document.getElementById('i-motorista').value || "---";
         const obs = document.getElementById('i-obs').value || "Sem observações.";
 
-        // Logo
         if (this.logoBase64Cache) {
             const props = doc.getImageProperties(this.logoBase64Cache);
             const w = 28; 
@@ -103,7 +93,6 @@ const app = {
         doc.setDrawColor(200, 200, 200);
         doc.line(14, 28, 196, 28);
 
-        // Tabela Dados
         doc.autoTable({
             startY: 35,
             head: [['INFORMAÇÕES DA AUDITORIA', 'DETALHES']],
@@ -118,7 +107,6 @@ const app = {
             styles: { fontSize: 8, cellPadding: 2 }
         });
 
-        // Parecer
         let finalY = doc.lastAutoTable.finalY;
         doc.setFontSize(10);
         doc.setTextColor(0, 52, 120);
@@ -129,7 +117,7 @@ const app = {
         const splitObs = doc.splitTextToSize(obs, 180);
         doc.text(splitObs, 14, finalY + 18);
 
-        // --- FOTOS CORPORATIVAS COM LEGENDA ---
+        // --- FOTOS COM PROPORÇÃO CORRETA (SEM ESTICAR) ---
         if (this.fotos.length > 0) {
             doc.addPage();
             doc.setFont("helvetica", "bold");
@@ -139,29 +127,44 @@ const app = {
             
             let y = 25;
             let x = 14;
-            const photoWidth = 85;
-            const photoHeight = 60;
+            const boxWidth = 85;
+            const boxHeight = 70; // Área máxima permitida para a foto
 
             this.fotos.forEach((foto, index) => {
-                if (y + photoHeight + 15 > 280) { doc.addPage(); y = 20; x = 14; }
+                if (y + boxHeight + 20 > 280) { doc.addPage(); y = 20; x = 14; }
                 
+                // Calcula a proporção real da imagem para não distorcer
+                const imgProps = doc.getImageProperties(foto.src);
+                const ratio = imgProps.height / imgProps.width;
+                
+                let renderWidth = boxWidth;
+                let renderHeight = renderWidth * ratio;
+                
+                // Se a foto for muito alta (ex: foto em pé), ajusta pela altura
+                if (renderHeight > boxHeight) {
+                    renderHeight = boxHeight;
+                    renderWidth = renderHeight / ratio;
+                }
+
+                // Centraliza a imagem dentro da caixa virtual
+                const offsetX = x + (boxWidth - renderWidth) / 2;
+                const offsetY = y + (boxHeight - renderHeight) / 2;
+
                 doc.setDrawColor(200);
-                doc.rect(x, y, photoWidth, photoHeight); // Borda na foto
-                doc.addImage(foto.src, 'JPEG', x, y, photoWidth, photoHeight);
+                doc.rect(x, y, boxWidth, boxHeight); // Desenha a moldura padrão
+                doc.addImage(foto.src, 'JPEG', offsetX, offsetY, renderWidth, renderHeight); // Insere a foto real
                 
-                // Legenda abaixo da foto
                 doc.setFontSize(8);
                 doc.setTextColor(0);
                 doc.setFont("helvetica", "bold");
-                doc.text(`Evidência #${index + 1}:`, x, y + photoHeight + 5);
+                doc.text(`Evidência #${index + 1}:`, x, y + boxHeight + 5);
                 doc.setFont("helvetica", "normal");
                 
-                const txtLegenda = doc.splitTextToSize(foto.legenda || 'Sem legenda informada', photoWidth);
-                doc.text(txtLegenda, x, y + photoHeight + 9);
+                const txtLegenda = doc.splitTextToSize(foto.legenda || 'Sem legenda informada', boxWidth);
+                doc.text(txtLegenda, x, y + boxHeight + 9);
                 
-                // Lógica de Grid (2 por linha)
                 x = x === 14 ? 110 : 14;
-                if (x === 14) y += photoHeight + 25;
+                if (x === 14) y += boxHeight + 25;
             });
         }
 
@@ -171,7 +174,7 @@ const app = {
     },
 
     // ==========================================
-    // 2. FECHAMENTO DE TURNO (WHATSAPP E PDF)
+    // 2. FLUXO INTEGRADO: TURNO (ZAP + PDF)
     // ==========================================
     gerarTextoTurno() {
         const turno = document.getElementById('t-turno').value;
@@ -185,7 +188,7 @@ const app = {
         const litros = document.getElementById('t-litros').value;
         const saldo = document.getElementById('t-saldo').value;
 
-        let texto = `Abastecimento ${veiculo}\n`;
+        let texto = `*Abastecimento ${veiculo}*\n`;
         texto += `${turno} ${data}\n`;
         texto += `VIN: ${vin}\n\n`;
         if(posto) texto += `Posto: ${posto}\n`;
@@ -197,17 +200,18 @@ const app = {
         return texto;
     },
 
-    copiarParaWhatsApp() {
+    async finalizarTurnoIntegrado() {
         const texto = this.gerarTextoTurno();
-        navigator.clipboard.writeText(texto).then(() => {
-            alert("✅ Texto formatado copiado! Cole no grupo do WhatsApp.");
-            this.fecharModal('modal-turno');
-        }).catch(err => {
-            alert("Erro ao copiar. Seu navegador não permite essa ação.");
-        });
-    },
+        
+        // 1. Tenta copiar para o WhatsApp primeiro
+        try {
+            await navigator.clipboard.writeText(texto);
+            alert("✅ O texto do abastecimento foi copiado com sucesso!\n\nCole no WhatsApp assim que o PDF terminar de baixar.");
+        } catch (err) {
+            console.log("Navegador não suporta cópia automática.", err);
+        }
 
-    gerarPDFTurno() {
+        // 2. Gera o PDF na sequência
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         
@@ -215,11 +219,12 @@ const app = {
         doc.setFontSize(16);
         doc.text("RELATÓRIO DE ABASTECIMENTO", 105, 20, { align: "center" });
 
-        const texto = this.gerarTextoTurno();
-        
         doc.setFont("helvetica", "normal");
         doc.setFontSize(12);
-        const linhas = doc.splitTextToSize(texto, 150);
+        
+        // Remove os asteriscos do negrito do zap para o PDF ficar limpo
+        const textoLimpo = texto.replace(/\*/g, ''); 
+        const linhas = doc.splitTextToSize(textoLimpo, 150);
         
         doc.setFillColor(245, 245, 245);
         doc.rect(20, 30, 170, (linhas.length * 7) + 20, 'F');
