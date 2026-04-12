@@ -4,19 +4,23 @@ const app = {
 
     init() {
         this.converterLogoParaBase64('logo.png');
+        // Preenche a data de hoje no formato dd/mm para facilitar o turno
+        const hoje = new Date();
+        document.getElementById('t-data').value = hoje.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'});
     },
 
-    abrirModal() { window.appUI.abrirModal(); },
-    fecharModal() { window.appUI.fecharModal(); },
+    abrirModal(id) { document.getElementById(id).style.display = 'flex'; },
+    fecharModal(id) { document.getElementById(id).style.display = 'none'; },
 
+    // --- LOGICA DE FOTOS E LEGENDAS ---
     handleFotos(e) {
         const files = Array.from(e.target.files);
         files.forEach(file => {
             const reader = new FileReader();
             reader.onload = (ev) => {
-                // EXTREME QUALITY: Resolução de 3000px (4K-ish)
-                this.comprimir(ev.target.result, 3000, 3000, (img) => {
-                    this.fotos.push(img);
+                this.comprimir(ev.target.result, 1600, 1600, (img) => {
+                    // Agora salva a imagem e um espaço para a legenda
+                    this.fotos.push({ src: img, legenda: '' });
                     this.renderGaleria();
                 });
             };
@@ -34,23 +38,29 @@ const app = {
             else { if (h > maxH) { w *= maxH / h; h = maxH; } }
             canvas.width = w; canvas.height = h;
             const ctx = canvas.getContext('2d');
-            
-            // Forçando a renderização com máxima qualidade do navegador
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = 'high';
             ctx.drawImage(img, 0, 0, w, h);
-            
-            // QUALIDADE 1.0 = 100% (Sem perdas no JPEG)
-            cb(canvas.toDataURL('image/jpeg', 1.0));
+            cb(canvas.toDataURL('image/jpeg', 0.95));
         };
     },
 
+    atualizarLegenda(index, valor) {
+        this.fotos[index].legenda = valor;
+    },
+
+    removerFoto(index) {
+        this.fotos.splice(index, 1);
+        this.renderGaleria();
+    },
+
     renderGaleria() {
-        const g = document.getElementById('galeria');
+        const g = document.getElementById('galeria-invaria');
         g.innerHTML = this.fotos.map((f, i) => `
-            <div style="position:relative">
-                <img src="${f}" class="thumb">
-                <div onclick="app.fotos.splice(${i},1);app.renderGaleria()" style="position:absolute; top:-5px; right:-5px; background:red; color:white; border-radius:50%; width:22px; height:22px; font-size:14px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:bold;">×</div>
+            <div class="photo-wrapper">
+                <button class="btn-delete-photo" onclick="app.removerFoto(${i})"><span class="material-icons" style="font-size:14px;">close</span></button>
+                <img src="${f.src}">
+                <input type="text" placeholder="Digite uma legenda..." value="${f.legenda}" oninput="app.atualizarLegenda(${i}, this.value)">
             </div>
         `).join('');
     },
@@ -66,17 +76,18 @@ const app = {
         };
     },
 
-    async gerarPDF() {
+    // ==========================================
+    // 1. GERAR LAUDO INVARIA (COM FOTOS E LEGENDAS)
+    // ==========================================
+    async gerarPDFInvaria() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         
-        const id = document.getElementById('f-id').value || "S/N";
-        const km = document.getElementById('f-km').value || "---";
-        const motorista = document.getElementById('f-motorista').value || "Não Informado";
-        const registro = document.getElementById('f-registro').value || "---";
-        const obs = document.getElementById('f-obs').value || "Nenhuma anomalia crítica registrada.";
+        const id = document.getElementById('i-id').value || "S/N";
+        const motorista = document.getElementById('i-motorista').value || "---";
+        const obs = document.getElementById('i-obs').value || "Sem observações.";
 
-        // --- LOGO DISCRETA ---
+        // Logo
         if (this.logoBase64Cache) {
             const props = doc.getImageProperties(this.logoBase64Cache);
             const w = 28; 
@@ -87,94 +98,147 @@ const app = {
         doc.setFont("helvetica", "bold");
         doc.setFontSize(14);
         doc.setTextColor(0, 52, 120);
-        doc.text("RELATÓRIO TÉCNICO DE ENGENHARIA", 196, 20, { align: "right" });
+        doc.text("LAUDO DE INVARIA - AUDITORIA", 196, 20, { align: "right" });
         
         doc.setDrawColor(200, 200, 200);
         doc.line(14, 28, 196, 28);
 
-        // --- TABELA DE IDENTIFICAÇÃO ---
+        // Tabela Dados
         doc.autoTable({
             startY: 35,
-            head: [['INFORMAÇÕES DO VEÍCULO E CONDUTOR', 'DETALHES']],
+            head: [['INFORMAÇÕES DA AUDITORIA', 'DETALHES']],
             body: [
                 ['PLACA / VIN', id],
-                ['QUILOMETRAGEM', km + " KM"],
-                ['CONDUTOR RESPONSÁVEL', motorista],
-                ['REGISTRO / CDSID', registro],
+                ['CONDUTOR / RESPONSÁVEL', motorista],
                 ['DATA DA EMISSÃO', new Date().toLocaleDateString('pt-BR')],
-                ['LOCAL / CC', 'CENTRO DE CUSTO: 2748'],
-                ['INSPETOR TÉCNICO', 'EJA: 3108']
+                ['LOCAL / CC', 'CENTRO DE CUSTO: 2748']
             ],
             theme: 'grid',
             headStyles: { fillColor: [0, 52, 120], fontSize: 9 },
             styles: { fontSize: 8, cellPadding: 2 }
         });
 
-        // --- PARECER TÉCNICO ---
+        // Parecer
         let finalY = doc.lastAutoTable.finalY;
         doc.setFontSize(10);
         doc.setTextColor(0, 52, 120);
-        doc.text("PARECER TÉCNICO E OBSERVAÇÕES:", 14, finalY + 12);
+        doc.text("PARECER TÉCNICO:", 14, finalY + 12);
         
         doc.setFont("helvetica", "normal");
         doc.setTextColor(50, 50, 50);
         const splitObs = doc.splitTextToSize(obs, 180);
         doc.text(splitObs, 14, finalY + 18);
 
-        // --- FOTOS EM QUALIDADE MÁXIMA ---
+        // --- FOTOS CORPORATIVAS COM LEGENDA ---
         if (this.fotos.length > 0) {
             doc.addPage();
             doc.setFont("helvetica", "bold");
-            doc.setFontSize(12);
+            doc.setFontSize(11);
             doc.setTextColor(0, 52, 120);
-            doc.text("EVIDÊNCIAS FOTOGRÁFICAS (QUALIDADE MÁXIMA)", 105, 15, { align: "center" });
+            doc.text("ANEXO I - EVIDÊNCIAS FOTOGRÁFICAS", 14, 15);
             
             let y = 25;
             let x = 14;
+            const photoWidth = 85;
+            const photoHeight = 60;
+
             this.fotos.forEach((foto, index) => {
-                if (y + 70 > 280) { doc.addPage(); y = 20; x = 14; }
+                if (y + photoHeight + 15 > 280) { doc.addPage(); y = 20; x = 14; }
                 
-                // Sem parâmetros de redução ('FAST' removido), injetando a imagem bruta
-                doc.addImage(foto, 'JPEG', x, y, 85, 65);
+                doc.setDrawColor(200);
+                doc.rect(x, y, photoWidth, photoHeight); // Borda na foto
+                doc.addImage(foto.src, 'JPEG', x, y, photoWidth, photoHeight);
+                
+                // Legenda abaixo da foto
                 doc.setFontSize(8);
-                doc.text(`Evidência #${index + 1}`, x, y + 70);
+                doc.setTextColor(0);
+                doc.setFont("helvetica", "bold");
+                doc.text(`Evidência #${index + 1}:`, x, y + photoHeight + 5);
+                doc.setFont("helvetica", "normal");
                 
+                const txtLegenda = doc.splitTextToSize(foto.legenda || 'Sem legenda informada', photoWidth);
+                doc.text(txtLegenda, x, y + photoHeight + 9);
+                
+                // Lógica de Grid (2 por linha)
                 x = x === 14 ? 110 : 14;
-                if (x === 14) y += 80;
+                if (x === 14) y += photoHeight + 25;
             });
         }
 
-        // --- RODAPÉ ---
-        const pageCount = doc.internal.getNumberOfPages();
-        for(let i = 1; i <= pageCount; i++) {
-            doc.setPage(i);
-            doc.setFontSize(8);
-            doc.setTextColor(150);
-            doc.text(`Ford VEV Global - Documento Gerado Eletronicamente via Sistema - Página ${i} de ${pageCount}`, 105, 290, {align: "center"});
-        }
+        const fileName = `Invaria_${id}_${Date.now()}.pdf`;
+        this.fecharModal('modal-laudo');
+        this.salvarOuCompartilhar(doc, fileName);
+    },
 
-        const fileName = `Relatorio_VEV_${id}_${Date.now()}.pdf`;
+    // ==========================================
+    // 2. FECHAMENTO DE TURNO (WHATSAPP E PDF)
+    // ==========================================
+    gerarTextoTurno() {
+        const turno = document.getElementById('t-turno').value;
+        const data = document.getElementById('t-data').value;
+        const veiculo = document.getElementById('t-veiculo').value;
+        const vin = document.getElementById('t-vin').value;
+        const posto = document.getElementById('t-posto').value;
+        const trip = document.getElementById('t-trip').value;
+        const km = document.getElementById('t-km').value;
+        const tipoComb = document.getElementById('t-tipo-comb').value;
+        const litros = document.getElementById('t-litros').value;
+        const saldo = document.getElementById('t-saldo').value;
+
+        let texto = `Abastecimento ${veiculo}\n`;
+        texto += `${turno} ${data}\n`;
+        texto += `VIN: ${vin}\n\n`;
+        if(posto) texto += `Posto: ${posto}\n`;
+        texto += `Trip: ${trip}\n`;
+        texto += `Km: ${km}\n`;
+        texto += `Litros ${tipoComb}: ${litros}\n`;
+        if(saldo) texto += `Saldo Disponível: R$ ${saldo}\n`;
+
+        return texto;
+    },
+
+    copiarParaWhatsApp() {
+        const texto = this.gerarTextoTurno();
+        navigator.clipboard.writeText(texto).then(() => {
+            alert("✅ Texto formatado copiado! Cole no grupo do WhatsApp.");
+            this.fecharModal('modal-turno');
+        }).catch(err => {
+            alert("Erro ao copiar. Seu navegador não permite essa ação.");
+        });
+    },
+
+    gerarPDFTurno() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
         
-        this.fecharModal();
-        this.limparForm();
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(16);
+        doc.text("RELATÓRIO DE ABASTECIMENTO", 105, 20, { align: "center" });
+
+        const texto = this.gerarTextoTurno();
         
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(12);
+        const linhas = doc.splitTextToSize(texto, 150);
+        
+        doc.setFillColor(245, 245, 245);
+        doc.rect(20, 30, 170, (linhas.length * 7) + 20, 'F');
+        doc.text(linhas, 30, 45);
+
+        const fileName = `Abastecimento_${document.getElementById('t-vin').value}.pdf`;
+        this.fecharModal('modal-turno');
+        this.salvarOuCompartilhar(doc, fileName);
+    },
+
+    async salvarOuCompartilhar(doc, fileName) {
         const blob = doc.output('blob');
         const file = new File([blob], fileName, { type: "application/pdf" });
-        if (navigator.share) {
-            await navigator.share({ files: [file], title: fileName });
+        if (navigator.share && navigator.canShare) {
+            try { await navigator.share({ files: [file], title: fileName }); } 
+            catch (e) { doc.save(fileName); }
         } else {
             doc.save(fileName);
         }
-    },
-
-    limparForm() {
-        document.getElementById('f-id').value = '';
-        document.getElementById('f-km').value = '';
-        document.getElementById('f-motorista').value = '';
-        document.getElementById('f-registro').value = '';
-        document.getElementById('f-obs').value = '';
-        this.fotos = [];
-        this.renderGaleria();
     }
 };
 
