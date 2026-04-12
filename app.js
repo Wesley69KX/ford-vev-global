@@ -4,8 +4,10 @@ const app = {
 
     init() {
         this.converterLogoParaBase64('logo.png');
+        
+        // MUDANÇA: Preenche automaticamente a data de hoje no formato YYYY-MM-DD (Padrão do calendário)
         const hoje = new Date();
-        document.getElementById('t-data').value = hoje.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'});
+        document.getElementById('t-data').value = hoje.toISOString().split('T')[0];
     },
 
     abrirModal(id) { window.appUI.abrirModal(id); },
@@ -117,7 +119,6 @@ const app = {
         const splitObs = doc.splitTextToSize(obs, 180);
         doc.text(splitObs, 14, finalY + 18);
 
-        // --- FOTOS COM PROPORÇÃO CORRETA (SEM ESTICAR) ---
         if (this.fotos.length > 0) {
             doc.addPage();
             doc.setFont("helvetica", "bold");
@@ -128,31 +129,28 @@ const app = {
             let y = 25;
             let x = 14;
             const boxWidth = 85;
-            const boxHeight = 70; // Área máxima permitida para a foto
+            const boxHeight = 70;
 
             this.fotos.forEach((foto, index) => {
                 if (y + boxHeight + 20 > 280) { doc.addPage(); y = 20; x = 14; }
                 
-                // Calcula a proporção real da imagem para não distorcer
                 const imgProps = doc.getImageProperties(foto.src);
                 const ratio = imgProps.height / imgProps.width;
                 
                 let renderWidth = boxWidth;
                 let renderHeight = renderWidth * ratio;
                 
-                // Se a foto for muito alta (ex: foto em pé), ajusta pela altura
                 if (renderHeight > boxHeight) {
                     renderHeight = boxHeight;
                     renderWidth = renderHeight / ratio;
                 }
 
-                // Centraliza a imagem dentro da caixa virtual
                 const offsetX = x + (boxWidth - renderWidth) / 2;
                 const offsetY = y + (boxHeight - renderHeight) / 2;
 
                 doc.setDrawColor(200);
-                doc.rect(x, y, boxWidth, boxHeight); // Desenha a moldura padrão
-                doc.addImage(foto.src, 'JPEG', offsetX, offsetY, renderWidth, renderHeight); // Insere a foto real
+                doc.rect(x, y, boxWidth, boxHeight); 
+                doc.addImage(foto.src, 'JPEG', offsetX, offsetY, renderWidth, renderHeight); 
                 
                 doc.setFontSize(8);
                 doc.setTextColor(0);
@@ -178,7 +176,7 @@ const app = {
     // ==========================================
     gerarTextoTurno() {
         const turno = document.getElementById('t-turno').value;
-        const data = document.getElementById('t-data').value;
+        const dataBruta = document.getElementById('t-data').value;
         const veiculo = document.getElementById('t-veiculo').value;
         const vin = document.getElementById('t-vin').value;
         const posto = document.getElementById('t-posto').value;
@@ -188,8 +186,15 @@ const app = {
         const litros = document.getElementById('t-litros').value;
         const saldo = document.getElementById('t-saldo').value;
 
+        // MUDANÇA: Converte a data YYYY-MM-DD do calendário para DD/MM do zap
+        let dataFormatada = "";
+        if (dataBruta) {
+            const partes = dataBruta.split('-'); // [YYYY, MM, DD]
+            dataFormatada = `${partes[2]}/${partes[1]}`;
+        }
+
         let texto = `*Abastecimento ${veiculo}*\n`;
-        texto += `${turno} ${data}\n`;
+        texto += `${turno} ${dataFormatada}\n`;
         texto += `VIN: ${vin}\n\n`;
         if(posto) texto += `Posto: ${posto}\n`;
         texto += `Trip: ${trip}\n`;
@@ -203,7 +208,6 @@ const app = {
     async finalizarTurnoIntegrado() {
         const texto = this.gerarTextoTurno();
         
-        // 1. Tenta copiar para o WhatsApp primeiro
         try {
             await navigator.clipboard.writeText(texto);
             alert("✅ O texto do abastecimento foi copiado com sucesso!\n\nCole no WhatsApp assim que o PDF terminar de baixar.");
@@ -211,7 +215,6 @@ const app = {
             console.log("Navegador não suporta cópia automática.", err);
         }
 
-        // 2. Gera o PDF na sequência
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         
@@ -222,7 +225,6 @@ const app = {
         doc.setFont("helvetica", "normal");
         doc.setFontSize(12);
         
-        // Remove os asteriscos do negrito do zap para o PDF ficar limpo
         const textoLimpo = texto.replace(/\*/g, ''); 
         const linhas = doc.splitTextToSize(textoLimpo, 150);
         
