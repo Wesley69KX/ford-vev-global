@@ -1,20 +1,16 @@
 {
-  "name": "Ford VEV 2748",
-  "short_name": "VEV 2748",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#f1f5f9",
-  "theme_color": "#003478",
-  "icons": [
-    {
-      "src": "logo.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "logo.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
 }
