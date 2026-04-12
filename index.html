@@ -13,43 +13,46 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
     <style>
-        :root { --ford-blue: #003478; --bg: #f1f5f9; --text: #1e293b; --danger: #dc3545; --warning: #f59e0b; }
+        :root { --ford-blue: #003478; --bg: #f1f5f9; --text: #1e293b; --danger: #dc3545; --success: #16a34a; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; padding-bottom: 30px; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; padding-bottom: 40px; }
 
         header { background: white; border-bottom: 1px solid #e2e8f0; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
-        .container { max-width: 700px; margin: 0 auto; padding: 1.5rem 1rem; }
+        .container { max-width: 700px; margin: 0 auto; padding: 1rem; }
         h2 { font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin: 1.5rem 0 0.75rem 0.5rem; font-weight: 800; }
 
+        /* CARDS PRINCIPAIS */
         .grid-forms { display: grid; gap: 0.75rem; }
         .card-form { background: white; padding: 1rem; border-radius: 0.75rem; display: flex; align-items: center; gap: 1rem; text-decoration: none; color: inherit; border: 1px solid #e2e8f0; border-left: 4px solid var(--ford-blue); cursor: pointer; transition: 0.2s; }
         .card-form:active { background: #f8fafc; transform: scale(0.98); }
         .card-form.danger { border-left-color: var(--danger); }
-        .icon-circle { width: 40px; height: 40px; border-radius: 50%; background: #f1f5f9; color: var(--ford-blue); display: flex; align-items: center; justify-content: center; }
+        .icon-circle { width: 40px; height: 40px; border-radius: 50%; background: #f1f5f9; color: var(--ford-blue); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .card-form.danger .icon-circle { color: var(--danger); background: #fef2f2; }
 
-        /* MURAL DE AVISOS */
-        .alert-box { background: #fffbeb; border: 1px solid #fde68a; border-left: 4px solid var(--warning); padding: 1rem; border-radius: 0.75rem; margin-bottom: 1rem; display: flex; gap: 1rem; align-items: flex-start; }
-        .alert-box .icon-circle { background: #fef3c7; color: var(--warning); width: 35px; height: 35px; flex-shrink: 0; }
-
-        /* MODAL */
+        /* MODAIS */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: flex-end; justify-content: center; z-index: 1000; }
-        .modal-content { background: white; width: 100%; max-width: 700px; border-radius: 1.5rem 1.5rem 0 0; padding: 2rem 1.5rem; max-height: 95vh; overflow-y: auto; position: relative; }
+        .modal-content { background: white; width: 100%; max-width: 700px; border-radius: 1.5rem 1.5rem 0 0; padding: 1.5rem; max-height: 90vh; overflow-y: auto; position: relative; }
         .close-btn { position: absolute; top: 1rem; right: 1.5rem; background: #e2e8f0; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #64748b; font-weight: bold; }
 
-        .form-section { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #f1f5f9; }
-        .form-section h4 { font-size: 0.8rem; color: var(--ford-blue); margin-bottom: 1rem; text-transform: uppercase; }
+        .form-section { margin-bottom: 1.2rem; padding-bottom: 1rem; border-bottom: 1px solid #f1f5f9; }
+        .form-section h4 { font-size: 0.8rem; color: var(--ford-blue); margin-bottom: 0.8rem; text-transform: uppercase; }
 
-        .input-group { margin-bottom: 1rem; }
+        .input-group { margin-bottom: 0.8rem; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         label { display: block; font-size: 0.7rem; font-weight: 700; margin-bottom: 0.3rem; color: #64748b; }
-        input, textarea { width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-size: 0.9rem; outline: none; }
+        input, textarea, select { width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-size: 0.9rem; outline: none; background: #f8fafc; }
         
-        .camera-trigger { background: #f8fafc; border: 2px dashed #cbd5e1; padding: 1.5rem; border-radius: 0.75rem; text-align: center; cursor: pointer; color: #64748b; font-weight: 600; margin: 1rem 0; }
-        .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .thumb { width: 100%; aspect-ratio: 1; border-radius: 0.5rem; object-fit: cover; border: 1px solid #e2e8f0; }
+        .camera-trigger { background: #f8fafc; border: 2px dashed #cbd5e1; padding: 1rem; border-radius: 0.75rem; text-align: center; cursor: pointer; color: #64748b; font-weight: 600; margin: 1rem 0; }
+        
+        /* GALERIA CORPORATIVA COM LEGENDA */
+        .gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .photo-wrapper { position: relative; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 0.5rem; background: #fff; }
+        .photo-wrapper img { width: 100%; height: 120px; object-fit: cover; border-radius: 0.25rem; margin-bottom: 0.5rem; }
+        .photo-wrapper input { font-size: 0.75rem; padding: 0.4rem; background: white; border: 1px solid #cbd5e1; }
+        .btn-delete-photo { position: absolute; top: 0; right: 0; background: var(--danger); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; border: none; transform: translate(30%, -30%); }
 
-        .btn-main { background: var(--ford-blue); color: white; border: none; padding: 1.2rem; border-radius: 0.75rem; width: 100%; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1rem; }
+        .btn-main { background: var(--ford-blue); color: white; border: none; padding: 1rem; border-radius: 0.75rem; width: 100%; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 1rem; font-size: 0.9rem; }
+        .btn-success { background: var(--success); }
     </style>
 </head>
 <body>
@@ -64,108 +67,122 @@
 
     <div class="container">
         
-        <div class="alert-box">
-            <div class="icon-circle"><span class="material-icons">campaign</span></div>
-            <div>
-                <div style="font-weight: 800; font-size: 0.8rem; color: #92400e;">AVISO DA LIDERANÇA</div>
-                <div style="font-size: 0.85rem; color: #b45309; margin-top: 2px;">
-                    "Atenção equipe: Rota alternativa liberada para o trecho sul devido a obras na pista principal. Redobrem a atenção."
-                </div>
-                <div style="font-size: 0.65rem; color: #d97706; margin-top: 5px;">Atualizado às 08:15</div>
-            </div>
-        </div>
-
         <h2>Formulários Operacionais</h2>
         <div class="grid-forms">
             <a href="https://forms.office.com/r/LGrPxcte1T" target="_blank" class="card-form">
                 <div class="icon-circle"><span class="material-icons">fact_check</span></div>
-                <div><div style="font-weight: 700;">Check List de Segurança</div><div style="font-size: 0.7rem; color: #64748b;">Inspeção Diária</div></div>
-            </a>
-            <a href="https://forms.office.com/r/FmGd5gJF5e" target="_blank" class="card-form">
-                <div class="icon-circle"><span class="material-icons">local_gas_station</span></div>
-                <div><div style="font-weight: 700;">Abastecimento</div><div style="font-size: 0.7rem; color: #64748b;">Litragem e KM</div></div>
+                <div><div style="font-weight: 700;">Check List de Segurança</div><div style="font-size: 0.7rem; color: #64748b;">Microsoft Forms</div></div>
             </a>
             <a href="https://forms.office.com/r/KqBNKV9zjS" target="_blank" class="card-form danger">
                 <div class="icon-circle"><span class="material-icons">report_problem</span></div>
-                <div><div style="font-weight: 700;">Drive Team Issues</div><div style="font-size: 0.7rem; color: #64748b;">Anomalias Externas</div></div>
+                <div><div style="font-weight: 700;">Drive Team Issues</div><div style="font-size: 0.7rem; color: #64748b;">Microsoft Forms</div></div>
             </a>
         </div>
 
-        <h2>Engenharia / Qualidade</h2>
+        <h2>Central de Relatórios</h2>
         <div class="grid-forms">
-            <div class="card-form" onclick="app.abrirModal()" style="border-left-color: #22c55e;">
-                <div class="icon-circle" style="color: #22c55e; background: #dcfce7;"><span class="material-icons">assignment_turned_in</span></div>
-                <div><div style="font-weight: 700;">Novo Laudo de Invaria</div><div style="font-size: 0.7rem; color: #64748b;">Relatório HD / 4K</div></div>
+            <div class="card-form" onclick="app.abrirModal('modal-laudo')" style="border-left-color: var(--ford-blue);">
+                <div class="icon-circle" style="color: white; background: var(--ford-blue);"><span class="material-icons">verified</span></div>
+                <div><div style="font-weight: 700;">Laudo de Invaria (HD)</div><div style="font-size: 0.7rem; color: #64748b;">PDF com fotos corporativas e legendas</div></div>
+            </div>
+
+            <div class="card-form" onclick="app.abrirModal('modal-turno')" style="border-left-color: var(--success);">
+                <div class="icon-circle" style="color: var(--success); background: #dcfce7;"><span class="material-icons">local_gas_station</span></div>
+                <div><div style="font-weight: 700;">Fechamento de Turno</div><div style="font-size: 0.7rem; color: #64748b;">Abastecimento, KM e Texto para WhatsApp</div></div>
             </div>
         </div>
-
-        <h2>Apoio Operacional</h2>
-        <div class="grid-forms">
-            <div class="card-form" style="border-left-color: #64748b;">
-                <div class="icon-circle" style="background: #f1f5f9; color: #64748b;"><span class="material-icons">password</span></div>
-                <div><div style="font-weight: 700;">Senha do Cartão</div><div style="font-family: monospace; font-size: 1.2rem; font-weight: bold; letter-spacing: 2px;">958355</div></div>
-            </div>
-            <a href="tel:08007033673" class="card-form" style="border-left-color: #64748b;">
-                <div class="icon-circle" style="background: #f1f5f9; color: #64748b;"><span class="material-icons">support_agent</span></div>
-                <div><div style="font-weight: 700;">Guincho 24h</div><div style="font-size: 1rem; font-weight: bold;">0800 703 3673</div></div>
-                <span class="material-icons" style="margin-left: auto; color: #22c55e; background: #dcfce7; padding: 8px; border-radius: 50%;">call</span>
-            </a>
-        </div>
-
     </div>
 
     <div id="modal-laudo" class="modal-overlay">
         <div class="modal-content">
-            <div class="close-btn" onclick="app.fecharModal()"><span class="material-icons">close</span></div>
-            <h3 style="color: var(--ford-blue); margin-bottom: 2rem; font-size: 1.2rem; font-weight: 800;">Emissão de Laudo Técnico</h3>
+            <div class="close-btn" onclick="app.fecharModal('modal-laudo')"><span class="material-icons">close</span></div>
+            <h3 style="color: var(--ford-blue); margin-bottom: 1.5rem;">Laudo de Invaria</h3>
             
-            <div class="form-section">
-                <h4>1. Identificação do Veículo</h4>
-                <div class="grid-2">
-                    <div class="input-group"><label>Placa / VIN</label><input type="text" id="f-id" placeholder="ABC-1234"></div>
-                    <div class="input-group"><label>KM Atual</label><input type="number" id="f-km" placeholder="00000"></div>
-                </div>
+            <div class="grid-2">
+                <div class="input-group"><label>Placa / VIN</label><input type="text" id="i-id"></div>
+                <div class="input-group"><label>Condutor</label><input type="text" id="i-motorista"></div>
             </div>
 
-            <div class="form-section">
-                <h4>2. Dados do Condutor</h4>
-                <div class="grid-2">
-                    <div class="input-group"><label>Nome do Motorista</label><input type="text" id="f-motorista" placeholder="Nome Completo"></div>
-                    <div class="input-group"><label>CDSID / Matrícula</label><input type="text" id="f-registro" placeholder="Ex: AB1234"></div>
-                </div>
-            </div>
-
-            <div class="form-section">
-                <h4>3. Parecer Técnico</h4>
-                <div class="input-group">
-                    <label>Relato da Ocorrência / Observações</label>
-                    <textarea id="f-obs" rows="4" placeholder="Descreva tecnicamente a anomalia..."></textarea>
-                </div>
+            <div class="input-group">
+                <label>Parecer Técnico / Ocorrência</label>
+                <textarea id="i-obs" rows="3"></textarea>
             </div>
             
             <div class="form-section">
-                <h4>4. Evidências Fotográficas</h4>
+                <h4>Evidências Fotográficas</h4>
                 <div class="camera-trigger" onclick="document.getElementById('camera-input').click()">
-                    <span class="material-icons" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;">photo_camera</span>
-                    Capturar Imagem (Qualidade Máxima)
+                    <span class="material-icons">add_a_photo</span> Adicionar Fotos
                 </div>
                 <input type="file" id="camera-input" accept="image/*" capture="environment" multiple style="display:none" onchange="app.handleFotos(event)">
-                <div id="galeria" class="gallery"></div>
+                <div id="galeria-invaria" class="gallery"></div>
             </div>
 
-            <button class="btn-main" onclick="app.gerarPDF()">
-                <span class="material-icons">verified</span> GERAR RELATÓRIO OFICIAL
+            <button class="btn-main" onclick="app.gerarPDFInvaria()">
+                <span class="material-icons">picture_as_pdf</span> GERAR LAUDO OFICIAL
+            </button>
+        </div>
+    </div>
+
+    <div id="modal-turno" class="modal-overlay">
+        <div class="modal-content">
+            <div class="close-btn" onclick="app.fecharModal('modal-turno')"><span class="material-icons">close</span></div>
+            <h3 style="color: var(--success); margin-bottom: 1.5rem;">Fechamento de Turno</h3>
+            
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Data</label>
+                    <input type="text" id="t-data" placeholder="Ex: 10/04">
+                </div>
+                <div class="input-group">
+                    <label>Turno</label>
+                    <select id="t-turno">
+                        <option>1º Turno</option>
+                        <option>2º Turno</option>
+                        <option>3º Turno</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Veículo (Modelo e Versão)</label>
+                <input type="text" id="t-veiculo" placeholder="Ex: Ranger Tremor 2.3 4x4">
+            </div>
+
+            <div class="grid-2">
+                <div class="input-group"><label>VIN / Placa</label><input type="text" id="t-vin"></div>
+                <div class="input-group"><label>Posto / Escala</label><input type="text" id="t-posto" placeholder="Ex: Trevo"></div>
+            </div>
+
+            <div class="grid-2">
+                <div class="input-group"><label>KM Total</label><input type="number" id="t-km" placeholder="116451"></div>
+                <div class="input-group"><label>Trip</label><input type="number" id="t-trip" placeholder="125.8"></div>
+            </div>
+
+            <div class="form-section">
+                <h4>Abastecimento</h4>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label>Tipo de Combustível</label>
+                        <select id="t-tipo-comb">
+                            <option>Diesel</option>
+                            <option>Gasolina</option>
+                            <option>E100</option>
+                        </select>
+                    </div>
+                    <div class="input-group"><label>Litros</label><input type="number" id="t-litros" placeholder="27.40"></div>
+                </div>
+                <div class="input-group"><label>Saldo Disponível (LTD+) R$</label><input type="number" id="t-saldo" placeholder="6851.79"></div>
+            </div>
+
+            <button class="btn-main btn-success" onclick="app.copiarParaWhatsApp()">
+                <span class="material-icons">content_copy</span> COPIAR P/ WHATSAPP
+            </button>
+            <button class="btn-main" style="margin-top: 10px; background: #64748b;" onclick="app.gerarPDFTurno()">
+                <span class="material-icons">picture_as_pdf</span> SALVAR PDF DO TURNO
             </button>
         </div>
     </div>
 
     <script src="app.js"></script>
-    <script>
-        const appUI = {
-            abrirModal: () => document.getElementById('modal-laudo').style.display = 'flex',
-            fecharModal: () => document.getElementById('modal-laudo').style.display = 'none'
-        };
-        window.appUI = appUI;
-    </script>
 </body>
 </html>
