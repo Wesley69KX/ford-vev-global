@@ -13,7 +13,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
     <style>
-        :root { --ford-blue: #003478; --bg: #f1f5f9; --text: #1e293b; --danger: #dc3545; --warning: #f59e0b; --success: #16a34a; }
+        :root { --ford-blue: #003478; --bg: #f1f5f9; --text: #1e293b; --danger: #dc3545; --success: #16a34a; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; padding-bottom: 40px; }
 
@@ -21,9 +21,9 @@
         .container { max-width: 700px; margin: 0 auto; padding: 1.5rem 1rem; }
         h2 { font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin: 1.5rem 0 0.75rem 0.5rem; font-weight: 800; }
 
-        /* MURAL DE AVISOS */
-        .alert-box { background: #fffbeb; border: 1px solid #fde68a; border-left: 4px solid var(--warning); padding: 1rem; border-radius: 0.75rem; margin-bottom: 1rem; display: flex; gap: 1rem; align-items: flex-start; }
-        .alert-box .icon-circle-alert { background: #fef3c7; color: var(--warning); width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        /* VERSÍCULO DO DIA */
+        .verse-box { background: #ecfdf5; border: 1px solid #a7f3d0; border-left: 4px solid #10b981; padding: 1rem; border-radius: 0.75rem; margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: flex-start; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .verse-box .icon-circle-verse { background: #d1fae5; color: #10b981; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
         /* CARDS PRINCIPAIS */
         .grid-forms { display: grid; gap: 0.75rem; }
@@ -71,14 +71,14 @@
 
     <div class="container">
         
-        <div class="alert-box">
-            <div class="icon-circle-alert"><span class="material-icons">campaign</span></div>
+        <div class="verse-box">
+            <div class="icon-circle-verse"><span class="material-icons">menu_book</span></div>
             <div>
-                <div style="font-weight: 800; font-size: 0.8rem; color: #92400e;">AVISO DA LIDERANÇA</div>
-                <div style="font-size: 0.85rem; color: #b45309; margin-top: 2px;">
-                    "Atenção equipe: Rota alternativa liberada para o trecho sul devido a obras na pista principal. Redobrem a atenção."
+                <div style="font-weight: 800; font-size: 0.75rem; color: #064e3b;">PALAVRA PARA O TURNO</div>
+                <div id="verse-text" style="font-size: 0.9rem; color: #047857; margin-top: 4px; font-style: italic; line-height: 1.4;">
+                    Carregando a palavra de proteção do dia...
                 </div>
-                <div style="font-size: 0.65rem; color: #d97706; margin-top: 5px;">Atualizado às 08:15</div>
+                <div id="verse-ref" style="font-size: 0.7rem; color: #059669; margin-top: 6px; font-weight: bold;"></div>
             </div>
         </div>
 
