@@ -1,13 +1,37 @@
 const app = {
     fotos: [],
     logoBase64Cache: null,
+    
+    // BANCO DE VERSÍCULOS DE PROTEÇÃO
+    versiculos: [
+        { texto: '"O Senhor te guardará de todo mal; ele guardará a tua alma. O Senhor guardará a tua saída e a tua entrada, desde agora e para sempre."', ref: 'Salmos 121:7-8' },
+        { texto: '"Mil cairão ao teu lado, e dez mil à tua direita, mas tu não serás atingido."', ref: 'Salmos 91:7' },
+        { texto: '"Consagre ao Senhor tudo o que você faz, e os seus planos serão bem-sucedidos."', ref: 'Provérbios 16:3' },
+        { texto: '"O Senhor é o meu pastor, nada me faltará. Ele me faz repousar em pastos verdejantes e me leva a águas tranquilas."', ref: 'Salmos 23:1-2' },
+        { texto: '"Seja forte e corajoso! Não se apavore nem desanime, pois o Senhor, o seu Deus, estará com você por onde você andar."', ref: 'Josué 1:9' },
+        { texto: '"O Senhor é a minha luz e a minha salvação; de quem terei temor? O Senhor é o meu forte refúgio; de quem terei medo?"', ref: 'Salmos 27:1' },
+        { texto: '"Guarda-me, ó Deus, porque em ti me refugio. Ensina-me o caminho da vida."', ref: 'Salmos 16:1,11' }
+    ],
 
     init() {
         this.converterLogoParaBase64('logo.png');
         
-        // MUDANÇA: Preenche automaticamente a data de hoje no formato YYYY-MM-DD (Padrão do calendário)
+        // Carrega o versículo do dia
+        this.carregarVersiculoDoDia();
+
+        // Data de hoje no calendário
         const hoje = new Date();
         document.getElementById('t-data').value = hoje.toISOString().split('T')[0];
+    },
+
+    carregarVersiculoDoDia() {
+        const dia = new Date().getDate();
+        // Escolhe o versículo baseado no dia do mês (garante que todo dia mude)
+        const index = dia % this.versiculos.length; 
+        const versiculoEscolhido = this.versiculos[index];
+        
+        document.getElementById('verse-text').innerText = versiculoEscolhido.texto;
+        document.getElementById('verse-ref').innerText = versiculoEscolhido.ref;
     },
 
     abrirModal(id) { window.appUI.abrirModal(id); },
@@ -186,10 +210,9 @@ const app = {
         const litros = document.getElementById('t-litros').value;
         const saldo = document.getElementById('t-saldo').value;
 
-        // MUDANÇA: Converte a data YYYY-MM-DD do calendário para DD/MM do zap
         let dataFormatada = "";
         if (dataBruta) {
-            const partes = dataBruta.split('-'); // [YYYY, MM, DD]
+            const partes = dataBruta.split('-'); 
             dataFormatada = `${partes[2]}/${partes[1]}`;
         }
 
