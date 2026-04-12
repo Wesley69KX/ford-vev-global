@@ -10,7 +10,8 @@
     <link rel="icon" type="image/png" href="icone.png">
 
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <style>
         /* --- CORES E FONTES --- */
         :root {
@@ -18,7 +19,6 @@
             --bg-color: #f4f6f9;
             --card-bg: #ffffff;
             --text-main: #333333;
-            --text-muted: #666666;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -37,8 +37,6 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
         .login-logo { max-height: 60px; max-width: 200px; margin-bottom: 15px; object-fit: contain; }
-        .login-box h2 { color: var(--primary-color); margin-bottom: 5px; font-size: 1.4rem; }
-        .login-box p { color: #666; font-size: 0.9rem; margin-bottom: 20px; }
         .input-group input { 
             width: 100%; padding: 12px; margin-bottom: 15px; 
             border: 1px solid #ccc; border-radius: 5px; font-size: 1rem; text-align: center;
@@ -47,7 +45,6 @@
             background: #28a745; color: white; border: none; padding: 12px;
             border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; font-size: 1.1rem;
         }
-        .btn-entrar:active { background: #218838; }
 
         /* --- CABEÇALHO DO APP --- */
         header {
@@ -56,33 +53,45 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 100;
         }
         .header-logo { max-height: 45px; max-width: 150px; object-fit: contain; }
-        .header-info { text-align: right; line-height: 1.2; }
-        .header-info strong { font-size: 1.1rem; }
-        .header-info span { font-size: 0.85rem; opacity: 0.8; }
 
-        /* --- CORPO DO APP (CARTÕES) --- */
-        .container { padding: 25px 20px; max-width: 600px; margin: 0 auto; }
-        h3 { margin-bottom: 15px; color: var(--primary-color); font-size: 1.1rem; text-transform: uppercase; border-bottom: 2px solid #ddd; padding-bottom: 5px; }
-        .menu-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 35px; }
-
+        /* --- CORPO DO APP --- */
+        .container { padding: 20px; max-width: 600px; margin: 0 auto; padding-bottom: 80px; }
+        h3 { margin-bottom: 15px; margin-top: 25px; color: var(--primary-color); font-size: 1.1rem; text-transform: uppercase; border-bottom: 2px solid #ddd; padding-bottom: 5px; }
+        
+        /* --- CARTÕES (LINKS E SENHAS) --- */
+        .menu-grid { display: flex; flex-direction: column; gap: 12px; }
         .card {
             background: var(--card-bg); border-radius: 10px; padding: 16px;
             display: flex; align-items: center; gap: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.06);
             text-decoration: none; color: var(--text-main); border-left: 5px solid var(--primary-color);
         }
-        .card:active { background-color: #f8f9fa; transform: scale(0.98); }
-        .card.info-card { border-left-color: #6c757d; }
         .card.danger-card { border-left-color: #dc3545; }
-        
         .card .icon-box { background: rgba(0, 52, 120, 0.1); color: var(--primary-color); width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .card.info-card .icon-box { background: #f8f9fa; color: #6c757d; }
         .card.danger-card .icon-box { background: rgba(220,53,69,0.1); color: #dc3545; }
-
         .card-text { display: flex; flex-direction: column; flex: 1; }
-        .card-text strong { font-size: 1.05rem; margin-bottom: 2px; }
-        .card-text span { font-size: 0.85rem; color: var(--text-muted); }
-        .external-icon { margin-left: auto; color: #bbb; font-size: 22px; }
-        .btn-call { background: #28a745; color: white; border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .card-text strong { font-size: 1.05rem; }
+        .external-icon { margin-left: auto; color: #bbb; }
+
+        /* --- ÁREA DE LAUDO (CÂMERA E FORMULÁRIO) --- */
+        .invaria-box {
+            background: white; padding: 15px; border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06); border: 1px solid #ddd;
+        }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; color: #555; }
+        .form-group input, .form-group textarea {
+            width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 1rem;
+        }
+        .camera-btn {
+            background: #f8f9fa; border: 2px dashed #aaa; color: #555; padding: 15px; width: 100%;
+            border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .btn-pdf {
+            background: var(--primary-color); color: white; border: none; padding: 15px; width: 100%;
+            border-radius: 5px; font-size: 1.1rem; font-weight: bold; margin-top: 10px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .gallery { display: flex; gap: 10px; overflow-x: auto; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -90,100 +99,103 @@
     <div id="tela-login" class="login-overlay">
         <div class="login-box">
             <img src="logo.png" alt="Logo" class="login-logo" onerror="this.style.display='none'">
-            <h2>Acesso Restrito</h2>
-            <p>CC: 2748 | EJA: 3108</p>
+            <h2 style="color: var(--primary-color); margin-bottom: 5px;">Acesso Restrito</h2>
+            <p style="color: #666; margin-bottom: 20px;">CC: 2748 | EJA: 3108</p>
             
             <div class="input-group">
                 <input type="password" id="input-senha" placeholder="Digite a Senha Operacional">
             </div>
             
             <button class="btn-entrar" onclick="verificarAcesso()">Entrar</button>
-            <p id="msg-erro" style="color: red; display: none; margin-top: 10px; margin-bottom: 0;">Senha incorreta!</p>
+            <p id="msg-erro" style="color: red; display: none; margin-top: 10px;">Senha incorreta!</p>
         </div>
     </div>
 
     <div id="aplicativo-principal" style="display: none;">
         
         <header>
-            <img class="header-logo" src="logo.png" alt="Logo da Empresa" onerror="this.style.display='none'">
-            <div class="header-info">
+            <img class="header-logo" src="logo.png" alt="Logo" onerror="this.style.display='none'">
+            <div style="text-align: right; line-height: 1.2;">
                 <strong>EJA: 3108</strong><br>
-                <span>CC: 2748</span>
+                <span style="font-size: 0.85rem;">CC: 2748</span>
             </div>
         </header>
 
         <div class="container">
-            <h3>Formulários Operacionais</h3>
+            
+            <h3>Formulários Diários</h3>
             <div class="menu-grid">
                 <a href="https://forms.office.com/r/LGrPxcte1T" target="_blank" class="card">
                     <div class="icon-box"><span class="material-icons">fact_check</span></div>
-                    <div class="card-text">
-                        <strong>Check List de Segurança</strong>
-                        <span>Inspeção diária obrigatória</span>
-                    </div>
+                    <div class="card-text"><strong>Check List de Segurança</strong><span style="font-size: 0.8rem; color:#666;">Inspeção diária (Microsoft Forms)</span></div>
                     <span class="material-icons external-icon">open_in_new</span>
                 </a>
-
                 <a href="https://forms.office.com/r/FmGd5gJF5e" target="_blank" class="card">
                     <div class="icon-box"><span class="material-icons">local_gas_station</span></div>
-                    <div class="card-text">
-                        <strong>Forms de Abastecimento</strong>
-                        <span>Registro de litragem e km</span>
-                    </div>
+                    <div class="card-text"><strong>Forms de Abastecimento</strong><span style="font-size: 0.8rem; color:#666;">Registro de litragem e km</span></div>
                     <span class="material-icons external-icon">open_in_new</span>
                 </a>
-
                 <a href="https://forms.office.com/r/KqBNKV9zjS" target="_blank" class="card danger-card">
                     <div class="icon-box"><span class="material-icons">report_problem</span></div>
-                    <div class="card-text">
-                        <strong>Drive Team Issues</strong>
-                        <span>Reporte de problemas e anomalias</span>
-                    </div>
+                    <div class="card-text"><strong>Drive Team Issues</strong><span style="font-size: 0.8rem; color:#666;">Reporte de anomalias externas</span></div>
                     <span class="material-icons external-icon">open_in_new</span>
                 </a>
             </div>
 
-            <h3>Dados Importantes</h3>
-            <div class="menu-grid">
-                <div class="card info-card">
-                    <div class="icon-box"><span class="material-icons">password</span></div>
-                    <div class="card-text">
-                        <strong>Senha do Cartão</strong>
-                        <span style="font-size: 1.2rem; color: #000; font-family: monospace; letter-spacing: 2px; font-weight: bold;">958355</span>
-                    </div>
+            <h3>Gerar Laudo de Invaria (PDF)</h3>
+            <div class="invaria-box">
+                <div class="form-group">
+                    <label>Placa ou Identificação do Veículo</label>
+                    <input type="text" id="f-id" placeholder="Ex: ABC-1234">
+                </div>
+                
+                <div class="form-group" style="display: none;">
+                    <input type="date" id="f-data"> </div>
+
+                <div class="form-group">
+                    <label>Observações / Relato Técnico</label>
+                    <textarea id="f-obs" rows="3" placeholder="Descreva o que está OK ou qual a avaria encontrada..."></textarea>
                 </div>
 
-                <div class="card info-card">
-                    <div class="icon-box"><span class="material-icons">support_agent</span></div>
-                    <div class="card-text">
-                        <strong>Número do Guincho</strong>
-                        <span style="font-size: 1.1rem; color: #000; font-weight: bold;">0800 703 3673</span>
-                    </div>
-                    <a href="tel:08007033673" class="btn-call">
-                        <span class="material-icons">call</span>
-                    </a>
+                <div class="form-group">
+                    <label>Fotos (Opcional)</label>
+                    <input type="file" id="camera-input" accept="image/*" capture="environment" multiple style="display: none;" onchange="app.processarFotos(event)">
+                    <button class="camera-btn" onclick="document.getElementById('camera-input').click()">
+                        <span class="material-icons" style="color: var(--primary-color);">photo_camera</span> Abrir Câmera
+                    </button>
+                    <div id="galeria" class="gallery"></div>
+                </div>
+
+                <button class="btn-pdf" onclick="app.gerarPDF()">
+                    <span class="material-icons">picture_as_pdf</span> Criar PDF Formal
+                </button>
+            </div>
+
+            <h3>Apoio Operacional</h3>
+            <div class="menu-grid">
+                <div class="card" style="border-left-color: #6c757d;">
+                    <div class="icon-box" style="background: #f8f9fa; color: #6c757d;"><span class="material-icons">password</span></div>
+                    <div class="card-text"><strong>Senha do Cartão</strong><span style="font-size: 1.2rem; font-family: monospace; font-weight: bold;">958355</span></div>
+                </div>
+                <div class="card" style="border-left-color: #6c757d;">
+                    <div class="icon-box" style="background: #f8f9fa; color: #6c757d;"><span class="material-icons">support_agent</span></div>
+                    <div class="card-text"><strong>Guincho 24h</strong><span style="font-size: 1.1rem; font-weight: bold;">0800 703 3673</span></div>
+                    <a href="tel:08007033673" style="background: #28a745; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; text-decoration: none;"><span class="material-icons">call</span></a>
                 </div>
             </div>
-        </div>
 
+        </div>
     </div>
+
+    <script src="app.js"></script>
 
     <script>
         function verificarAcesso() {
-            const senhaDigitada = document.getElementById('input-senha').value;
-            const msgErro = document.getElementById('msg-erro');
-            
-            // AQUI VOCÊ DEFINE A SENHA DO APLICATIVO
-            const senhaCorreta = "2748"; 
-
-            if (senhaDigitada === senhaCorreta) {
-                // Esconde a tela de login e mostra o app
+            if (document.getElementById('input-senha').value === "2748") {
                 document.getElementById('tela-login').style.display = 'none';
                 document.getElementById('aplicativo-principal').style.display = 'block';
-                msgErro.style.display = 'none';
             } else {
-                // Mostra mensagem de erro
-                msgErro.style.display = 'block';
+                document.getElementById('msg-erro').style.display = 'block';
                 document.getElementById('input-senha').value = '';
             }
         }
