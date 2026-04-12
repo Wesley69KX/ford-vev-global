@@ -6,16 +6,9 @@ const app = {
         this.converterLogoParaBase64('logo.png');
     },
 
-    // --- CONTROLE DA JANELA (MODAL) ---
-    abrirModal() {
-        document.getElementById('modal-laudo').style.display = 'flex';
-    },
+    abrirModal() { window.appUI.abrirModal(); },
+    fecharModal() { window.appUI.fecharModal(); },
 
-    fecharModal() {
-        document.getElementById('modal-laudo').style.display = 'none';
-    },
-
-    // --- PROCESSAMENTO DE FOTOS HD ---
     handleFotos(e) {
         const files = Array.from(e.target.files);
         files.forEach(file => {
@@ -52,12 +45,11 @@ const app = {
         g.innerHTML = this.fotos.map((f, i) => `
             <div style="position:relative">
                 <img src="${f}" class="thumb">
-                <div onclick="app.fotos.splice(${i},1);app.renderGaleria()" style="position:absolute; top:-5px; right:-5px; background:red; color:white; border-radius:50%; width:20px; height:20px; font-size:14px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:bold;">×</div>
+                <div onclick="app.fotos.splice(${i},1);app.renderGaleria()" style="position:absolute; top:-5px; right:-5px; background:red; color:white; border-radius:50%; width:22px; height:22px; font-size:14px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:bold;">×</div>
             </div>
         `).join('');
     },
 
-    // --- CORREÇÃO DA LOGO ---
     converterLogoParaBase64(url) {
         const img = new Image();
         img.src = url;
@@ -69,70 +61,115 @@ const app = {
         };
     },
 
-    // --- GERAÇÃO DO PDF FORMAL ---
     async gerarPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
+        
         const id = document.getElementById('f-id').value || "S/N";
+        const km = document.getElementById('f-km').value || "---";
+        const motorista = document.getElementById('f-motorista').value || "Não Informado";
+        const registro = document.getElementById('f-registro').value || "---";
+        const obs = document.getElementById('f-obs').value || "Nenhuma anomalia crítica registrada.";
 
+        // --- LOGO DISCRETA (30% menor) ---
         if (this.logoBase64Cache) {
             const props = doc.getImageProperties(this.logoBase64Cache);
-            const w = 40; 
+            const w = 28; // Reduzido de 40 para 28
             const h = (props.height * w) / props.width;
-            doc.addImage(this.logoBase64Cache, 'PNG', 14, 10, w, h);
+            doc.addImage(this.logoBase64Cache, 'PNG', 14, 12, w, h);
         }
 
         doc.setFont("helvetica", "bold");
         doc.setFontSize(14);
         doc.setTextColor(0, 52, 120);
-        doc.text("LAUDO TÉCNICO DE INVARIA", 196, 20, { align: "right" });
+        doc.text("RELATÓRIO TÉCNICO DE ENGENHARIA", 196, 20, { align: "right" });
+        
+        doc.setDrawColor(200, 200, 200);
+        doc.line(14, 28, 196, 28);
 
+        // --- TABELA DE IDENTIFICAÇÃO (MAIS PROFISSIONAL) ---
         doc.autoTable({
-            startY: 30,
-            head: [['Campo', 'Informação Técnica']],
+            startY: 35,
+            head: [['INFORMAÇÕES DO VEÍCULO E CONDUTOR', 'DETALHES']],
             body: [
-                ['Veículo / Placa', id],
-                ['Data do Registro', new Date().toLocaleDateString('pt-BR')],
-                ['Inspetor Responsável', 'EJA: 3108 / CC: 2748']
+                ['PLACA / VIN', id],
+                ['QUILOMETRAGEM', km + " KM"],
+                ['CONDUTOR RESPONSÁVEL', motorista],
+                ['REGISTRO / CDSID', registro],
+                ['DATA DA EMISSÃO', new Date().toLocaleDateString('pt-BR')],
+                ['LOCAL / CC', 'CENTRO DE CUSTO: 2748'],
+                ['INSPETOR TÉCNICO', 'EJA: 3108']
             ],
-            headStyles: { fillColor: [0, 52, 120] }
+            theme: 'grid',
+            headStyles: { fillColor: [0, 52, 120], fontSize: 9 },
+            styles: { fontSize: 8, cellPadding: 2 }
         });
 
-        doc.setFontSize(11);
-        doc.text("PARECER TÉCNICO:", 14, doc.lastAutoTable.finalY + 15);
+        // --- PARECER TÉCNICO ---
+        let finalY = doc.lastAutoTable.finalY;
+        doc.setFontSize(10);
+        doc.setTextColor(0, 52, 120);
+        doc.text("PARECER TÉCNICO E OBSERVAÇÕES:", 14, finalY + 12);
+        
         doc.setFont("helvetica", "normal");
-        const obs = doc.splitTextToSize(document.getElementById('f-obs').value || "Nenhuma anomalia crítica registrada no momento do laudo.", 180);
-        doc.text(obs, 14, doc.lastAutoTable.finalY + 22);
+        doc.setTextColor(50, 50, 50);
+        const splitObs = doc.splitTextToSize(obs, 180);
+        doc.text(splitObs, 14, finalY + 18);
 
+        // --- FOTOS EM GRID ORGANIZADO ---
         if (this.fotos.length > 0) {
             doc.addPage();
-            doc.text("ANEXOS FOTOGRÁFICOS (EVIDÊNCIAS)", 105, 15, { align: "center" });
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(12);
+            doc.setTextColor(0, 52, 120);
+            doc.text("EVIDÊNCIAS FOTOGRÁFICAS (ALTA RESOLUÇÃO)", 105, 15, { align: "center" });
+            
             let y = 25;
-            for (let f of this.fotos) {
-                if (y + 70 > 280) { doc.addPage(); y = 20; }
-                doc.addImage(f, 'JPEG', 14, y, 90, 65);
-                y += 75;
-            }
+            let x = 14;
+            this.fotos.forEach((foto, index) => {
+                if (y + 70 > 280) { doc.addPage(); y = 20; x = 14; }
+                
+                doc.addImage(foto, 'JPEG', x, y, 85, 65);
+                doc.setFontSize(8);
+                doc.text(`Evidência #${index + 1}`, x, y + 70);
+                
+                x = x === 14 ? 110 : 14;
+                if (x === 14) y += 80;
+            });
         }
 
-        const fileName = `Laudo_Invaria_${id}.pdf`;
-        
-        // Fecha a janela do laudo e limpa os campos
-        this.fecharModal();
-        document.getElementById('f-id').value = '';
-        document.getElementById('f-obs').value = '';
-        this.fotos = [];
-        this.renderGaleria();
+        // --- RODAPÉ ---
+        const pageCount = doc.internal.getNumberOfPages();
+        for(let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.setTextColor(150);
+            doc.text(`Ford VEV Global - Documento Gerado Eletronicamente via Concierge DOT - Página ${i} de ${pageCount}`, 105, 290, {align: "center"});
+        }
 
-        if (navigator.share && navigator.canShare) {
-            try {
-                const blob = doc.output('blob');
-                const file = new File([blob], fileName, { type: "application/pdf" });
-                await navigator.share({ files: [file], title: fileName });
-            } catch (e) { doc.save(fileName); }
+        const fileName = `Relatorio_VEV_${id}_${Date.now()}.pdf`;
+        
+        // Reset e Share
+        this.fecharModal();
+        this.limparForm();
+        
+        const blob = doc.output('blob');
+        const file = new File([blob], fileName, { type: "application/pdf" });
+        if (navigator.share) {
+            await navigator.share({ files: [file], title: fileName });
         } else {
             doc.save(fileName);
         }
+    },
+
+    limparForm() {
+        document.getElementById('f-id').value = '';
+        document.getElementById('f-km').value = '';
+        document.getElementById('f-motorista').value = '';
+        document.getElementById('f-registro').value = '';
+        document.getElementById('f-obs').value = '';
+        this.fotos = [];
+        this.renderGaleria();
     }
 };
 
