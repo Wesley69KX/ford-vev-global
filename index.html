@@ -165,7 +165,7 @@
             <div class="grid-2">
                 <div class="input-group">
                     <label>Data</label>
-                    <input type="text" id="t-data" placeholder="Ex: 10/04">
+                    <input type="date" id="t-data">
                 </div>
                 <div class="input-group">
                     <label>Turno</label>
@@ -216,7 +216,6 @@
 
     <script src="app.js"></script>
     <script>
-        // Funções simples para abrir e fechar as janelas pop-up
         const appUI = {
             abrirModal: (id) => document.getElementById(id).style.display = 'flex',
             fecharModal: (id) => document.getElementById(id).style.display = 'none'
