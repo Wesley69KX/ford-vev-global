@@ -21,14 +21,12 @@
         .container { max-width: 700px; margin: 0 auto; padding: 1.5rem 1rem; }
         h2 { font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin: 1.5rem 0 0.75rem 0.5rem; font-weight: 800; }
 
-        .verse-box { background: #ecfdf5; border: 1px solid #a7f3d0; border-left: 4px solid #10b981; padding: 1rem; border-radius: 0.75rem; margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: flex-start; }
-        .icon-circle-verse { background: #d1fae5; color: #10b981; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-
         .grid-forms { display: grid; gap: 0.75rem; }
         .card-form { background: white; padding: 1rem; border-radius: 0.75rem; display: flex; align-items: center; gap: 1rem; text-decoration: none; color: inherit; border: 1px solid #e2e8f0; border-left: 4px solid var(--ford-blue); cursor: pointer; transition: 0.2s; }
         .card-form:active { background: #f8fafc; transform: scale(0.98); }
         .card-form.danger { border-left-color: var(--danger); }
         .icon-circle { width: 40px; height: 40px; border-radius: 50%; background: #f1f5f9; color: var(--ford-blue); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .card-form.danger .icon-circle { color: var(--danger); background: #fef2f2; }
 
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: flex-end; justify-content: center; z-index: 1000; }
         .modal-content { background: white; width: 100%; max-width: 700px; border-radius: 1.5rem 1.5rem 0 0; padding: 1.5rem; max-height: 90vh; overflow-y: auto; position: relative; }
@@ -65,15 +63,6 @@
 
     <div class="container">
         
-        <div class="verse-box">
-            <div class="icon-circle-verse"><span class="material-icons">menu_book</span></div>
-            <div>
-                <div style="font-weight: 800; font-size: 0.75rem; color: #064e3b;">PALAVRA PARA O TURNO</div>
-                <div id="verse-text" style="font-size: 0.9rem; color: #047857; margin-top: 4px; font-style: italic;">...</div>
-                <div id="verse-ref" style="font-size: 0.7rem; color: #059669; margin-top: 6px; font-weight: bold;"></div>
-            </div>
-        </div>
-
         <h2>Formulários Operacionais</h2>
         <div class="grid-forms">
             <a href="https://forms.office.com/r/LGrPxcte1T" target="_blank" class="card-form">
@@ -160,7 +149,7 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script src="app.js?v=1.3"></script>
     <script>
         const appUI = {
             abrirModal: (id) => document.getElementById(id).style.display = 'flex',
