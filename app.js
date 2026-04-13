@@ -1,41 +1,25 @@
 const app = {
     fotos: [],
     logoBase64Cache: null,
-    
-    // BANCO DE VERSÍCULOS DE PROTEÇÃO
     versiculos: [
-        { texto: '"O Senhor te guardará de todo mal; ele guardará a tua alma. O Senhor guardará a tua saída e a tua entrada, desde agora e para sempre."', ref: 'Salmos 121:7-8' },
+        { texto: '"O Senhor te guardará de todo mal; ele guardará a tua alma. O Senhor guardará a tua saída e a tua entrada."', ref: 'Salmos 121:7-8' },
         { texto: '"Mil cairão ao teu lado, e dez mil à tua direita, mas tu não serás atingido."', ref: 'Salmos 91:7' },
         { texto: '"Consagre ao Senhor tudo o que você faz, e os seus planos serão bem-sucedidos."', ref: 'Provérbios 16:3' },
-        { texto: '"O Senhor é o meu pastor, nada me faltará. Ele me faz repousar em pastos verdejantes e me leva a águas tranquilas."', ref: 'Salmos 23:1-2' },
-        { texto: '"Seja forte e corajoso! Não se apavore nem desanime, pois o Senhor, o seu Deus, estará com você por onde você andar."', ref: 'Josué 1:9' },
-        { texto: '"O Senhor é a minha luz e a minha salvação; de quem terei temor? O Senhor é o meu forte refúgio; de quem terei medo?"', ref: 'Salmos 27:1' },
-        { texto: '"Guarda-me, ó Deus, porque em ti me refugio. Ensina-me o caminho da vida."', ref: 'Salmos 16:1,11' }
+        { texto: '"Seja forte e corajoso! Não se apavore nem desanime, pois o Senhor estará com você."', ref: 'Josué 1:9' },
+        { texto: '"O Senhor é o meu pastor, nada me faltará."', ref: 'Salmos 23:1' }
     ],
 
     init() {
         this.converterLogoParaBase64('logo.png');
-        
-        // Carrega o versículo do dia
-        this.carregarVersiculoDoDia();
-
-        // Data de hoje no calendário
-        const hoje = new Date();
-        document.getElementById('t-data').value = hoje.toISOString().split('T')[0];
+        this.carregarVersiculo();
+        document.getElementById('t-data').value = new Date().toISOString().split('T')[0];
     },
 
-    carregarVersiculoDoDia() {
-        const dia = new Date().getDate();
-        // Escolhe o versículo baseado no dia do mês (garante que todo dia mude)
-        const index = dia % this.versiculos.length; 
-        const versiculoEscolhido = this.versiculos[index];
-        
-        document.getElementById('verse-text').innerText = versiculoEscolhido.texto;
-        document.getElementById('verse-ref').innerText = versiculoEscolhido.ref;
+    carregarVersiculo() {
+        const index = new Date().getDate() % this.versiculos.length;
+        document.getElementById('verse-text').innerText = this.versiculos[index].texto;
+        document.getElementById('verse-ref').innerText = this.versiculos[index].ref;
     },
-
-    abrirModal(id) { window.appUI.abrirModal(id); },
-    fecharModal(id) { window.appUI.fecharModal(id); },
 
     handleFotos(e) {
         const files = Array.from(e.target.files);
@@ -61,23 +45,19 @@ const app = {
             else { if (h > maxH) { w *= maxH / h; h = maxH; } }
             canvas.width = w; canvas.height = h;
             const ctx = canvas.getContext('2d');
-            ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = 'high';
             ctx.drawImage(img, 0, 0, w, h);
             cb(canvas.toDataURL('image/jpeg', 0.95));
         };
     },
 
-    atualizarLegenda(index, valor) { this.fotos[index].legenda = valor; },
-    removerFoto(index) { this.fotos.splice(index, 1); this.renderGaleria(); },
-
     renderGaleria() {
-        const g = document.getElementById('galeria-invaria');
+        const g = document.getElementById('galeria-avaria');
         g.innerHTML = this.fotos.map((f, i) => `
             <div class="photo-wrapper">
-                <button class="btn-delete-photo" onclick="app.removerFoto(${i})"><span class="material-icons" style="font-size:14px;">close</span></button>
+                <button class="btn-delete-photo" onclick="app.fotos.splice(${i},1);app.renderGaleria()">×</button>
                 <img src="${f.src}">
-                <input type="text" placeholder="Digite uma legenda..." value="${f.legenda}" oninput="app.atualizarLegenda(${i}, this.value)">
+                <input type="text" placeholder="Legenda..." oninput="app.fotos[${i}].legenda=this.value">
             </div>
         `).join('');
     },
@@ -93,183 +73,49 @@ const app = {
         };
     },
 
-    // ==========================================
-    // 1. GERAR LAUDO INVARIA (FOTOS PROPORCIONAIS)
-    // ==========================================
-    async gerarPDFInvaria() {
+    async gerarPDFAvaria() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        
         const id = document.getElementById('i-id').value || "S/N";
-        const motorista = document.getElementById('i-motorista').value || "---";
-        const obs = document.getElementById('i-obs').value || "Sem observações.";
-
-        if (this.logoBase64Cache) {
-            const props = doc.getImageProperties(this.logoBase64Cache);
-            const w = 28; 
-            const h = (props.height * w) / props.width;
-            doc.addImage(this.logoBase64Cache, 'PNG', 14, 12, w, h);
-        }
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(14);
-        doc.setTextColor(0, 52, 120);
-        doc.text("LAUDO DE INVARIA - AUDITORIA", 196, 20, { align: "right" });
         
-        doc.setDrawColor(200, 200, 200);
-        doc.line(14, 28, 196, 28);
+        if (this.logoBase64Cache) doc.addImage(this.logoBase64Cache, 'PNG', 14, 12, 28, 10);
+        doc.setFontSize(14);
+        doc.text("RELATÓRIO DE AVARIA - QUALIDADE", 196, 20, { align: "right" });
 
         doc.autoTable({
             startY: 35,
-            head: [['INFORMAÇÕES DA AUDITORIA', 'DETALHES']],
-            body: [
-                ['PLACA / VIN', id],
-                ['CONDUTOR / RESPONSÁVEL', motorista],
-                ['DATA DA EMISSÃO', new Date().toLocaleDateString('pt-BR')],
-                ['LOCAL / CC', 'CENTRO DE CUSTO: 2748']
-            ],
-            theme: 'grid',
-            headStyles: { fillColor: [0, 52, 120], fontSize: 9 },
-            styles: { fontSize: 8, cellPadding: 2 }
+            body: [['VIN', id], ['MOTORISTA', document.getElementById('i-motorista').value], ['DATA', new Date().toLocaleDateString()]],
+            theme: 'grid'
         });
-
-        let finalY = doc.lastAutoTable.finalY;
-        doc.setFontSize(10);
-        doc.setTextColor(0, 52, 120);
-        doc.text("PARECER TÉCNICO:", 14, finalY + 12);
-        
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(50, 50, 50);
-        const splitObs = doc.splitTextToSize(obs, 180);
-        doc.text(splitObs, 14, finalY + 18);
 
         if (this.fotos.length > 0) {
             doc.addPage();
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(11);
-            doc.setTextColor(0, 52, 120);
-            doc.text("ANEXO I - EVIDÊNCIAS FOTOGRÁFICAS", 14, 15);
-            
-            let y = 25;
-            let x = 14;
-            const boxWidth = 85;
-            const boxHeight = 70;
-
-            this.fotos.forEach((foto, index) => {
-                if (y + boxHeight + 20 > 280) { doc.addPage(); y = 20; x = 14; }
-                
-                const imgProps = doc.getImageProperties(foto.src);
+            let y = 20;
+            this.fotos.forEach((f, i) => {
+                const imgProps = doc.getImageProperties(f.src);
                 const ratio = imgProps.height / imgProps.width;
-                
-                let renderWidth = boxWidth;
-                let renderHeight = renderWidth * ratio;
-                
-                if (renderHeight > boxHeight) {
-                    renderHeight = boxHeight;
-                    renderWidth = renderHeight / ratio;
-                }
-
-                const offsetX = x + (boxWidth - renderWidth) / 2;
-                const offsetY = y + (boxHeight - renderHeight) / 2;
-
-                doc.setDrawColor(200);
-                doc.rect(x, y, boxWidth, boxHeight); 
-                doc.addImage(foto.src, 'JPEG', offsetX, offsetY, renderWidth, renderHeight); 
-                
-                doc.setFontSize(8);
-                doc.setTextColor(0);
-                doc.setFont("helvetica", "bold");
-                doc.text(`Evidência #${index + 1}:`, x, y + boxHeight + 5);
-                doc.setFont("helvetica", "normal");
-                
-                const txtLegenda = doc.splitTextToSize(foto.legenda || 'Sem legenda informada', boxWidth);
-                doc.text(txtLegenda, x, y + boxHeight + 9);
-                
-                x = x === 14 ? 110 : 14;
-                if (x === 14) y += boxHeight + 25;
+                doc.addImage(f.src, 'JPEG', 14, y, 80, 80 * ratio);
+                doc.text(f.legenda || `Foto ${i+1}`, 14, y + (80 * ratio) + 5);
+                y += 100;
+                if (y > 250) { doc.addPage(); y = 20; }
             });
         }
-
-        const fileName = `Invaria_${id}_${Date.now()}.pdf`;
-        this.fecharModal('modal-laudo');
-        this.salvarOuCompartilhar(doc, fileName);
-    },
-
-    // ==========================================
-    // 2. FLUXO INTEGRADO: TURNO (ZAP + PDF)
-    // ==========================================
-    gerarTextoTurno() {
-        const turno = document.getElementById('t-turno').value;
-        const dataBruta = document.getElementById('t-data').value;
-        const veiculo = document.getElementById('t-veiculo').value;
-        const vin = document.getElementById('t-vin').value;
-        const posto = document.getElementById('t-posto').value;
-        const trip = document.getElementById('t-trip').value;
-        const km = document.getElementById('t-km').value;
-        const tipoComb = document.getElementById('t-tipo-comb').value;
-        const litros = document.getElementById('t-litros').value;
-        const saldo = document.getElementById('t-saldo').value;
-
-        let dataFormatada = "";
-        if (dataBruta) {
-            const partes = dataBruta.split('-'); 
-            dataFormatada = `${partes[2]}/${partes[1]}`;
-        }
-
-        let texto = `*Abastecimento ${veiculo}*\n`;
-        texto += `${turno} ${dataFormatada}\n`;
-        texto += `VIN: ${vin}\n\n`;
-        if(posto) texto += `Posto: ${posto}\n`;
-        texto += `Trip: ${trip}\n`;
-        texto += `Km: ${km}\n`;
-        texto += `Litros ${tipoComb}: ${litros}\n`;
-        if(saldo) texto += `Saldo Disponível: R$ ${saldo}\n`;
-
-        return texto;
+        doc.save(`Avaria_${id}.pdf`);
     },
 
     async finalizarTurnoIntegrado() {
-        const texto = this.gerarTextoTurno();
+        const v = document.getElementById('t-veiculo').value;
+        const data = document.getElementById('t-data').value.split('-').reverse().slice(0,2).join('/');
+        const texto = `*Abastecimento ${v}*\n${document.getElementById('t-turno').value} ${data}\nVIN: ${document.getElementById('t-vin').value}\nKm: ${document.getElementById('t-km').value}\nLitros: ${document.getElementById('t-litros').value}`;
         
-        try {
-            await navigator.clipboard.writeText(texto);
-            alert("✅ O texto do abastecimento foi copiado com sucesso!\n\nCole no WhatsApp assim que o PDF terminar de baixar.");
-        } catch (err) {
-            console.log("Navegador não suporta cópia automática.", err);
-        }
-
+        await navigator.clipboard.writeText(texto);
+        alert("Texto copiado para o WhatsApp!");
+        
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(16);
-        doc.text("RELATÓRIO DE ABASTECIMENTO", 105, 20, { align: "center" });
-
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(12);
-        
-        const textoLimpo = texto.replace(/\*/g, ''); 
-        const linhas = doc.splitTextToSize(textoLimpo, 150);
-        
-        doc.setFillColor(245, 245, 245);
-        doc.rect(20, 30, 170, (linhas.length * 7) + 20, 'F');
-        doc.text(linhas, 30, 45);
-
-        const fileName = `Abastecimento_${document.getElementById('t-vin').value}.pdf`;
-        this.fecharModal('modal-turno');
-        this.salvarOuCompartilhar(doc, fileName);
-    },
-
-    async salvarOuCompartilhar(doc, fileName) {
-        const blob = doc.output('blob');
-        const file = new File([blob], fileName, { type: "application/pdf" });
-        if (navigator.share && navigator.canShare) {
-            try { await navigator.share({ files: [file], title: fileName }); } 
-            catch (e) { doc.save(fileName); }
-        } else {
-            doc.save(fileName);
-        }
+        doc.text("FECHAMENTO DE TURNO", 14, 20);
+        doc.text(doc.splitTextToSize(texto.replace(/\*/g,''), 180), 14, 35);
+        doc.save(`Turno_${document.getElementById('t-vin').value}.pdf`);
     }
 };
-
 window.onload = () => app.init();
