@@ -1,24 +1,10 @@
 const app = {
     fotos: [],
     logoBase64Cache: null,
-    versiculos: [
-        { texto: '"O Senhor te guardará de todo mal; ele guardará a tua alma. O Senhor guardará a tua saída e a tua entrada."', ref: 'Salmos 121:7-8' },
-        { texto: '"Mil cairão ao teu lado, e dez mil à tua direita, mas tu não serás atingido."', ref: 'Salmos 91:7' },
-        { texto: '"Consagre ao Senhor tudo o que você faz, e os seus planos serão bem-sucedidos."', ref: 'Provérbios 16:3' },
-        { texto: '"Seja forte e corajoso! Não se apavore nem desanime, pois o Senhor estará com você."', ref: 'Josué 1:9' },
-        { texto: '"O Senhor é o meu pastor, nada me faltará."', ref: 'Salmos 23:1' }
-    ],
 
     init() {
         this.converterLogoParaBase64('logo.png');
-        this.carregarVersiculo();
         document.getElementById('t-data').value = new Date().toISOString().split('T')[0];
-    },
-
-    carregarVersiculo() {
-        const index = new Date().getDate() % this.versiculos.length;
-        document.getElementById('verse-text').innerText = this.versiculos[index].texto;
-        document.getElementById('verse-ref').innerText = this.versiculos[index].ref;
     },
 
     handleFotos(e) {
