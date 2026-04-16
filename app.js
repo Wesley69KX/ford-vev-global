@@ -64,7 +64,7 @@ const app = {
         "[Esp] Pistas 09-10",
         "[Esp] P. de Baixa",
         // PISTAS ESPECIAIS (BLOCO 4)
-        "[Esp] Pistas 1-13",
+        "[Esp] Pistas 1-2",
         "[Esp] Pista 4-3",
         "[Esp] Pistas 5-8",
         "[Esp] Pista 4-3",
