@@ -9,10 +9,11 @@ const app = {
     // FRENAGEM
     ciclosFrenagem: [],
     
+    // ==========================================
+    // ROTEIRO EXATO (ATUALIZADO SEM OS ITENS RISCADOS)
+    // ==========================================
     sequenciaDiasPares: [
         "Batente-batente (25x)",
-        "Lombadas 1/2 (5x) - Anti-horário",
-        "Batente-batente (4x)",
         "Labirinto: 1ª volta + mata-burro (30 km/h)",
         "Labirinto: 2ª volta + mata-burro",
         "Labirinto: 3ª volta",
@@ -23,8 +24,6 @@ const app = {
         "Areia Pista: 1ª volta",
         "Areia Pista: 2ª volta (360º horário)",
         "Areia Pista: 3ª volta (360º anti-horário)",
-        "Pista de Lama (1x)",
-        "Rampas: Marcha-à-ré + giro anti-horário",
         "Power Hop Hill (1x) - 60 km/h",
         "Seguir p/ 2ª Rotatória - 60 km/h",
         "Lombadas: 1ª passagem",
@@ -33,6 +32,7 @@ const app = {
         "Lombadas: 4ª passagem",
         "Lombadas: 5ª passagem",
         "Batente-batente (4x)",
+        // PISTAS ESPECIAIS (BLOCO 1)
         "[Esp] Pistas 1-2 (50 km/h)",
         "[Esp] Pista 4-3 (20 km/h)",
         "[Esp] Slalom 11,09,12,10 (20 km/h)",
@@ -43,16 +43,7 @@ const app = {
         "[Esp] Pistas 2-1 (50 km/h)",
         "[Esp] Pistas 7-8 (20, 15 km/h)",
         "[Esp] P. de Baixa",
-        "[Esp] Pistas 1-2",
-        "[Esp] Pista 4-3",
-        "[Esp] Slalom 11,09,12,10",
-        "[Esp] Pista 4-3",
-        "[Esp] Slalom 11,09,12,10",
-        "[Esp] Pista 4-3",
-        "[Esp] Pistas 7-8",
-        "[Esp] Pistas 2-1",
-        "[Esp] Pistas 7-8",
-        "[Esp] P. de Baixa",
+        // PISTAS ESPECIAIS (BLOCO 3)
         "[Esp] Pistas 1-2",
         "[Esp] Pista 4-3",
         "[Esp] Pistas 5-8",
@@ -63,17 +54,9 @@ const app = {
         "[Esp] Pistas 2-1",
         "[Esp] Pistas 09-10",
         "[Esp] P. de Baixa",
-        "[Esp] Pistas 1-13",
-        "[Esp] Pista 4-3",
-        "[Esp] Pistas 5-8",
-        "[Esp] Pista 4-3",
-        "[Esp] Pistas 5-8",
-        "[Esp] Pista 4-3",
-        "[Esp] Pistas 09-10",
+        // FINALIZAÇÃO
         "10 metros marcha-à-ré + Manobra",
         "Pista de Alta",
-        "Pista de Alta + bolacha",
-        "Pista de Baixa + bolacha",
         "Condição: Veículo Vazio",
         "Condição: Veículo Carregado"
     ],
@@ -194,7 +177,7 @@ const app = {
                     <strong>Vel:</strong> ${c.velocidade} | <strong>Obs:</strong> ${c.observacao}
                 </div>
             </div>
-        `).reverse().join(''); // Reverse para o mais recente ficar no topo
+        `).reverse().join(''); 
     },
 
     resetarFrenagem() {
@@ -210,7 +193,7 @@ const app = {
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
         
         doc.setFontSize(16);
-        doc.setTextColor(249, 115, 22); // Laranja
+        doc.setTextColor(249, 115, 22); 
         doc.text("RELATÓRIO DE TESTE DE FRENAGEM", 105, 20, { align: "center" });
         doc.setFontSize(10);
         doc.setTextColor(30, 41, 59);
