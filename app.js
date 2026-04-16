@@ -2,87 +2,186 @@ const app = {
     fotos: [],
     videosFiles: [], 
     
+    // ==========================================
+    // ROTEIRO EXATO (DIAS PARES)
+    // ==========================================
+    etapaAtualIndex: 0,
     checkins: [],
-    // ==========================================
-    // ROTEIRO EXATO DA PLANILHA (DIAS PARES)
-    // ==========================================
-    roteiroData: [
-        { nome: "Batente-Batente Inicial", cola: "Realizar o ciclo batente-batente 25 vezes." },
-        { nome: "Lombadas 1/2 (5x)", cola: "Sentido anti-horário." },
-        { nome: "Batente-Batente (4x)", cola: "Realizar 4 vezes." },
-        { nome: "Labirinto", cola: "1ª volta + mata-burro (30km/h) / 2ª volta + mata-burro / 3ª volta." },
-        { nome: "Enrola Camisa", cola: "Executar 1ª, 2ª, 3ª e 4ª volta." },
-        { nome: "Pista Areia", cola: "1ª volta / 2ª volta (360º horário) / 3ª volta (360º anti-horário)." },
-        { nome: "Pista de Lama (1x)", cola: "Passagem única." },
-        { nome: "Rampas", cola: "Marcha-à-ré + giro anti-horário." },
-        { nome: "Power Hop Hill (1x)", cola: "Passagem a 60km/h." },
-        { nome: "Seguir p/ 2ª Rotatória", cola: "Velocidade a 60km/h." },
-        { nome: "Lombadas (5x)", cola: "Realizar 1ª a 5ª passagem." },
-        { nome: "Batente-Batente (4x)", cola: "Realizar 4 vezes pós-lombadas." },
-        { nome: "Pistas Especiais - Bloco 1", cola: "Pistas 1-2 > 4-3 > Slalom 11,09,12,10 > Pista 4-3 > Slalom > Pista 4-3 > Pistas 7-8 > Pistas 2-1 > Pistas 7-8 > P. de Baixa." },
-        { nome: "Pistas Especiais - Bloco 2", cola: "Repetir: Pistas 1-2 > 4-3 > Slalom > Pista 4-3 > Slalom > Pista 4-3 > Pistas 7-8 > 2-1 > 7-8 > P. de Baixa." },
-        { nome: "Pistas Especiais - Bloco 3", cola: "Pistas 1-2 > 4-3 > Pistas 5-8 > 4-3 > 5-8 > 4-3 > Pistas 09-10 > 2-1 > 09-10 > P. de Baixa." },
-        { nome: "Pistas Especiais - Bloco 4", cola: "Pistas 1-13 > 4-3 > 5-8 > 4-3 > 5-8 > 4-3 > Pistas 09-10." },
-        { nome: "10m Marcha-à-ré + Manobra", cola: "Executar manobra final com segurança." },
-        { nome: "Pista de Alta", cola: "Avaliação normal em alta velocidade." },
-        { nome: "Pista de Alta + Bolacha", cola: "Avaliação com obstáculo (bolacha)." },
-        { nome: "Pista de Baixa + Bolacha", cola: "Avaliação de baixa velocidade com bolacha." },
-        { nome: "Condição: Veículo Vazio", cola: "Teste de encerramento sem carga." },
-        { nome: "Condição: Veículo Carregado", cola: "Teste de encerramento com carga." }
+    
+    // Transcrição EXATA da sua foto da prancheta
+    sequenciaDiasPares: [
+        "Batente-batente (25x)",
+        "Lombadas 1/2 (5x) - Anti-horário",
+        "Batente-batente (4x)",
+        "Labirinto: 1ª volta + mata-burro (30 km/h)",
+        "Labirinto: 2ª volta + mata-burro",
+        "Labirinto: 3ª volta",
+        "Enrola Camisa: 1ª volta",
+        "Enrola Camisa: 2ª volta",
+        "Enrola Camisa: 3ª volta",
+        "Enrola Camisa: 4ª volta",
+        "Areia Pista: 1ª volta",
+        "Areia Pista: 2ª volta (360º horário)",
+        "Areia Pista: 3ª volta (360º anti-horário)",
+        "Pista de Lama (1x)",
+        "Rampas: Marcha-à-ré + giro anti-horário",
+        "Power Hop Hill (1x) - 60 km/h",
+        "Seguir p/ 2ª Rotatória - 60 km/h",
+        "Lombadas: 1ª passagem",
+        "Lombadas: 2ª passagem",
+        "Lombadas: 3ª passagem",
+        "Lombadas: 4ª passagem",
+        "Lombadas: 5ª passagem",
+        "Batente-batente (4x)",
+        // PISTAS ESPECIAIS (BLOCO 1)
+        "[Esp] Pistas 1-2 (50 km/h)",
+        "[Esp] Pista 4-3 (20 km/h)",
+        "[Esp] Slalom 11,09,12,10 (20 km/h)",
+        "[Esp] Pista 4-3 (20 km/h)",
+        "[Esp] Slalom 11,09,12,10 (20 km/h)",
+        "[Esp] Pista 4-3 (20 km/h)",
+        "[Esp] Pistas 7-8 (20, 15 km/h)",
+        "[Esp] Pistas 2-1 (50 km/h)",
+        "[Esp] Pistas 7-8 (20, 15 km/h)",
+        "[Esp] P. de Baixa",
+        // PISTAS ESPECIAIS (BLOCO 2 - Repete)
+        "[Esp] Pistas 1-2",
+        "[Esp] Pista 4-3",
+        "[Esp] Slalom 11,09,12,10",
+        "[Esp] Pista 4-3",
+        "[Esp] Slalom 11,09,12,10",
+        "[Esp] Pista 4-3",
+        "[Esp] Pistas 7-8",
+        "[Esp] Pistas 2-1",
+        "[Esp] Pistas 7-8",
+        "[Esp] P. de Baixa",
+        // PISTAS ESPECIAIS (BLOCO 3)
+        "[Esp] Pistas 1-2",
+        "[Esp] Pista 4-3",
+        "[Esp] Pistas 5-8",
+        "[Esp] Pista 4-3",
+        "[Esp] Pistas 5-8",
+        "[Esp] Pista 4-3",
+        "[Esp] Pistas 09-10",
+        "[Esp] Pistas 2-1",
+        "[Esp] Pistas 09-10",
+        "[Esp] P. de Baixa",
+        // PISTAS ESPECIAIS (BLOCO 4)
+        "[Esp] Pistas 1-13",
+        "[Esp] Pista 4-3",
+        "[Esp] Pistas 5-8",
+        "[Esp] Pista 4-3",
+        "[Esp] Pistas 5-8",
+        "[Esp] Pista 4-3",
+        "[Esp] Pistas 09-10",
+        // FINALIZAÇÃO
+        "10 metros marcha-à-ré + Manobra",
+        "Pista de Alta",
+        "Pista de Alta + bolacha",
+        "Pista de Baixa + bolacha",
+        "Condição: Veículo Vazio",
+        "Condição: Veículo Carregado"
     ],
 
     init() {
         document.getElementById('t-data').value = new Date().toISOString().split('T')[0];
-        this.renderRoteiro();
+        this.atualizarInterfaceCola();
     },
 
     // ==========================================
-    // LÓGICA DO ROTEIRO DE TESTE
+    // LÓGICA DO GUIA PASSO A PASSO
     // ==========================================
-    renderRoteiro() {
-        const container = document.getElementById('lista-roteiro');
-        container.innerHTML = this.roteiroData.map((item, index) => `
-            <div class="roteiro-item" onclick="app.marcarEtapa('${item.nome}')">
-                <h4>${item.nome}</h4>
-                <p>${item.cola}</p>
-            </div>
-        `).join('');
+    atualizarInterfaceCola() {
+        // Atualiza a Caixa Gigante
+        if (this.etapaAtualIndex < this.sequenciaDiasPares.length) {
+            document.getElementById('etapa-atual').innerText = this.sequenciaDiasPares[this.etapaAtualIndex];
+            
+            let seguinte = "Fim do Teste";
+            if(this.etapaAtualIndex + 1 < this.sequenciaDiasPares.length) {
+                seguinte = `Em seguida: ${this.sequenciaDiasPares[this.etapaAtualIndex + 1]}`;
+            }
+            document.getElementById('etapa-seguinte').innerText = seguinte;
+        } else {
+            document.getElementById('etapa-atual').innerText = "✅ TESTE CONCLUÍDO!";
+            document.getElementById('etapa-seguinte').innerText = "Gere o relatório abaixo.";
+        }
+
+        // Atualiza a Listinha de Baixo (A Cola)
+        const listaCola = document.getElementById('lista-cola');
+        listaCola.innerHTML = this.sequenciaDiasPares.map((etapa, idx) => {
+            let classe = "cola-item";
+            let icone = "radio_button_unchecked";
+            
+            if (idx < this.etapaAtualIndex) {
+                classe += " concluido";
+                icone = "check_circle";
+            } else if (idx === this.etapaAtualIndex) {
+                classe += " ativo";
+                icone = "play_circle_filled";
+            }
+
+            // Permite clicar na lista para pular/voltar pra lá se errar
+            return `
+                <div class="${classe}" onclick="app.pularParaEtapa(${idx})">
+                    <span class="material-icons cola-icon">${icone}</span>
+                    <span>${idx + 1}. ${etapa}</span>
+                </div>
+            `;
+        }).join('');
+
+        // Faz a listinha rolar automaticamente pra onde você está
+        setTimeout(() => {
+            const itemAtivo = document.querySelector('.cola-item.ativo');
+            if(itemAtivo) itemAtivo.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
     },
 
-    marcarEtapa(nome) {
+    pularParaEtapa(idx) {
+        // Se você clicar num item da lista, ele vai perguntar se quer mudar pra lá
+        if(confirm(`Deseja definir "${this.sequenciaDiasPares[idx]}" como o passo atual?`)) {
+            this.etapaAtualIndex = idx;
+            this.atualizarInterfaceCola();
+        }
+    },
+
+    registrarPassagem() {
+        if (this.etapaAtualIndex >= this.sequenciaDiasPares.length) return alert("O teste já foi concluído.");
+
+        const nomeEtapa = this.sequenciaDiasPares[this.etapaAtualIndex];
         const agora = new Date();
-        const horario = agora.toLocaleTimeString('pt-BR');
-        this.checkins.push({ atividade: nome, hora: horario, timestamp: agora });
         
-        const log = document.getElementById('log-roteiro');
-        if(this.checkins.length === 1) log.innerHTML = "";
-        log.innerHTML = `<div><strong style="color:#8b5cf6">[${horario}]</strong> ${nome} concluído.</div>` + log.innerHTML;
+        // Salva na memória
+        this.checkins.push({ atividade: nomeEtapa, hora: agora.toLocaleTimeString('pt-BR'), timestamp: agora });
         
+        // Vibra e avança um passo
         if ('vibrate' in navigator) navigator.vibrate(50);
+        this.etapaAtualIndex++;
+        
+        this.atualizarInterfaceCola();
     },
 
     async gerarRelatorioRoteiro() {
-        if (this.checkins.length === 0) return alert("Nenhuma atividade registrada no roteiro.");
+        if (this.checkins.length === 0) return alert("Nenhuma passagem registrada no guia.");
 
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         
         doc.setFontSize(16);
-        doc.text("RELATÓRIO DE EXECUÇÃO DE CICLOS", 105, 20, { align: "center" });
+        doc.text("RELATÓRIO DE CONTROLE DE CICLOS (R389)", 105, 20, { align: "center" });
         doc.setFontSize(10);
-        doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 105, 28, { align: "center" });
+        doc.text(`Data de Execução: ${new Date().toLocaleDateString('pt-BR')}`, 105, 28, { align: "center" });
 
         const dadosTabela = this.checkins.map((c, i) => [i + 1, c.atividade, c.hora]);
 
         doc.autoTable({
             startY: 35,
-            head: [['#', 'SEQUÊNCIA / CICLO EXECUTADO', 'HORÁRIO']],
+            head: [['#', 'CICLO EXECUTADO (DIAS PARES)', 'HORÁRIO DO CHECK-IN']],
             body: dadosTabela,
             theme: 'grid',
-            headStyles: { fillColor: [0, 52, 120] }
+            headStyles: { fillColor: [139, 92, 246] } // Cor roxa para o relatório de ciclos
         });
 
-        doc.save(`Roteiro_Ciclos_${Date.now()}.pdf`);
+        doc.save(`Ciclos_R389_${Date.now()}.pdf`);
     },
 
     // ==========================================
@@ -134,7 +233,7 @@ const app = {
             <div class="photo-wrapper">
                 <button class="btn-delete-photo" onclick="app.removerFoto(${i})">×</button>
                 <img src="${f.src}">
-                <input type="text" placeholder="Legenda da foto..." oninput="app.fotos[${i}].legenda=this.value">
+                <input type="text" placeholder="Legenda..." oninput="app.fotos[${i}].legenda=this.value">
             </div>`;
         });
 
@@ -154,13 +253,13 @@ const app = {
     async gerarECompartilharLaudo() {
         const id = document.getElementById('i-id').value || "SN";
         const motorista = document.getElementById('i-motorista').value || "Não informado";
-        const parecer = document.getElementById('i-obs').value || "Sem observações adicionais registradas no momento da inspeção.";
+        const parecer = document.getElementById('i-obs').value || "Sem observações adicionais.";
         
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         
         // ==========================================
-        // CABEÇALHO LIMPO (CÓDIGO DE LOGO REMOVIDO)
+        // CABEÇALHO DO LAUDO (TEXTO OFICIAL SEM LOGO)
         // ==========================================
         doc.setFont("helvetica", "bold");
         doc.setFontSize(18);
@@ -175,9 +274,6 @@ const app = {
         doc.setLineWidth(0.8);
         doc.line(14, 22, 196, 22);
 
-        // ==========================================
-        // TABELA INFORMATIVA
-        // ==========================================
         doc.autoTable({
             startY: 28,
             body: [
@@ -187,20 +283,14 @@ const app = {
             theme: 'grid',
             headStyles: { fillColor: [240, 248, 255] },
             styles: { fontSize: 10, cellPadding: 4, textColor: [30, 41, 59], lineColor: [200, 200, 200] },
-            columnStyles: { 
-                0: { fontStyle: 'bold', fillColor: [241, 245, 249], cellWidth: 35 }, 
-                2: { fontStyle: 'bold', fillColor: [241, 245, 249], cellWidth: 35 } 
-            }
+            columnStyles: { 0: { fontStyle: 'bold', fillColor: [241, 245, 249], cellWidth: 35 }, 2: { fontStyle: 'bold', fillColor: [241, 245, 249], cellWidth: 35 } }
         });
 
-        // ==========================================
-        // CAIXA DE PARECER TÉCNICO
-        // ==========================================
         let currentY = doc.lastAutoTable.finalY + 10;
         doc.setFont("helvetica", "bold");
         doc.setFontSize(11);
         doc.setTextColor(0, 52, 120);
-        doc.text("PARECER TÉCNICO / DESCRIÇÃO DA AVARIA:", 14, currentY);
+        doc.text("PARECER TÉCNICO / DESCRIÇÃO:", 14, currentY);
 
         currentY += 4;
         doc.setFont("helvetica", "normal");
@@ -215,48 +305,35 @@ const app = {
         doc.rect(14, currentY, 182, boxHeight, 'FD'); 
         doc.text(splitText, 18, currentY + 7);
 
-        // ==========================================
-        // FOTOS
-        // ==========================================
         if (this.fotos.length > 0) {
             let y = currentY + boxHeight + 15;
             this.fotos.forEach((f, i) => {
                 if (y > 200) { doc.addPage(); y = 20; }
                 const imgProps = doc.getImageProperties(f.src);
                 const ratio = imgProps.height / imgProps.width;
-                
                 doc.setDrawColor(200, 200, 200);
                 doc.rect(14, y, 90, 90 * ratio);
                 doc.addImage(f.src, 'JPEG', 14, y, 90, 90 * ratio);
-                
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(10);
+                doc.setFont("helvetica", "bold"); doc.setFontSize(10);
                 doc.text(`Evidência ${i+1}:`, 14, y + (90 * ratio) + 6);
                 doc.setFont("helvetica", "normal");
                 doc.text(`${f.legenda || 'Sem legenda'}`, 36, y + (90 * ratio) + 6);
-                
                 y += (90 * ratio) + 15;
             });
         }
 
-        // ==========================================
-        // PREPARAÇÃO PARA O ENVIO (FORÇANDO NOVO NOME NO IPHONE)
-        // ==========================================
         const fileName = `Laudo_Avaria_${id}.pdf`;
         const pdfBlob = doc.output('blob');
         const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
-        
         const videosRenomeados = [];
         
         for (let i = 0; i < this.videosFiles.length; i++) {
             const file = this.videosFiles[i];
             const extension = file.name.split('.').pop() || 'mp4';
             const novoNome = `Video_Evidencia_${id}_0${i+1}.${extension}`;
-            
             const arrayBuffer = await file.arrayBuffer();
             const novoBlob = new Blob([arrayBuffer], { type: file.type });
             const novoArquivo = new File([novoBlob], novoNome, { type: file.type });
-            
             videosRenomeados.push(novoArquivo);
         }
 
@@ -265,19 +342,12 @@ const app = {
 
         if (navigator.canShare && navigator.canShare({ files: arquivosParaEnviar })) {
             try {
-                await navigator.share({
-                    title: `Laudo Técnico - ${id}`,
-                    text: mensagemTexto,
-                    files: arquivosParaEnviar
-                });
+                await navigator.share({ title: `Laudo - ${id}`, text: mensagemTexto, files: arquivosParaEnviar });
                 window.appUI.fecharModal('modal-laudo');
-            } catch (e) {
-                console.log("Compartilhamento cancelado", e);
-                doc.save(fileName);
-            }
+            } catch (e) { doc.save(fileName); }
         } else {
             doc.save(fileName);
-            if(this.videosFiles.length > 0) alert("Baixado! Anexe o vídeo manualmente no WhatsApp/Teams.");
+            if(this.videosFiles.length > 0) alert("Baixado! Anexe o vídeo manualmente.");
         }
     },
 
@@ -291,7 +361,7 @@ const app = {
 
         const texto = `*Abastecimento ${v}*\n${document.getElementById('t-turno').value} ${dataFormatada}\nVIN: ${document.getElementById('t-vin').value}\nTrip: ${document.getElementById('t-trip').value}\nKm: ${document.getElementById('t-km').value}\nLitros: ${document.getElementById('t-litros').value}\nSaldo: R$ ${document.getElementById('t-saldo').value}`;
         
-        try { await navigator.clipboard.writeText(texto); alert("Texto copiado para o WhatsApp!"); } catch (e) {}
+        try { await navigator.clipboard.writeText(texto); alert("Texto copiado!"); } catch (e) {}
         
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
