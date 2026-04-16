@@ -10,28 +10,26 @@ const app = {
     ciclosFrenagem: [],
     
     // ==========================================
-    // ROTEIRO EXATO (ATUALIZADO SEM OS ITENS RISCADOS)
+    // ROTEIRO EXATO (REMOVIDO APENAS OS RISCOS VERMELHOS)
     // ==========================================
     sequenciaDiasPares: [
-        "Batente-batente (25x)",
         "Labirinto: 1ª volta + mata-burro (30 km/h)",
-        "Labirinto: 2ª volta + mata-burro",
-        "Labirinto: 3ª volta",
-        "Enrola Camisa: 1ª volta",
-        "Enrola Camisa: 2ª volta",
-        "Enrola Camisa: 3ª volta",
-        "Enrola Camisa: 4ª volta",
-        "Areia Pista: 1ª volta",
-        "Areia Pista: 2ª volta (360º horário)",
-        "Areia Pista: 3ª volta (360º anti-horário)",
+       // "Labirinto: 2ª volta + mata-burro",
+      //  "Labirinto: 3ª volta",
+       // "Enrola Camisa: 1ª volta",
+      //  "Enrola Camisa: 2ª volta",
+       // "Enrola Camisa: 3ª volta",
+     //   "Enrola Camisa: 4ª volta",
+       // "Areia Pista: 1ª volta",
+      //  "Areia Pista: 2ª volta (360º horário)",
+     //   "Areia Pista: 3ª volta (360º anti-horário)",
         "Power Hop Hill (1x) - 60 km/h",
         "Seguir p/ 2ª Rotatória - 60 km/h",
-        "Lombadas: 1ª passagem",
-        "Lombadas: 2ª passagem",
-        "Lombadas: 3ª passagem",
-        "Lombadas: 4ª passagem",
-        "Lombadas: 5ª passagem",
-        "Batente-batente (4x)",
+      //  "Lombadas: 1ª passagem",
+      //  "Lombadas: 2ª passagem",
+       // "Lombadas: 3ª passagem",
+       // "Lombadas: 4ª passagem",
+       // "Lombadas: 5ª passagem",
         // PISTAS ESPECIAIS (BLOCO 1)
         "[Esp] Pistas 1-2 (50 km/h)",
         "[Esp] Pista 4-3 (20 km/h)",
@@ -42,6 +40,17 @@ const app = {
         "[Esp] Pistas 7-8 (20, 15 km/h)",
         "[Esp] Pistas 2-1 (50 km/h)",
         "[Esp] Pistas 7-8 (20, 15 km/h)",
+        "[Esp] P. de Baixa",
+        // PISTAS ESPECIAIS (BLOCO 2 - Repete)
+        "[Esp] Pistas 1-2",
+        "[Esp] Pista 4-3",
+        "[Esp] Slalom 11,09,12,10",
+        "[Esp] Pista 4-3",
+        "[Esp] Slalom 11,09,12,10",
+        "[Esp] Pista 4-3",
+        "[Esp] Pistas 7-8",
+        "[Esp] Pistas 2-1",
+        "[Esp] Pistas 7-8",
         "[Esp] P. de Baixa",
         // PISTAS ESPECIAIS (BLOCO 3)
         "[Esp] Pistas 1-2",
@@ -54,11 +63,21 @@ const app = {
         "[Esp] Pistas 2-1",
         "[Esp] Pistas 09-10",
         "[Esp] P. de Baixa",
+        // PISTAS ESPECIAIS (BLOCO 4)
+        "[Esp] Pistas 1-13",
+        "[Esp] Pista 4-3",
+        "[Esp] Pistas 5-8",
+        "[Esp] Pista 4-3",
+        "[Esp] Pistas 5-8",
+        "[Esp] Pista 4-3",
+        "[Esp] Pistas 09-10",
         // FINALIZAÇÃO
-        "10 metros marcha-à-ré + Manobra",
-        "Pista de Alta",
-        "Condição: Veículo Vazio",
-        "Condição: Veículo Carregado"
+    //    "10 metros marcha-à-ré + Manobra",
+      //  "Pista de Alta",
+      "Pista de Alta + bolacha",
+      "Pista de Baixa + bolacha",
+      //  "Condição: Veículo Vazio",
+     //   "Condição: Veículo Carregado"
     ],
 
     init() {
