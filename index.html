@@ -91,6 +91,11 @@
                 <div><div style="font-weight: 700;">Guia de Ciclos (Dias Pares)</div><div style="font-size: 0.7rem; color: #64748b;">Sequência Passo-a-Passo da Planilha</div></div>
             </div>
             
+            <div class="card-form" onclick="appUI.abrirModal('modal-frenagem')" style="border-left-color: #f97316;">
+                <div class="icon-circle" style="color: #f97316; background: #ffedd5;"><span class="material-icons">speed</span></div>
+                <div><div style="font-weight: 700;">Teste de Frenagem</div><div style="font-size: 0.7rem; color: #64748b;">Anotação de ciclos e ocorrências</div></div>
+            </div>
+
             <div class="card-form" onclick="appUI.abrirModal('modal-laudo')">
                 <div class="icon-circle" style="color: white; background: var(--ford-blue);"><span class="material-icons">verified</span></div>
                 <div><div style="font-weight: 700;">Laudo de Avaria (PDF/Vídeo)</div><div style="font-size: 0.7rem; color: #64748b;">Relatório com anexo para Teams</div></div>
@@ -99,19 +104,6 @@
                 <div class="icon-circle" style="color: var(--success); background: #dcfce7;"><span class="material-icons">local_gas_station</span></div>
                 <div><div style="font-weight: 700;">Fechamento de Turno</div><div style="font-size: 0.7rem; color: #64748b;">Resumo e WhatsApp</div></div>
             </div>
-        </div>
-
-        <h2>Apoio Operacional</h2>
-        <div class="grid-forms">
-            <div class="card-form" style="border-left-color: #64748b;">
-                <div class="icon-circle"><span class="material-icons">password</span></div>
-                <div><div style="font-weight: 700;">Senha do Cartão</div><div style="font-family: monospace; font-size: 1.2rem; font-weight: bold;">958355</div></div>
-            </div>
-            <a href="tel:08007033673" class="card-form" style="border-left-color: #64748b;">
-                <div class="icon-circle"><span class="material-icons">support_agent</span></div>
-                <div><div style="font-weight: 700;">Guincho 24h</div><div style="font-size: 1rem; font-weight: bold;">0800 703 3673</div></div>
-                <span class="material-icons" style="margin-left: auto; color: #22c55e;">call</span>
-            </a>
         </div>
     </div>
 
@@ -131,12 +123,55 @@
             </div>
 
             <h4 style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.5rem; padding-left: 0.5rem;">Sua Cola Completa:</h4>
-            <div id="lista-cola" style="height: 220px; overflow-y: auto; background: white; border-radius: 0.5rem; border: 1px solid #cbd5e1;">
-                </div>
+            <div id="lista-cola" style="height: 220px; overflow-y: auto; background: white; border-radius: 0.5rem; border: 1px solid #cbd5e1;"></div>
 
-            <button class="btn-main" style="background: #dc2626; margin-top: 1rem;" onclick="app.gerarRelatorioRoteiro()">
-                <span class="material-icons">picture_as_pdf</span> FINALIZAR E GERAR PDF
-            </button>
+            <div class="grid-2" style="margin-top: 1rem;">
+                <button class="btn-main" style="background: #64748b; margin-top: 0; padding: 1rem;" onclick="app.resetarRoteiro()">
+                    <span class="material-icons">refresh</span> REINICIAR
+                </button>
+                <button class="btn-main" style="background: #dc2626; margin-top: 0; padding: 1rem;" onclick="app.gerarRelatorioRoteiro()">
+                    <span class="material-icons">picture_as_pdf</span> GERAR PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-frenagem" class="modal-overlay">
+        <div class="modal-content">
+            <div class="close-btn" onclick="appUI.fecharModal('modal-frenagem')"><span class="material-icons">close</span></div>
+            <h3 style="color: #f97316; margin-bottom: 1.5rem; font-weight: 800;">Teste de Frenagem</h3>
+            
+            <div style="background: #fff7ed; border: 1px solid #fdba74; padding: 1rem; border-radius: 0.75rem; margin-bottom: 1rem;">
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label>Velocidade (km/h)</label>
+                        <input type="number" id="f-vel" placeholder="Ex: 80" inputmode="numeric">
+                    </div>
+                    <div class="input-group">
+                        <label>Obs / Condição</label>
+                        <input type="text" id="f-obs" placeholder="Ex: Pedal longo">
+                    </div>
+                </div>
+                <button class="btn-main" style="background: #f97316; margin-top: 0;" onclick="app.adicionarCicloFrenagem()">
+                    <span class="material-icons">add_task</span> ADICIONAR CICLO
+                </button>
+            </div>
+
+            <div class="form-section">
+                <h4>Ciclos Registrados: <span id="f-contador" style="color: #f97316;">0</span></h4>
+                <div id="lista-frenagem" style="max-height: 200px; overflow-y: auto; font-size: 0.85rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 0.5rem; background: #f8fafc;">
+                    <div style="color: #94a3b8; text-align: center; padding: 1rem;">Nenhum ciclo anotado ainda.</div>
+                </div>
+            </div>
+
+            <div class="grid-2" style="margin-top: 1rem;">
+                <button class="btn-main" style="background: #64748b; margin-top: 0;" onclick="app.resetarFrenagem()">
+                    <span class="material-icons">refresh</span> ZERAR
+                </button>
+                <button class="btn-main" style="background: #dc2626; margin-top: 0;" onclick="app.gerarRelatorioFrenagem()">
+                    <span class="material-icons">picture_as_pdf</span> GERAR PDF
+                </button>
+            </div>
         </div>
     </div>
 
@@ -155,7 +190,7 @@
                 <input type="file" id="media-input" accept="image/*,video/*" multiple style="display:none" onchange="app.handleMedia(event)">
                 <div id="galeria-avaria" class="gallery"></div>
             </div>
-            <button class="btn-main" onclick="app.gerarECompartilharLaudo()"><span class="material-icons">send</span> ENVIAR LAUDO + VÍDEO (TEAMS/WPP)</button>
+            <button class="btn-main" onclick="app.gerarECompartilharLaudo()"><span class="material-icons">send</span> ENVIAR LAUDO + VÍDEO</button>
         </div>
     </div>
 
@@ -184,7 +219,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=2.0"></script>
+    <script src="app.js?v=2.1"></script>
     <script>
         const appUI = {
             abrirModal: (id) => document.getElementById(id).style.display = 'flex',
