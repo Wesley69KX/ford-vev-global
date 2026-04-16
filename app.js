@@ -1,27 +1,43 @@
 const app = {
-    // Arrays para Laudo de Avaria
     fotos: [],
     videosFiles: [], 
-    logoBase64Cache: null,
     
-    // Arrays para o Roteiro
     checkins: [],
+    // ==========================================
+    // ROTEIRO EXATO DA PLANILHA (DIAS PARES)
+    // ==========================================
     roteiroData: [
-        { nome: "Frenagem 80km/h", cola: "Acionamento firme, observar desvio de trajetória." },
-        { nome: "Pista de Ruído", cola: "Verificar barulhos no painel e suspensão dianteira." },
-        { nome: "Slalom / Estabilidade", cola: "Teste de guinada rápida em baixa velocidade." },
-        { nome: "Pista de Alta", cola: "Manter 120km/h constante para análise de vibração." },
-        { nome: "Labirinto", cola: "Verificar fim de curso da direção e estalos." }
+        { nome: "Batente-Batente Inicial", cola: "Realizar o ciclo batente-batente 25 vezes." },
+        { nome: "Lombadas 1/2 (5x)", cola: "Sentido anti-horário." },
+        { nome: "Batente-Batente (4x)", cola: "Realizar 4 vezes." },
+        { nome: "Labirinto", cola: "1ª volta + mata-burro (30km/h) / 2ª volta + mata-burro / 3ª volta." },
+        { nome: "Enrola Camisa", cola: "Executar 1ª, 2ª, 3ª e 4ª volta." },
+        { nome: "Pista Areia", cola: "1ª volta / 2ª volta (360º horário) / 3ª volta (360º anti-horário)." },
+        { nome: "Pista de Lama (1x)", cola: "Passagem única." },
+        { nome: "Rampas", cola: "Marcha-à-ré + giro anti-horário." },
+        { nome: "Power Hop Hill (1x)", cola: "Passagem a 60km/h." },
+        { nome: "Seguir p/ 2ª Rotatória", cola: "Velocidade a 60km/h." },
+        { nome: "Lombadas (5x)", cola: "Realizar 1ª a 5ª passagem." },
+        { nome: "Batente-Batente (4x)", cola: "Realizar 4 vezes pós-lombadas." },
+        { nome: "Pistas Especiais - Bloco 1", cola: "Pistas 1-2 > 4-3 > Slalom 11,09,12,10 > Pista 4-3 > Slalom > Pista 4-3 > Pistas 7-8 > Pistas 2-1 > Pistas 7-8 > P. de Baixa." },
+        { nome: "Pistas Especiais - Bloco 2", cola: "Repetir: Pistas 1-2 > 4-3 > Slalom > Pista 4-3 > Slalom > Pista 4-3 > Pistas 7-8 > 2-1 > 7-8 > P. de Baixa." },
+        { nome: "Pistas Especiais - Bloco 3", cola: "Pistas 1-2 > 4-3 > Pistas 5-8 > 4-3 > 5-8 > 4-3 > Pistas 09-10 > 2-1 > 09-10 > P. de Baixa." },
+        { nome: "Pistas Especiais - Bloco 4", cola: "Pistas 1-13 > 4-3 > 5-8 > 4-3 > 5-8 > 4-3 > Pistas 09-10." },
+        { nome: "10m Marcha-à-ré + Manobra", cola: "Executar manobra final com segurança." },
+        { nome: "Pista de Alta", cola: "Avaliação normal em alta velocidade." },
+        { nome: "Pista de Alta + Bolacha", cola: "Avaliação com obstáculo (bolacha)." },
+        { nome: "Pista de Baixa + Bolacha", cola: "Avaliação de baixa velocidade com bolacha." },
+        { nome: "Condição: Veículo Vazio", cola: "Teste de encerramento sem carga." },
+        { nome: "Condição: Veículo Carregado", cola: "Teste de encerramento com carga." }
     ],
 
     init() {
-        this.converterLogoParaBase64('logo.png');
         document.getElementById('t-data').value = new Date().toISOString().split('T')[0];
         this.renderRoteiro();
     },
 
     // ==========================================
-    // MÓDULO: ROTEIRO DE TESTE (COLA)
+    // LÓGICA DO ROTEIRO DE TESTE
     // ==========================================
     renderRoteiro() {
         const container = document.getElementById('lista-roteiro');
@@ -46,13 +62,13 @@ const app = {
     },
 
     async gerarRelatorioRoteiro() {
-        if (this.checkins.length === 0) return alert("Nenhuma atividade registrada.");
+        if (this.checkins.length === 0) return alert("Nenhuma atividade registrada no roteiro.");
 
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         
         doc.setFontSize(16);
-        doc.text("RELATÓRIO DE EXECUÇÃO DE TESTE", 105, 20, { align: "center" });
+        doc.text("RELATÓRIO DE EXECUÇÃO DE CICLOS", 105, 20, { align: "center" });
         doc.setFontSize(10);
         doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 105, 28, { align: "center" });
 
@@ -60,29 +76,18 @@ const app = {
 
         doc.autoTable({
             startY: 35,
-            head: [['#', 'ATIVIDADE EXECUTADA', 'HORÁRIO DO CHECK-IN']],
+            head: [['#', 'SEQUÊNCIA / CICLO EXECUTADO', 'HORÁRIO']],
             body: dadosTabela,
             theme: 'grid',
             headStyles: { fillColor: [0, 52, 120] }
         });
 
-        doc.save(`Relatorio_Teste_${Date.now()}.pdf`);
+        doc.save(`Roteiro_Ciclos_${Date.now()}.pdf`);
     },
 
     // ==========================================
     // MÓDULO: LAUDO DE AVARIA (FOTOS E VÍDEOS)
     // ==========================================
-    converterLogoParaBase64(url) {
-        const img = new Image();
-        img.src = url;
-        img.onload = () => {
-            const cv = document.createElement('canvas');
-            cv.width = img.width; cv.height = img.height;
-            cv.getContext('2d').drawImage(img, 0, 0);
-            this.logoBase64Cache = cv.toDataURL('image/png');
-        };
-    },
-
     handleMedia(e) {
         const files = Array.from(e.target.files);
         files.forEach(file => {
@@ -155,29 +160,26 @@ const app = {
         const doc = new jsPDF();
         
         // ==========================================
-        // CABEÇALHO PROFISSIONAL
+        // CABEÇALHO LIMPO (CÓDIGO DE LOGO REMOVIDO)
         // ==========================================
-        if (this.logoBase64Cache) doc.addImage(this.logoBase64Cache, 'PNG', 14, 10, 30, 10);
-        
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(14);
+        doc.setFontSize(18);
         doc.setTextColor(0, 52, 120);
-        doc.text("LAUDO TÉCNICO DE AVARIA / INSPEÇÃO", 196, 16, { align: "right" });
+        doc.text("FORD VEV - ENGENHARIA", 14, 18);
         
-        doc.setFontSize(9);
-        doc.setTextColor(100, 100, 100);
-        doc.text("Documento Oficial de Engenharia e Qualidade", 196, 21, { align: "right" });
+        doc.setFontSize(12);
+        doc.setTextColor(30, 41, 59);
+        doc.text("LAUDO TÉCNICO DE AVARIA", 196, 18, { align: "right" });
         
-        // Linha Azul
         doc.setDrawColor(0, 52, 120);
-        doc.setLineWidth(0.5);
-        doc.line(14, 25, 196, 25);
+        doc.setLineWidth(0.8);
+        doc.line(14, 22, 196, 22);
 
         // ==========================================
-        // TABELA COM FUNDO COLORIDO
+        // TABELA INFORMATIVA
         // ==========================================
         doc.autoTable({
-            startY: 30,
+            startY: 28,
             body: [
                 ['Veículo / VIN:', id, 'Data da Inspeção:', new Date().toLocaleString('pt-BR')],
                 ['Condutor / Eng:', motorista, 'Mídias Anexadas:', `${this.fotos.length} Foto(s), ${this.videosFiles.length} Vídeo(s)`]
@@ -192,7 +194,7 @@ const app = {
         });
 
         // ==========================================
-        // CAIXA DE PARECER TÉCNICO (BOX SOMBREADO)
+        // CAIXA DE PARECER TÉCNICO
         // ==========================================
         let currentY = doc.lastAutoTable.finalY + 10;
         doc.setFont("helvetica", "bold");
@@ -205,18 +207,16 @@ const app = {
         doc.setFontSize(10);
         doc.setTextColor(30, 41, 59);
 
-        // Quebra o texto para caber no box
         const splitText = doc.splitTextToSize(parecer, 178);
         const boxHeight = (splitText.length * 5) + 10;
         
-        // Desenha a caixa de fundo cinza claro
         doc.setFillColor(248, 250, 252);
         doc.setDrawColor(203, 213, 225);
         doc.rect(14, currentY, 182, boxHeight, 'FD'); 
         doc.text(splitText, 18, currentY + 7);
 
         // ==========================================
-        // RENDERIZAÇÃO DE FOTOS
+        // FOTOS
         // ==========================================
         if (this.fotos.length > 0) {
             let y = currentY + boxHeight + 15;
@@ -226,7 +226,7 @@ const app = {
                 const ratio = imgProps.height / imgProps.width;
                 
                 doc.setDrawColor(200, 200, 200);
-                doc.rect(14, y, 90, 90 * ratio); // Borda na foto
+                doc.rect(14, y, 90, 90 * ratio);
                 doc.addImage(f.src, 'JPEG', 14, y, 90, 90 * ratio);
                 
                 doc.setFont("helvetica", "bold");
@@ -240,22 +240,27 @@ const app = {
         }
 
         // ==========================================
-        // PREPARAÇÃO PARA O ENVIO (WHATSAPP/TEAMS)
+        // PREPARAÇÃO PARA O ENVIO (FORÇANDO NOVO NOME NO IPHONE)
         // ==========================================
         const fileName = `Laudo_Avaria_${id}.pdf`;
         const pdfBlob = doc.output('blob');
         const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
         
-        // 🚀 O SEGREDO DOS VÍDEOS: Renomeando os arquivos para ficar profissional
-        const videosRenomeados = this.videosFiles.map((file, index) => {
-            // Pega a extensão original ou usa mp4
+        const videosRenomeados = [];
+        
+        for (let i = 0; i < this.videosFiles.length; i++) {
+            const file = this.videosFiles[i];
             const extension = file.name.split('.').pop() || 'mp4';
-            return new File([file], `Video_Evidencia_${id}_0${index+1}.${extension}`, { type: file.type });
-        });
+            const novoNome = `Video_Evidencia_${id}_0${i+1}.${extension}`;
+            
+            const arrayBuffer = await file.arrayBuffer();
+            const novoBlob = new Blob([arrayBuffer], { type: file.type });
+            const novoArquivo = new File([novoBlob], novoNome, { type: file.type });
+            
+            videosRenomeados.push(novoArquivo);
+        }
 
         const arquivosParaEnviar = [pdfFile, ...videosRenomeados];
-        
-        // Texto que será enviado junto com a mensagem
         const mensagemTexto = `Segue o Laudo Técnico de Avaria (PDF) e o(s) vídeo(s) referente(s) ao laudo acima.\n\n🚗 VIN: ${id}\n👤 Condutor/Eng: ${motorista}`;
 
         if (navigator.canShare && navigator.canShare({ files: arquivosParaEnviar })) {
@@ -267,7 +272,7 @@ const app = {
                 });
                 window.appUI.fecharModal('modal-laudo');
             } catch (e) {
-                console.log("Compartilhamento cancelado pelo usuário", e);
+                console.log("Compartilhamento cancelado", e);
                 doc.save(fileName);
             }
         } else {
@@ -277,7 +282,7 @@ const app = {
     },
 
     // ==========================================
-    // MÓDULO: FECHAMENTO DE TURNO
+    // FECHAMENTO DE TURNO
     // ==========================================
     async finalizarTurnoIntegrado() {
         const v = document.getElementById('t-veiculo').value;
