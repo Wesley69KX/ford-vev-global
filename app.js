@@ -1,7 +1,7 @@
 const app = {
     // Arrays para Laudo de Avaria
     fotos: [],
-    videosFiles: [], // Guarda os arquivos de vídeo para enviar depois
+    videosFiles: [], 
     logoBase64Cache: null,
     
     // Arrays para o Roteiro
@@ -87,11 +87,9 @@ const app = {
         const files = Array.from(e.target.files);
         files.forEach(file => {
             if (file.type.startsWith('video/')) {
-                // É um vídeo! Guarda o arquivo bruto para enviar no final
                 this.videosFiles.push(file);
                 this.renderGaleria();
             } else if (file.type.startsWith('image/')) {
-                // É uma foto! Comprime para o PDF
                 const reader = new FileReader();
                 reader.onload = (ev) => {
                     this.comprimir(ev.target.result, 1600, 1600, (img) => {
@@ -126,7 +124,6 @@ const app = {
         const g = document.getElementById('galeria-avaria');
         let html = '';
         
-        // Renderiza as fotos
         this.fotos.forEach((f, i) => {
             html += `
             <div class="photo-wrapper">
@@ -136,7 +133,6 @@ const app = {
             </div>`;
         });
 
-        // Renderiza os vídeos (apenas um ícone visual para mostrar que anexou)
         this.videosFiles.forEach((v, i) => {
             html += `
             <div class="photo-wrapper" style="background: #e0f2fe; border-color: #7dd3fc; display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 1rem;">
@@ -153,81 +149,130 @@ const app = {
     async gerarECompartilharLaudo() {
         const id = document.getElementById('i-id').value || "SN";
         const motorista = document.getElementById('i-motorista').value || "Não informado";
-        const parecer = document.getElementById('i-obs').value || "Sem observações adicionais.";
+        const parecer = document.getElementById('i-obs').value || "Sem observações adicionais registradas no momento da inspeção.";
         
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         
-        // CABEÇALHO DO PDF PROFISSIONAL
+        // ==========================================
+        // CABEÇALHO PROFISSIONAL
+        // ==========================================
         if (this.logoBase64Cache) doc.addImage(this.logoBase64Cache, 'PNG', 14, 10, 30, 10);
         
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(16);
-        doc.setTextColor(0, 52, 120); // Azul Ford
-        doc.text("LAUDO TÉCNICO DE AVARIA", 196, 18, { align: "right" });
+        doc.setFontSize(14);
+        doc.setTextColor(0, 52, 120);
+        doc.text("LAUDO TÉCNICO DE AVARIA / INSPEÇÃO", 196, 16, { align: "right" });
         
-        // Linha Divisória
+        doc.setFontSize(9);
+        doc.setTextColor(100, 100, 100);
+        doc.text("Documento Oficial de Engenharia e Qualidade", 196, 21, { align: "right" });
+        
+        // Linha Azul
         doc.setDrawColor(0, 52, 120);
         doc.setLineWidth(0.5);
-        doc.line(14, 24, 196, 24);
+        doc.line(14, 25, 196, 25);
 
-        // INFORMAÇÕES DO VEÍCULO (TABELA LIMPA)
+        // ==========================================
+        // TABELA COM FUNDO COLORIDO
+        // ==========================================
         doc.autoTable({
-            startY: 28,
+            startY: 30,
             body: [
-                ['Veículo / VIN:', id, 'Data / Hora:', new Date().toLocaleString('pt-BR')],
-                ['Condutor / Eng:', motorista, 'Total de Vídeos:', this.videosFiles.length.toString()],
-                ['Parecer Técnico:', { content: parecer, colSpan: 3 }]
+                ['Veículo / VIN:', id, 'Data da Inspeção:', new Date().toLocaleString('pt-BR')],
+                ['Condutor / Eng:', motorista, 'Mídias Anexadas:', `${this.fotos.length} Foto(s), ${this.videosFiles.length} Vídeo(s)`]
             ],
-            theme: 'plain',
-            styles: { fontSize: 10, cellPadding: 2, textColor: [30, 41, 59] },
-            columnStyles: { 0: { fontStyle: 'bold', cellWidth: 35 }, 2: { fontStyle: 'bold', cellWidth: 35 } }
+            theme: 'grid',
+            headStyles: { fillColor: [240, 248, 255] },
+            styles: { fontSize: 10, cellPadding: 4, textColor: [30, 41, 59], lineColor: [200, 200, 200] },
+            columnStyles: { 
+                0: { fontStyle: 'bold', fillColor: [241, 245, 249], cellWidth: 35 }, 
+                2: { fontStyle: 'bold', fillColor: [241, 245, 249], cellWidth: 35 } 
+            }
         });
 
-        // FOTOS
+        // ==========================================
+        // CAIXA DE PARECER TÉCNICO (BOX SOMBREADO)
+        // ==========================================
+        let currentY = doc.lastAutoTable.finalY + 10;
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(0, 52, 120);
+        doc.text("PARECER TÉCNICO / DESCRIÇÃO DA AVARIA:", 14, currentY);
+
+        currentY += 4;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.setTextColor(30, 41, 59);
+
+        // Quebra o texto para caber no box
+        const splitText = doc.splitTextToSize(parecer, 178);
+        const boxHeight = (splitText.length * 5) + 10;
+        
+        // Desenha a caixa de fundo cinza claro
+        doc.setFillColor(248, 250, 252);
+        doc.setDrawColor(203, 213, 225);
+        doc.rect(14, currentY, 182, boxHeight, 'FD'); 
+        doc.text(splitText, 18, currentY + 7);
+
+        // ==========================================
+        // RENDERIZAÇÃO DE FOTOS
+        // ==========================================
         if (this.fotos.length > 0) {
-            let y = doc.lastAutoTable.finalY + 10;
+            let y = currentY + boxHeight + 15;
             this.fotos.forEach((f, i) => {
                 if (y > 200) { doc.addPage(); y = 20; }
                 const imgProps = doc.getImageProperties(f.src);
                 const ratio = imgProps.height / imgProps.width;
-                doc.addImage(f.src, 'JPEG', 14, y, 90, 90 * ratio); // Foto maior
                 
-                doc.setFont("helvetica", "normal");
+                doc.setDrawColor(200, 200, 200);
+                doc.rect(14, y, 90, 90 * ratio); // Borda na foto
+                doc.addImage(f.src, 'JPEG', 14, y, 90, 90 * ratio);
+                
+                doc.setFont("helvetica", "bold");
                 doc.setFontSize(10);
-                doc.text(`Evidência ${i+1}: ${f.legenda || 'Sem legenda'}`, 14, y + (90 * ratio) + 5);
+                doc.text(`Evidência ${i+1}:`, 14, y + (90 * ratio) + 6);
+                doc.setFont("helvetica", "normal");
+                doc.text(`${f.legenda || 'Sem legenda'}`, 36, y + (90 * ratio) + 6);
+                
                 y += (90 * ratio) + 15;
             });
         }
 
-        // TENTAR COMPARTILHAR PDF + VÍDEO NO TEAMS/WPP
-        const fileName = `Laudo_${id}.pdf`;
+        // ==========================================
+        // PREPARAÇÃO PARA O ENVIO (WHATSAPP/TEAMS)
+        // ==========================================
+        const fileName = `Laudo_Avaria_${id}.pdf`;
         const pdfBlob = doc.output('blob');
         const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
         
-        // Junta o arquivo do PDF com os arquivos de vídeo selecionados
-        const arquivosParaEnviar = [pdfFile, ...this.videosFiles];
+        // 🚀 O SEGREDO DOS VÍDEOS: Renomeando os arquivos para ficar profissional
+        const videosRenomeados = this.videosFiles.map((file, index) => {
+            // Pega a extensão original ou usa mp4
+            const extension = file.name.split('.').pop() || 'mp4';
+            return new File([file], `Video_Evidencia_${id}_0${index+1}.${extension}`, { type: file.type });
+        });
 
-        // Usa a função nativa do iPhone/Android de compartilhar
+        const arquivosParaEnviar = [pdfFile, ...videosRenomeados];
+        
+        // Texto que será enviado junto com a mensagem
+        const mensagemTexto = `Segue o Laudo Técnico de Avaria (PDF) e o(s) vídeo(s) referente(s) ao laudo acima.\n\n🚗 VIN: ${id}\n👤 Condutor/Eng: ${motorista}`;
+
         if (navigator.canShare && navigator.canShare({ files: arquivosParaEnviar })) {
             try {
                 await navigator.share({
-                    title: 'Laudo de Avaria',
-                    text: `Laudo técnico e mídias anexadas - VIN: ${id}`,
+                    title: `Laudo Técnico - ${id}`,
+                    text: mensagemTexto,
                     files: arquivosParaEnviar
                 });
                 window.appUI.fecharModal('modal-laudo');
             } catch (e) {
-                console.log("Compartilhamento cancelado", e);
-                // Se o usuário cancelar, apenas baixa o PDF normalmente
+                console.log("Compartilhamento cancelado pelo usuário", e);
                 doc.save(fileName);
             }
         } else {
-            // Se o celular/computador for antigo e não suportar envio simultâneo
             doc.save(fileName);
-            if(this.videosFiles.length > 0) {
-                alert("O PDF foi baixado! Você precisa anexar os vídeos manualmente lá no Teams/WhatsApp.");
-            }
+            if(this.videosFiles.length > 0) alert("Baixado! Anexe o vídeo manualmente no WhatsApp/Teams.");
         }
     },
 
