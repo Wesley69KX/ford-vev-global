@@ -14,22 +14,22 @@ const app = {
     // ==========================================
     sequenciaDiasPares: [
         "Labirinto: 1ª volta + mata-burro (30 km/h)",
-        "Labirinto: 2ª volta + mata-burro",
-        "Labirinto: 3ª volta",
-        "Enrola Camisa: 1ª volta",
-        "Enrola Camisa: 2ª volta",
-        "Enrola Camisa: 3ª volta",
-        "Enrola Camisa: 4ª volta",
-        "Areia Pista: 1ª volta",
-        "Areia Pista: 2ª volta (360º horário)",
-        "Areia Pista: 3ª volta (360º anti-horário)",
+      //  "Labirinto: 2ª volta + mata-burro",
+      //  "Labirinto: 3ª volta",
+      //  "Enrola Camisa: 1ª volta",
+      //  "Enrola Camisa: 2ª volta",
+       // "Enrola Camisa: 3ª volta",
+       // "Enrola Camisa: 4ª volta",
+     //   "Areia Pista: 1ª volta",
+      //  "Areia Pista: 2ª volta (360º horário)",
+      //  "Areia Pista: 3ª volta (360º anti-horário)",
         "Power Hop Hill (1x) - 60 km/h",
         "Seguir p/ 2ª Rotatória - 60 km/h",
-        "Lombadas: 1ª passagem",
-        "Lombadas: 2ª passagem",
-        "Lombadas: 3ª passagem",
-        "Lombadas: 4ª passagem",
-        "Lombadas: 5ª passagem",
+      //  "Lombadas: 1ª passagem",
+       // "Lombadas: 2ª passagem",
+       // "Lombadas: 3ª passagem",
+      //  "Lombadas: 4ª passagem",
+       // "Lombadas: 5ª passagem",
         "[Esp] Pistas 1-2 (50 km/h)",
         "[Esp] Pista 4-3 (20 km/h)",
         "[Esp] Slalom 11,09,12,10 (20 km/h)",
@@ -60,19 +60,19 @@ const app = {
         "[Esp] Pistas 2-1",
         "[Esp] Pistas 09-10",
         "[Esp] P. de Baixa",
-        "[Esp] Pistas 1-13",
+        "[Esp] Pistas 1-2",
         "[Esp] Pista 4-3",
         "[Esp] Pistas 5-8",
         "[Esp] Pista 4-3",
         "[Esp] Pistas 5-8",
         "[Esp] Pista 4-3",
         "[Esp] Pistas 09-10",
-        "10 metros marcha-à-ré + Manobra",
-        "Pista de Alta",
+       // "10 metros marcha-à-ré + Manobra",
+     //   "Pista de Alta",
         "Pista de Alta + bolacha",
         "Pista de Baixa + bolacha",
-        "Condição: Veículo Vazio",
-        "Condição: Veículo Carregado"
+      //  "Condição: Veículo Vazio",
+      //  "Condição: Veículo Carregado"
     ],
 
     init() {
@@ -81,7 +81,7 @@ const app = {
     },
 
     // ==========================================
-    // IA - ASSISTENTE DE ENGENHARIA GEMINI
+    // IA - ASSISTENTE DE ENGENHARIA GEMINI (SISTEMA DE COFRE)
     // ==========================================
     async melhorarTextoComIA(botao) {
         const textarea = document.getElementById('i-obs');
@@ -91,14 +91,25 @@ const app = {
             return alert("Escreva um pouco mais sobre o problema antes de chamar a IA.");
         }
 
+        // --- INÍCIO DO SISTEMA DE COFRE (FOGE DO GITHUB) ---
+        let API_KEY = localStorage.getItem("cofre_chave_gemini");
+        
+        // Se não tiver chave salva no celular, pede para o usuário colar
+        if (!API_KEY) {
+            API_KEY = prompt("Para usar a Inteligência Artificial, cole sua Chave de API do Google aqui:\n(Isso só será pedido uma vez)");
+            
+            if (!API_KEY) return; // Se o usuário cancelar, para a função
+            
+            // Salva a chave na memória do celular
+            localStorage.setItem("cofre_chave_gemini", API_KEY.trim());
+        }
+        // --- FIM DO SISTEMA DE COFRE ---
+
         const conteudoOriginalBotao = botao.innerHTML;
         botao.innerHTML = '<span class="material-icons" style="font-size: 1rem;">hourglass_empty</span> GERANDO...';
         botao.style.background = "#f1f5f9";
         botao.style.color = "#64748b";
         botao.disabled = true;
-
-        // A SUA CHAVE EXATA DO PRINT (NOVO FORMATO DO GOOGLE)
-       const API_KEY = "AIzaSyB9_xYz1234567890abcdefGHIJKLMNOP"; 
 
         const promptComando = "Atue como um Engenheiro Automotivo Sênior. Reescreva este texto em linguagem técnica para um laudo de avaria, sendo direto, estritamente profissional, sem aspas ou introduções. O texto é: " + textoOriginal;
 
@@ -114,16 +125,20 @@ const app = {
             });
 
             if (!resposta.ok) {
-                const erroStatus = resposta.status;
-                throw new Error(`O Google recusou a conexão (Código: ${erroStatus}). Se a chave for nova, pode demorar alguns minutos para ativar.`);
+                // Se der erro, significa que a chave está errada ou inválida. 
+                // Apaga do cofre para poder pedir de novo na próxima vez.
+                if(resposta.status === 400 || resposta.status === 401) {
+                    localStorage.removeItem("cofre_chave_gemini");
+                    throw new Error("Chave recusada. Ela foi apagada da memória. Clique no botão e cole a chave correta.");
+                }
+                throw new Error(`Google recusou a conexão (Código: ${resposta.status}).`);
             }
 
             const dados = await resposta.json();
             
             if (dados.candidates && dados.candidates.length > 0) {
-                // Verificação de bloqueio por palavras sensíveis
                 if (dados.candidates[0].finishReason === "SAFETY") {
-                    alert("A IA bloqueou a mensagem por identificar palavras muito fortes ou impróprias. Tente usar termos mais neutros.");
+                    alert("A IA bloqueou a mensagem por palavras sensíveis ou impróprias.");
                     return;
                 }
 
@@ -138,8 +153,8 @@ const app = {
                 alert("A IA rodou, mas devolveu uma resposta vazia.");
             }
         } catch (error) {
-            console.error("ERRO DO GEMINI:", error);
-            alert("Falha de conexão: " + error.message);
+            console.error("ERRO:", error);
+            alert("Atenção: " + error.message);
         } finally {
             setTimeout(() => {
                 botao.innerHTML = conteudoOriginalBotao;
