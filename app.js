@@ -9,24 +9,27 @@ const app = {
     // FRENAGEM
     ciclosFrenagem: [],
     
+    // ==========================================
+    // ROTEIRO EXATO
+    // ==========================================
     sequenciaDiasPares: [
         "Labirinto: 1ª volta + mata-burro (30 km/h)",
-       // "Labirinto: 2ª volta + mata-burro",
-     //   "Labirinto: 3ª volta",
-      //  "Enrola Camisa: 1ª volta",
-      //  "Enrola Camisa: 2ª volta",
-       // "Enrola Camisa: 3ª volta",
-      //  "Enrola Camisa: 4ª volta",
-     //   "Areia Pista: 1ª volta",
-     //   "Areia Pista: 2ª volta (360º horário)",
-     //   "Areia Pista: 3ª volta (360º anti-horário)",
+        "Labirinto: 2ª volta + mata-burro",
+        "Labirinto: 3ª volta",
+        "Enrola Camisa: 1ª volta",
+        "Enrola Camisa: 2ª volta",
+        "Enrola Camisa: 3ª volta",
+        "Enrola Camisa: 4ª volta",
+        "Areia Pista: 1ª volta",
+        "Areia Pista: 2ª volta (360º horário)",
+        "Areia Pista: 3ª volta (360º anti-horário)",
         "Power Hop Hill (1x) - 60 km/h",
         "Seguir p/ 2ª Rotatória - 60 km/h",
-       // "Lombadas: 1ª passagem",
-       // "Lombadas: 2ª passagem",
-       // "Lombadas: 3ª passagem",
-     //   "Lombadas: 4ª passagem",
-      //  "Lombadas: 5ª passagem",
+        "Lombadas: 1ª passagem",
+        "Lombadas: 2ª passagem",
+        "Lombadas: 3ª passagem",
+        "Lombadas: 4ª passagem",
+        "Lombadas: 5ª passagem",
         "[Esp] Pistas 1-2 (50 km/h)",
         "[Esp] Pista 4-3 (20 km/h)",
         "[Esp] Slalom 11,09,12,10 (20 km/h)",
@@ -57,19 +60,19 @@ const app = {
         "[Esp] Pistas 2-1",
         "[Esp] Pistas 09-10",
         "[Esp] P. de Baixa",
-        "[Esp] Pistas 1-2",
+        "[Esp] Pistas 1-13",
         "[Esp] Pista 4-3",
         "[Esp] Pistas 5-8",
         "[Esp] Pista 4-3",
         "[Esp] Pistas 5-8",
         "[Esp] Pista 4-3",
         "[Esp] Pistas 09-10",
-       // "10 metros marcha-à-ré + Manobra",
-       // "Pista de Alta",
+        "10 metros marcha-à-ré + Manobra",
+        "Pista de Alta",
         "Pista de Alta + bolacha",
         "Pista de Baixa + bolacha",
-       // "Condição: Veículo Vazio",
-       // "Condição: Veículo Carregado"
+        "Condição: Veículo Vazio",
+        "Condição: Veículo Carregado"
     ],
 
     init() {
@@ -94,20 +97,16 @@ const app = {
         botao.style.color = "#64748b";
         botao.disabled = true;
 
-        // A CHAVE QUE VOCÊ ME PASSOU
-        const API_KEY = "AQ.Ab8RN6J-tNVwkC_1D1wV_pEo-rnRpEKdMWW9sRTOgOHn876xAg"; 
+        // A SUA CHAVE EXATA DO PRINT
+        const API_KEY = "AQ.Ab8RN6K6PazIXWnfa4aiHNrTlHlMnldkQ3ycNn__Lwzi_AciOA"; 
 
-        const promptComando = `
-            Atue como um Engenheiro Automotivo Sênior especializado em comissionamento e instrumentação. 
-            Reescreva o texto abaixo utilizando linguagem técnica, precisa e estritamente profissional para um laudo de avaria de testes automotivos.
-            Remova gírias, seja direto e mantenha o rigor técnico. 
-            Retorne APENAS o texto melhorado, sem aspas ou introduções.
-            
-            Texto original: "${textoOriginal}"
-        `;
+        const promptComando = "Atue como um Engenheiro Automotivo Sênior. Reescreva este texto em linguagem técnica para um laudo de avaria, sendo direto, estritamente profissional, sem aspas ou introduções. O texto é: " + textoOriginal;
 
         try {
-            const resposta = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+            // URL atualizada para garantir o funcionamento da chave nova
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`;
+            
+            const resposta = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -115,20 +114,33 @@ const app = {
                 })
             });
 
+            if (!resposta.ok) {
+                const erroStatus = resposta.status;
+                throw new Error(`O Google recusou a conexão (Código do erro: ${erroStatus}). Pode ser que a chave ainda esteja ativando.`);
+            }
+
             const dados = await resposta.json();
             
-            if (dados.candidates && dados.candidates[0].content.parts[0].text) {
-                textarea.value = dados.candidates[0].content.parts[0].text.trim();
-                
-                botao.innerHTML = '<span class="material-icons" style="font-size: 1rem;">check</span> PRONTO!';
-                botao.style.background = "#dcfce7";
-                botao.style.color = "#16a34a";
+            if (dados.candidates && dados.candidates.length > 0) {
+                // Verificação de bloqueio por palavrões/gírias pesadas
+                if (dados.candidates[0].finishReason === "SAFETY") {
+                    alert("A IA do Google bloqueou a mensagem por linguagem sensível ou imprópria. Tente remover palavras fortes e tente de novo.");
+                    return;
+                }
+
+                if (dados.candidates[0].content && dados.candidates[0].content.parts) {
+                    textarea.value = dados.candidates[0].content.parts[0].text.trim();
+                    
+                    botao.innerHTML = '<span class="material-icons" style="font-size: 1rem;">check</span> PRONTO!';
+                    botao.style.background = "#dcfce7";
+                    botao.style.color = "#16a34a";
+                }
             } else {
-                alert("A IA não conseguiu processar. Verifique se a API Key está correta.");
+                alert("A IA rodou, mas devolveu uma resposta vazia.");
             }
         } catch (error) {
-            console.error("Erro na API:", error);
-            alert("Falha na conexão com a IA. Verifique sua internet ou a validade da API Key.");
+            console.error("ERRO DO GEMINI:", error);
+            alert("Falha de conexão: " + error.message);
         } finally {
             setTimeout(() => {
                 botao.innerHTML = conteudoOriginalBotao;
