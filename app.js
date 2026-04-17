@@ -75,35 +75,38 @@ const app = {
       //  "Condição: Veículo Carregado"
     ],
 
-    init() {
+   init() {
         document.getElementById('t-data').value = new Date().toISOString().split('T')[0];
         this.atualizarInterfaceCola();
     },
 
     // ==========================================
-    // IA - ASSISTENTE DE ENGENHARIA GEMINI (SISTEMA DE COFRE)
+    // IA - ASSISTENTE DE ENGENHARIA GEMINI
     // ==========================================
     async melhorarTextoComIA(botao) {
         const textarea = document.getElementById('i-obs');
         const textoOriginal = textarea.value.trim();
 
-        if (textoOriginal.length < 5) {
-            return alert("Escreva um pouco mais sobre o problema antes de chamar a IA.");
+        // Truque Secreto para apagar a chave do celular
+        if (textoOriginal.toUpperCase() === "RESETAR") {
+            localStorage.removeItem("cofre_chave_gemini");
+            textarea.value = "";
+            return alert("✅ Chave apagada com sucesso! Clique no botão da IA novamente para colar uma nova chave.");
         }
 
-        // --- INÍCIO DO SISTEMA DE COFRE (FOGE DO GITHUB) ---
+        if (textoOriginal.length < 5) {
+            return alert("Escreva um pouco mais sobre o problema antes de chamar a IA. (Ou digite RESETAR para apagar a chave).");
+        }
+
+        // --- SISTEMA DE COFRE ---
         let API_KEY = localStorage.getItem("cofre_chave_gemini");
         
-        // Se não tiver chave salva no celular, pede para o usuário colar
         if (!API_KEY) {
-            API_KEY = prompt("Para usar a Inteligência Artificial, cole sua Chave de API do Google aqui:\n(Isso só será pedido uma vez)");
-            
-            if (!API_KEY) return; // Se o usuário cancelar, para a função
-            
-            // Salva a chave na memória do celular
+            API_KEY = prompt("Para usar a Inteligência Artificial, cole sua Chave de API do Google aqui:");
+            if (!API_KEY) return; 
             localStorage.setItem("cofre_chave_gemini", API_KEY.trim());
         }
-        // --- FIM DO SISTEMA DE COFRE ---
+        // --- FIM DO COFRE ---
 
         const conteudoOriginalBotao = botao.innerHTML;
         botao.innerHTML = '<span class="material-icons" style="font-size: 1rem;">hourglass_empty</span> GERANDO...';
@@ -114,7 +117,8 @@ const app = {
         const promptComando = "Atue como um Engenheiro Automotivo Sênior. Reescreva este texto em linguagem técnica para um laudo de avaria, sendo direto, estritamente profissional, sem aspas ou introduções. O texto é: " + textoOriginal;
 
         try {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`;
+            // ERRO 404 RESOLVIDO: Removido o "-latest", chamando o modelo raiz corretamente.
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
             
             const resposta = await fetch(url, {
                 method: 'POST',
@@ -125,11 +129,9 @@ const app = {
             });
 
             if (!resposta.ok) {
-                // Se der erro, significa que a chave está errada ou inválida. 
-                // Apaga do cofre para poder pedir de novo na próxima vez.
-                if(resposta.status === 400 || resposta.status === 401) {
+                if(resposta.status === 400 || resposta.status === 401 || resposta.status === 403) {
                     localStorage.removeItem("cofre_chave_gemini");
-                    throw new Error("Chave recusada. Ela foi apagada da memória. Clique no botão e cole a chave correta.");
+                    throw new Error(`Chave recusada (Erro ${resposta.status}). Ela foi apagada da memória. Tente colar uma chave nova.`);
                 }
                 throw new Error(`Google recusou a conexão (Código: ${resposta.status}).`);
             }
