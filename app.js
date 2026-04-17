@@ -7,7 +7,7 @@ const app = {
     checkins: [],
     
     // FRENAGEM
-    ciclosFrenagem: [], 
+    ciclosFrenagem: [],
     
     // ==========================================
     // ROTEIRO EXATO
@@ -97,13 +97,12 @@ const app = {
         botao.style.color = "#64748b";
         botao.disabled = true;
 
-        // A SUA CHAVE EXATA DO PRINT
+        // A SUA CHAVE EXATA DO PRINT (NOVO FORMATO DO GOOGLE)
         const API_KEY = "AQ.Ab8RN6K6PazIXWnfa4aiHNrTlHlMnldkQ3ycNn__Lwzi_AciOA"; 
 
         const promptComando = "Atue como um Engenheiro Automotivo Sênior. Reescreva este texto em linguagem técnica para um laudo de avaria, sendo direto, estritamente profissional, sem aspas ou introduções. O texto é: " + textoOriginal;
 
         try {
-            // URL atualizada para garantir o funcionamento da chave nova
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`;
             
             const resposta = await fetch(url, {
@@ -116,15 +115,15 @@ const app = {
 
             if (!resposta.ok) {
                 const erroStatus = resposta.status;
-                throw new Error(`O Google recusou a conexão (Código do erro: ${erroStatus}). Pode ser que a chave ainda esteja ativando.`);
+                throw new Error(`O Google recusou a conexão (Código: ${erroStatus}). Se a chave for nova, pode demorar alguns minutos para ativar.`);
             }
 
             const dados = await resposta.json();
             
             if (dados.candidates && dados.candidates.length > 0) {
-                // Verificação de bloqueio por palavrões/gírias pesadas
+                // Verificação de bloqueio por palavras sensíveis
                 if (dados.candidates[0].finishReason === "SAFETY") {
-                    alert("A IA do Google bloqueou a mensagem por linguagem sensível ou imprópria. Tente remover palavras fortes e tente de novo.");
+                    alert("A IA bloqueou a mensagem por identificar palavras muito fortes ou impróprias. Tente usar termos mais neutros.");
                     return;
                 }
 
