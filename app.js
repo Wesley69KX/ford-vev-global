@@ -7,7 +7,7 @@ const app = {
     checkins: [],
     
     // FRENAGEM
-    ciclosFrenagem: [],
+    ciclosFrenagem: [], 
     
     // ==========================================
     // ROTEIRO EXATO
