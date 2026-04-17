@@ -95,7 +95,7 @@ const app = {
         botao.disabled = true;
 
         // A CHAVE QUE VOCÊ ME PASSOU
-        const API_KEY = "AQ.Ab8RN6L8GJ5xEAZW-alid70wbdi4cKpyUZglpfGMveN9yMZKog"; 
+        const API_KEY = "AQ.Ab8RN6J-tNVwkC_1D1wV_pEo-rnRpEKdMWW9sRTOgOHn876xAg"; 
 
         const promptComando = `
             Atue como um Engenheiro Automotivo Sênior especializado em comissionamento e instrumentação. 
