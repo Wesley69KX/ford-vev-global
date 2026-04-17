@@ -75,7 +75,7 @@ const app = {
       //  "Condição: Veículo Carregado"
     ],
 
-   init() {
+ init() {
         document.getElementById('t-data').value = new Date().toISOString().split('T')[0];
         this.atualizarInterfaceCola();
     },
@@ -117,8 +117,9 @@ const app = {
         const promptComando = "Atue como um Engenheiro Automotivo Sênior. Reescreva este texto em linguagem técnica para um laudo de avaria, sendo direto, estritamente profissional, sem aspas ou introduções. O texto é: " + textoOriginal;
 
         try {
-            // ERRO 404 RESOLVIDO: Removido o "-latest", chamando o modelo raiz corretamente.
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+            // ERRO 404 RESOLVIDO: O Google atualizou os servidores. 
+            // Agora apontamos para o modelo novo: gemini-2.5-flash
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
             
             const resposta = await fetch(url, {
                 method: 'POST',
