@@ -9,28 +9,24 @@ const app = {
     // FRENAGEM
     ciclosFrenagem: [],
     
-    // ==========================================
-    // ROTEIRO EXATO (REMOVIDO APENAS OS RISCOS VERMELHOS)
-    // ==========================================
     sequenciaDiasPares: [
         "Labirinto: 1ª volta + mata-burro (30 km/h)",
        // "Labirinto: 2ª volta + mata-burro",
-      //  "Labirinto: 3ª volta",
-       // "Enrola Camisa: 1ª volta",
+     //   "Labirinto: 3ª volta",
+      //  "Enrola Camisa: 1ª volta",
       //  "Enrola Camisa: 2ª volta",
        // "Enrola Camisa: 3ª volta",
-     //   "Enrola Camisa: 4ª volta",
-       // "Areia Pista: 1ª volta",
-      //  "Areia Pista: 2ª volta (360º horário)",
+      //  "Enrola Camisa: 4ª volta",
+     //   "Areia Pista: 1ª volta",
+     //   "Areia Pista: 2ª volta (360º horário)",
      //   "Areia Pista: 3ª volta (360º anti-horário)",
         "Power Hop Hill (1x) - 60 km/h",
         "Seguir p/ 2ª Rotatória - 60 km/h",
-      //  "Lombadas: 1ª passagem",
-      //  "Lombadas: 2ª passagem",
+       // "Lombadas: 1ª passagem",
+       // "Lombadas: 2ª passagem",
        // "Lombadas: 3ª passagem",
-       // "Lombadas: 4ª passagem",
-       // "Lombadas: 5ª passagem",
-        // PISTAS ESPECIAIS (BLOCO 1)
+     //   "Lombadas: 4ª passagem",
+      //  "Lombadas: 5ª passagem",
         "[Esp] Pistas 1-2 (50 km/h)",
         "[Esp] Pista 4-3 (20 km/h)",
         "[Esp] Slalom 11,09,12,10 (20 km/h)",
@@ -41,7 +37,6 @@ const app = {
         "[Esp] Pistas 2-1 (50 km/h)",
         "[Esp] Pistas 7-8 (20, 15 km/h)",
         "[Esp] P. de Baixa",
-        // PISTAS ESPECIAIS (BLOCO 2 - Repete)
         "[Esp] Pistas 1-2",
         "[Esp] Pista 4-3",
         "[Esp] Slalom 11,09,12,10",
@@ -52,7 +47,6 @@ const app = {
         "[Esp] Pistas 2-1",
         "[Esp] Pistas 7-8",
         "[Esp] P. de Baixa",
-        // PISTAS ESPECIAIS (BLOCO 3)
         "[Esp] Pistas 1-2",
         "[Esp] Pista 4-3",
         "[Esp] Pistas 5-8",
@@ -63,7 +57,6 @@ const app = {
         "[Esp] Pistas 2-1",
         "[Esp] Pistas 09-10",
         "[Esp] P. de Baixa",
-        // PISTAS ESPECIAIS (BLOCO 4)
         "[Esp] Pistas 1-2",
         "[Esp] Pista 4-3",
         "[Esp] Pistas 5-8",
@@ -71,13 +64,12 @@ const app = {
         "[Esp] Pistas 5-8",
         "[Esp] Pista 4-3",
         "[Esp] Pistas 09-10",
-        // FINALIZAÇÃO
-    //    "10 metros marcha-à-ré + Manobra",
-      //  "Pista de Alta",
-      "Pista de Alta + bolacha",
-      "Pista de Baixa + bolacha",
-      //  "Condição: Veículo Vazio",
-     //   "Condição: Veículo Carregado"
+       // "10 metros marcha-à-ré + Manobra",
+       // "Pista de Alta",
+        "Pista de Alta + bolacha",
+        "Pista de Baixa + bolacha",
+       // "Condição: Veículo Vazio",
+       // "Condição: Veículo Carregado"
     ],
 
     init() {
@@ -86,7 +78,69 @@ const app = {
     },
 
     // ==========================================
-    // LÓGICA DO GUIA PASSO A PASSO (ROTEIRO)
+    // IA - ASSISTENTE DE ENGENHARIA GEMINI
+    // ==========================================
+    async melhorarTextoComIA(botao) {
+        const textarea = document.getElementById('i-obs');
+        const textoOriginal = textarea.value.trim();
+
+        if (textoOriginal.length < 5) {
+            return alert("Escreva um pouco mais sobre o problema antes de chamar a IA.");
+        }
+
+        const conteudoOriginalBotao = botao.innerHTML;
+        botao.innerHTML = '<span class="material-icons" style="font-size: 1rem;">hourglass_empty</span> GERANDO...';
+        botao.style.background = "#f1f5f9";
+        botao.style.color = "#64748b";
+        botao.disabled = true;
+
+        // A CHAVE QUE VOCÊ ME PASSOU
+        const API_KEY = "AQ.Ab8RN6L8GJ5xEAZW-alid70wbdi4cKpyUZglpfGMveN9yMZKog"; 
+
+        const promptComando = `
+            Atue como um Engenheiro Automotivo Sênior especializado em comissionamento e instrumentação. 
+            Reescreva o texto abaixo utilizando linguagem técnica, precisa e estritamente profissional para um laudo de avaria de testes automotivos.
+            Remova gírias, seja direto e mantenha o rigor técnico. 
+            Retorne APENAS o texto melhorado, sem aspas ou introduções.
+            
+            Texto original: "${textoOriginal}"
+        `;
+
+        try {
+            const resposta = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: promptComando }] }]
+                })
+            });
+
+            const dados = await resposta.json();
+            
+            if (dados.candidates && dados.candidates[0].content.parts[0].text) {
+                textarea.value = dados.candidates[0].content.parts[0].text.trim();
+                
+                botao.innerHTML = '<span class="material-icons" style="font-size: 1rem;">check</span> PRONTO!';
+                botao.style.background = "#dcfce7";
+                botao.style.color = "#16a34a";
+            } else {
+                alert("A IA não conseguiu processar. Verifique se a API Key está correta.");
+            }
+        } catch (error) {
+            console.error("Erro na API:", error);
+            alert("Falha na conexão com a IA. Verifique sua internet ou a validade da API Key.");
+        } finally {
+            setTimeout(() => {
+                botao.innerHTML = conteudoOriginalBotao;
+                botao.style.background = "#ede9fe";
+                botao.style.color = "#8b5cf6";
+                botao.disabled = false;
+            }, 3000);
+        }
+    },
+
+    // ==========================================
+    // LÓGICA DO GUIA PASSO A PASSO
     // ==========================================
     atualizarInterfaceCola() {
         if (this.etapaAtualIndex < this.sequenciaDiasPares.length) {
