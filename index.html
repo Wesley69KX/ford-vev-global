@@ -15,10 +15,10 @@
     <style>
         /* TEMA DARK: AGRESSIVO E MARCANTE */
         :root { 
-            --bg-base: #0f172a; var(--bg-card): #1e293b; var(--border-glow): #38bdf8; 
-            --text-main: #f8fafc; var(--text-muted): #94a3b8; 
-            --danger: #ef4444; var(--success): #10b981; 
-            --purple-neon: #a855f7; var(--orange-neon): #f97316; 
+            --bg-base: #0f172a; --bg-card: #1e293b; --border-glow: #38bdf8; 
+            --text-main: #f8fafc; --text-muted: #94a3b8; 
+            --danger: #ef4444; --success: #10b981; 
+            --purple-neon: #a855f7; --orange-neon: #f97316; 
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg-base); color: var(--text-main); line-height: 1.5; padding-bottom: 40px; }
@@ -104,7 +104,7 @@
         <div class="grid-forms">
             <div class="card-form" onclick="appUI.abrirModal('modal-roteiro')" style="border-left-color: var(--purple-neon);">
                 <div class="icon-circle" style="color: var(--purple-neon); background: rgba(168, 85, 247, 0.1); border-color: rgba(168, 85, 247, 0.2);"><span class="material-icons">alt_route</span></div>
-                <div><div style="font-weight: 700;">Guia de Ciclos (Dias Pares)</div><div style="font-size: 0.7rem; color: var(--text-muted);">Sequência Passo-a-Passo</div></div>
+                <div><div style="font-weight: 700;">Guia de Ciclos (Loop Contínuo)</div><div style="font-size: 0.7rem; color: var(--text-muted);">Sequência Passo-a-Passo</div></div>
             </div>
             
             <div class="card-form" onclick="app.gerarRelatorioResumo()" style="border-left-color: var(--border-glow); background: rgba(56, 189, 248, 0.05);">
@@ -148,16 +148,19 @@
                 </button>
             </div>
 
-            <h4 style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem; padding-left: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Histórico do Roteiro:</h4>
+            <h4 style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem; padding-left: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Histórico do Turno:</h4>
             <div id="lista-cola" style="height: 220px; overflow-y: auto; background: #020617; border-radius: 0.5rem; border: 1px solid #334155;"></div>
 
             <div class="grid-2" style="margin-top: 1rem;">
-                <button class="btn-main" style="color: var(--text-muted); border-color: #334155; margin-top: 0; padding: 1rem;" onclick="app.resetarRoteiro()">
-                    <span class="material-icons">refresh</span> ZERAR
+                <button class="btn-main" style="color: var(--purple-neon); border-color: var(--purple-neon); margin-top: 0; padding: 1rem;" onclick="app.novaVolta()">
+                    <span class="material-icons">loop</span> NOVA VOLTA
                 </button>
                 <button class="btn-main btn-danger" style="margin-top: 0; padding: 1rem;" onclick="app.gerarRelatorioRoteiro()">
-                    <span class="material-icons">picture_as_pdf</span> GERAR PDF LOG
+                    <span class="material-icons">picture_as_pdf</span> PDF LOG
                 </button>
+            </div>
+            <div style="text-align: center; margin-top: 15px;">
+                <a href="#" onclick="app.resetarRoteiro()" style="color: var(--danger); font-size: 0.7rem; text-decoration: underline; opacity: 0.7;">⚠️ Apagar todo o histórico e começar do zero</a>
             </div>
         </div>
     </div>
@@ -241,7 +244,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=3.2"></script>
+    <script src="app.js?v=3.3"></script>
     <script>
         const appUI = { abrirModal: (id) => document.getElementById(id).style.display = 'flex', fecharModal: (id) => document.getElementById(id).style.display = 'none' }; window.appUI = appUI;
     </script>
