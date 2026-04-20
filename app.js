@@ -133,10 +133,24 @@ const app = {
     },
 
     // ==========================================
-    // ROTEIRO E RESUMO INTELIGENTE
+    // ROTEIRO: LOOP CONTÍNUO (V3.3)
     // ==========================================
+    novaVolta() {
+        if(confirm("Deseja iniciar uma NOVA VOLTA mantendo todo o histórico já registrado?")) {
+            this.etapaAtualIndex = 0;
+            const vin = document.getElementById('c-vin').value || "---";
+            
+            // Adiciona um separador visual na lista e no PDF
+            this.checkins.push({ atividade: "--- INÍCIO DE NOVA VOLTA ---", hora: new Date().toLocaleTimeString('pt-BR'), vin: vin });
+            this.atualizarInterfaceCola();
+        }
+    },
+
     registrarPassagem() {
-        if (this.etapaAtualIndex >= this.sequenciaDiasPares.length) return alert("O teste já foi concluído.");
+        // Se já chegou no fim da lista, clicar no botão de registro pergunta se quer iniciar novo loop
+        if (this.etapaAtualIndex >= this.sequenciaDiasPares.length) {
+            return this.novaVolta(); 
+        }
         
         const nomeEtapa = this.sequenciaDiasPares[this.etapaAtualIndex];
         const agora = new Date();
@@ -149,30 +163,30 @@ const app = {
         this.atualizarInterfaceCola();
     },
 
-    // O NOVO BOTÃO DE RESUMO AGRUPADO PARA PLANILHAS
     gerarRelatorioResumo() {
         if (this.checkins.length === 0) return alert("Você precisa registrar passagens no guia antes de gerar o resumo.");
         
         const vin = document.getElementById('c-vin').value || "Veículo em Teste";
         const resumo = {};
 
-        // Lógica que conta as voltas
+        // Agrupamento Inteligente
         this.checkins.forEach(r => {
             let nomePista = r.atividade;
-            // Remove numeração de voltas (ex: "Labirinto: 1ª volta" vira "Labirinto")
+            
+            // Ignora o separador de nova volta para não aparecer na contagem
+            if(nomePista.includes("--- INÍCIO")) return;
+
             if (nomePista.includes(':')) nomePista = nomePista.split(':')[0].trim();
             if (nomePista.includes('(') && !nomePista.includes('[Esp]')) nomePista = nomePista.split('(')[0].trim();
             
             resumo[nomePista] = (resumo[nomePista] || 0) + 1;
         });
 
-        // Gerar o PDF Escuro e Agressivo
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         
         doc.setFillColor(15, 23, 42); 
         doc.rect(0, 0, 210, 40, 'F');
-        
         doc.setTextColor(56, 189, 248);
         doc.setFontSize(18);
         doc.text("ENGINEERING SUMMARY - R389", 105, 20, { align: "center" });
@@ -198,13 +212,15 @@ const app = {
     atualizarInterfaceCola() {
         if (this.etapaAtualIndex < this.sequenciaDiasPares.length) {
             document.getElementById('etapa-atual').innerText = this.sequenciaDiasPares[this.etapaAtualIndex];
-            let seguinte = "Fim";
+            let seguinte = "Fim do Ciclo";
             if(this.etapaAtualIndex + 1 < this.sequenciaDiasPares.length) seguinte = `Em seguida: ${this.sequenciaDiasPares[this.etapaAtualIndex + 1]}`;
             document.getElementById('etapa-seguinte').innerText = seguinte;
         } else {
-            document.getElementById('etapa-atual').innerText = "✅ CONCLUÍDO!";
-            document.getElementById('etapa-seguinte').innerText = "Gere o resumo.";
+            // Textos alterados para deixar claro que pode continuar
+            document.getElementById('etapa-atual').innerText = "✅ CICLO FECHADO!";
+            document.getElementById('etapa-seguinte').innerText = "Clique para iniciar uma NOVA VOLTA e continuar gravando.";
         }
+        
         const listaCola = document.getElementById('lista-cola');
         listaCola.innerHTML = this.sequenciaDiasPares.map((etapa, idx) => {
             let classe = "cola-item"; let icone = "radio_button_unchecked";
@@ -212,6 +228,7 @@ const app = {
             else if (idx === this.etapaAtualIndex) { classe += " ativo"; icone = "play_circle_filled"; }
             return `<div class="${classe}" onclick="app.pularParaEtapa(${idx})"><span class="material-icons cola-icon">${icone}</span><span>${idx + 1}. ${etapa}</span></div>`;
         }).join('');
+        
         setTimeout(() => { const itemAtivo = document.querySelector('.cola-item.ativo'); if(itemAtivo) itemAtivo.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
     },
 
@@ -220,16 +237,37 @@ const app = {
     },
 
     resetarRoteiro() {
-        if(confirm("Apagar todos os registros do guia?")) { this.etapaAtualIndex = 0; this.checkins = []; this.atualizarInterfaceCola(); }
+        if(confirm("Tem certeza que deseja APAGAR TODOS os registros do turno atual?")) { 
+            this.etapaAtualIndex = 0; 
+            this.checkins = []; 
+            this.atualizarInterfaceCola(); 
+        }
     },
 
     async gerarRelatorioRoteiro() {
         if (this.checkins.length === 0) return alert("Nenhuma passagem registrada.");
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        
+        doc.setFillColor(15, 23, 42); 
+        doc.rect(0, 0, 210, 40, 'F');
+        doc.setTextColor(168, 85, 247);
         doc.setFontSize(16); doc.text("LOG DE CICLOS (R389)", 105, 20, { align: "center" });
         doc.setFontSize(10); doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 105, 28, { align: "center" });
+        
+        // Formatar tabela com cor cinza claro na linha do separador de ciclo
         const dadosTabela = this.checkins.map((c, i) => [i + 1, c.atividade, c.hora]);
-        doc.autoTable({ startY: 35, head: [['#', 'CICLO', 'HORA']], body: dadosTabela, headStyles: { fillColor: [168, 85, 247] } });
+        doc.autoTable({ 
+            startY: 45, 
+            head: [['#', 'CICLO / ETAPA', 'HORA']], 
+            body: dadosTabela, 
+            headStyles: { fillColor: [168, 85, 247], textColor: [255,255,255] },
+            didParseCell: function(data) {
+                if(data.row.raw[1].includes("--- INÍCIO")) {
+                    data.cell.styles.fillColor = [241, 245, 249];
+                    data.cell.styles.fontStyle = 'bold';
+                }
+            }
+        });
         doc.save(`Log_R389_${Date.now()}.pdf`);
     },
 
@@ -254,9 +292,15 @@ const app = {
     async gerarRelatorioFrenagem() {
         if (this.ciclosFrenagem.length === 0) return alert("Nenhum ciclo registrado.");
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
-        doc.text("RELATÓRIO DE FRENAGEM", 105, 20, { align: "center" });
+        
+        doc.setFillColor(15, 23, 42); 
+        doc.rect(0, 0, 210, 40, 'F');
+        doc.setTextColor(249, 115, 22);
+        doc.setFontSize(16); doc.text("RELATÓRIO DE FRENAGEM", 105, 20, { align: "center" });
+        doc.setFontSize(10); doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')} - Ciclos: ${this.ciclosFrenagem.length}`, 105, 28, { align: "center" });
+
         const dadosTabela = this.ciclosFrenagem.map((c, i) => [i + 1, c.hora, c.velocidade, c.observacao]);
-        doc.autoTable({ startY: 35, head: [['CICLO', 'HORÁRIO', 'VEL', 'OBSERVAÇÕES']], body: dadosTabela, headStyles: { fillColor: [249, 115, 22] } });
+        doc.autoTable({ startY: 45, head: [['CICLO', 'HORÁRIO', 'VEL', 'OBSERVAÇÕES']], body: dadosTabela, headStyles: { fillColor: [249, 115, 22], textColor: [255,255,255] } });
         doc.save(`Frenagem_${Date.now()}.pdf`);
     },
 
@@ -292,9 +336,15 @@ const app = {
     async gerarECompartilharLaudo() {
         const id = document.getElementById('i-id').value || "SN"; const motorista = document.getElementById('i-motorista').value || "Não informado"; const parecer = document.getElementById('i-obs').value || "Sem observações.";
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
-        doc.setFontSize(18); doc.text("LAUDO DE AVARIA", 14, 18); doc.setFontSize(12); doc.text(`VIN: ${id}`, 196, 18, { align: "right" });
-        doc.autoTable({ startY: 28, body: [['Veículo / VIN:', id, 'Data:', new Date().toLocaleString('pt-BR')], ['Condutor:', motorista, 'Mídias:', `${this.fotos.length} Foto(s), ${this.videosFiles.length} Vídeo(s)`]], theme: 'grid' });
-        let currentY = doc.lastAutoTable.finalY + 10; doc.text("PARECER TÉCNICO:", 14, currentY); currentY += 4; doc.text(doc.splitTextToSize(parecer, 178), 14, currentY + 4);
+        
+        doc.setFillColor(15, 23, 42); 
+        doc.rect(0, 0, 210, 30, 'F');
+        doc.setTextColor(56, 189, 248);
+        doc.setFontSize(18); doc.text("LAUDO DE AVARIA", 14, 20); doc.setFontSize(12); doc.text(`VIN: ${id}`, 196, 20, { align: "right" });
+        doc.setTextColor(0, 0, 0);
+
+        doc.autoTable({ startY: 35, body: [['Veículo / VIN:', id, 'Data:', new Date().toLocaleString('pt-BR')], ['Condutor:', motorista, 'Mídias:', `${this.fotos.length} Foto(s), ${this.videosFiles.length} Vídeo(s)`]], theme: 'grid' });
+        let currentY = doc.lastAutoTable.finalY + 10; doc.setFont(undefined, 'bold'); doc.text("PARECER TÉCNICO:", 14, currentY); currentY += 6; doc.setFont(undefined, 'normal'); doc.text(doc.splitTextToSize(parecer, 178), 14, currentY);
         if (this.fotos.length > 0) {
             let y = currentY + 30;
             this.fotos.forEach((f, i) => {
@@ -311,10 +361,17 @@ const app = {
     // ==========================================
     async finalizarTurnoIntegrado() {
         const v = document.getElementById('t-veiculo').value; const dataBruta = document.getElementById('t-data').value;
-        const texto = `*Abastecimento ${v}*\n${document.getElementById('t-turno').value}\nVIN: ${document.getElementById('t-vin').value}\nTrip: ${document.getElementById('t-trip').value}\nKm: ${document.getElementById('t-km').value}\nLitros: ${document.getElementById('t-litros').value}\nSaldo: R$ ${document.getElementById('t-saldo').value}`;
-        try { await navigator.clipboard.writeText(texto); alert("Texto copiado!"); } catch (e) {}
+        let dataFormatada = dataBruta ? `${dataBruta.split('-')[2]}/${dataBruta.split('-')[1]}` : "";
+        const texto = `*Abastecimento ${v}*\n${document.getElementById('t-turno').value} ${dataFormatada}\nVIN: ${document.getElementById('t-vin').value}\nTrip: ${document.getElementById('t-trip').value}\nKm: ${document.getElementById('t-km').value}\nLitros: ${document.getElementById('t-litros').value}\nSaldo: R$ ${document.getElementById('t-saldo').value}`;
+        try { await navigator.clipboard.writeText(texto); alert("Texto copiado para o WhatsApp!"); } catch (e) {}
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
-        doc.setFontSize(16); doc.text("FECHAMENTO DE TURNO", 14, 20); doc.setFontSize(12); doc.text(doc.splitTextToSize(texto.replace(/\*/g,''), 180), 14, 35);
+        
+        doc.setFillColor(15, 23, 42); 
+        doc.rect(0, 0, 210, 30, 'F');
+        doc.setTextColor(16, 185, 129);
+        doc.setFontSize(16); doc.text("FECHAMENTO DE TURNO", 14, 20); doc.setTextColor(0,0,0);
+        
+        doc.setFontSize(12); doc.text(doc.splitTextToSize(texto.replace(/\*/g,''), 180), 14, 40);
         doc.save(`Turno_${document.getElementById('t-vin').value}.pdf`);
     }
 };
