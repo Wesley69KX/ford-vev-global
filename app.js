@@ -3,7 +3,13 @@ const app = {
     videosFiles: [], 
     etapaAtualIndex: 0,
     checkins: [],
+    
+    // VARIÁVEIS DE FRENAGEM (V3.4)
     ciclosFrenagem: [],
+    roteiroFrenagem: [
+        "Pista Baixa - Volta 1", "Pista Baixa - Volta 2", "Pista Baixa - Volta 3", "Pista Baixa - Volta 4",
+        "Pista Alta - Volta 1",  "Pista Alta - Volta 2",  "Pista Alta - Volta 3",  "Pista Alta - Volta 4"
+    ],
     
     // ROTEIRO EXATO
     sequenciaDiasPares: [
@@ -72,6 +78,7 @@ const app = {
     init() {
         document.getElementById('t-data').value = new Date().toISOString().split('T')[0];
         this.atualizarInterfaceCola();
+        this.renderListaFrenagem(); // Inicializa o modal de frenagem
     },
 
     // ==========================================
@@ -139,25 +146,19 @@ const app = {
         if(confirm("Deseja iniciar uma NOVA VOLTA mantendo todo o histórico já registrado?")) {
             this.etapaAtualIndex = 0;
             const vin = document.getElementById('c-vin').value || "---";
-            
-            // Adiciona um separador visual na lista e no PDF
             this.checkins.push({ atividade: "--- INÍCIO DE NOVA VOLTA ---", hora: new Date().toLocaleTimeString('pt-BR'), vin: vin });
             this.atualizarInterfaceCola();
         }
     },
 
     registrarPassagem() {
-        // Se já chegou no fim da lista, clicar no botão de registro pergunta se quer iniciar novo loop
-        if (this.etapaAtualIndex >= this.sequenciaDiasPares.length) {
-            return this.novaVolta(); 
-        }
+        if (this.etapaAtualIndex >= this.sequenciaDiasPares.length) return this.novaVolta(); 
         
         const nomeEtapa = this.sequenciaDiasPares[this.etapaAtualIndex];
         const agora = new Date();
         const vin = document.getElementById('c-vin').value || "Não Informado";
 
         this.checkins.push({ atividade: nomeEtapa, hora: agora.toLocaleTimeString('pt-BR'), vin: vin });
-        
         if ('vibrate' in navigator) navigator.vibrate(50);
         this.etapaAtualIndex++;
         this.atualizarInterfaceCola();
@@ -169,43 +170,23 @@ const app = {
         const vin = document.getElementById('c-vin').value || "Veículo em Teste";
         const resumo = {};
 
-        // Agrupamento Inteligente
         this.checkins.forEach(r => {
             let nomePista = r.atividade;
-            
-            // Ignora o separador de nova volta para não aparecer na contagem
             if(nomePista.includes("--- INÍCIO")) return;
-
             if (nomePista.includes(':')) nomePista = nomePista.split(':')[0].trim();
             if (nomePista.includes('(') && !nomePista.includes('[Esp]')) nomePista = nomePista.split('(')[0].trim();
-            
             resumo[nomePista] = (resumo[nomePista] || 0) + 1;
         });
 
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
+        const { jsPDF } = window.jspdf; const doc = new jsPDF();
         
-        doc.setFillColor(15, 23, 42); 
-        doc.rect(0, 0, 210, 40, 'F');
-        doc.setTextColor(56, 189, 248);
-        doc.setFontSize(18);
-        doc.text("ENGINEERING SUMMARY - R389", 105, 20, { align: "center" });
-        doc.setFontSize(10);
-        doc.text(`VIN: ${vin} | DATA: ${new Date().toLocaleDateString('pt-BR')}`, 105, 28, { align: "center" });
+        doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 40, 'F');
+        doc.setTextColor(56, 189, 248); doc.setFontSize(18); doc.text("ENGINEERING SUMMARY - R389", 105, 20, { align: "center" });
+        doc.setFontSize(10); doc.text(`VIN: ${vin} | DATA: ${new Date().toLocaleDateString('pt-BR')}`, 105, 28, { align: "center" });
 
-        doc.setTextColor(0, 0, 0);
-        doc.setFontSize(12);
-        doc.text("RESUMO DE CICLOS (CONTAGEM DE VOLTAS):", 14, 50);
-        
+        doc.setTextColor(0, 0, 0); doc.setFontSize(12); doc.text("RESUMO DE CICLOS (CONTAGEM DE VOLTAS):", 14, 50);
         const tabelaResumo = Object.keys(resumo).map(pista => [pista, `${resumo[pista]} volta(s)`]);
-        doc.autoTable({
-            startY: 55,
-            head: [['PISTA / TESTE', 'TOTAL EXECUTADO']],
-            body: tabelaResumo,
-            theme: 'striped',
-            headStyles: { fillColor: [56, 189, 248], textColor: [0,0,0] }
-        });
-
+        doc.autoTable({ startY: 55, head: [['PISTA / TESTE', 'TOTAL EXECUTADO']], body: tabelaResumo, theme: 'striped', headStyles: { fillColor: [56, 189, 248], textColor: [0,0,0] } });
         doc.save(`Resumo_Turno_${vin}_${Date.now()}.pdf`);
     },
 
@@ -216,7 +197,6 @@ const app = {
             if(this.etapaAtualIndex + 1 < this.sequenciaDiasPares.length) seguinte = `Em seguida: ${this.sequenciaDiasPares[this.etapaAtualIndex + 1]}`;
             document.getElementById('etapa-seguinte').innerText = seguinte;
         } else {
-            // Textos alterados para deixar claro que pode continuar
             document.getElementById('etapa-atual').innerText = "✅ CICLO FECHADO!";
             document.getElementById('etapa-seguinte').innerText = "Clique para iniciar uma NOVA VOLTA e continuar gravando.";
         }
@@ -232,76 +212,102 @@ const app = {
         setTimeout(() => { const itemAtivo = document.querySelector('.cola-item.ativo'); if(itemAtivo) itemAtivo.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
     },
 
-    pularParaEtapa(idx) {
-        if(confirm(`Pular para "${this.sequenciaDiasPares[idx]}"?`)) { this.etapaAtualIndex = idx; this.atualizarInterfaceCola(); }
-    },
-
-    resetarRoteiro() {
-        if(confirm("Tem certeza que deseja APAGAR TODOS os registros do turno atual?")) { 
-            this.etapaAtualIndex = 0; 
-            this.checkins = []; 
-            this.atualizarInterfaceCola(); 
-        }
-    },
+    pularParaEtapa(idx) { if(confirm(`Pular para "${this.sequenciaDiasPares[idx]}"?`)) { this.etapaAtualIndex = idx; this.atualizarInterfaceCola(); } },
+    resetarRoteiro() { if(confirm("Tem certeza que deseja APAGAR TODOS os registros do turno atual?")) { this.etapaAtualIndex = 0; this.checkins = []; this.atualizarInterfaceCola(); } },
 
     async gerarRelatorioRoteiro() {
         if (this.checkins.length === 0) return alert("Nenhuma passagem registrada.");
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
         
-        doc.setFillColor(15, 23, 42); 
-        doc.rect(0, 0, 210, 40, 'F');
-        doc.setTextColor(168, 85, 247);
-        doc.setFontSize(16); doc.text("LOG DE CICLOS (R389)", 105, 20, { align: "center" });
+        doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 40, 'F');
+        doc.setTextColor(168, 85, 247); doc.setFontSize(16); doc.text("LOG DE CICLOS (R389)", 105, 20, { align: "center" });
         doc.setFontSize(10); doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 105, 28, { align: "center" });
         
-        // Formatar tabela com cor cinza claro na linha do separador de ciclo
         const dadosTabela = this.checkins.map((c, i) => [i + 1, c.atividade, c.hora]);
         doc.autoTable({ 
-            startY: 45, 
-            head: [['#', 'CICLO / ETAPA', 'HORA']], 
-            body: dadosTabela, 
-            headStyles: { fillColor: [168, 85, 247], textColor: [255,255,255] },
-            didParseCell: function(data) {
-                if(data.row.raw[1].includes("--- INÍCIO")) {
-                    data.cell.styles.fillColor = [241, 245, 249];
-                    data.cell.styles.fontStyle = 'bold';
-                }
-            }
+            startY: 45, head: [['#', 'CICLO / ETAPA', 'HORA']], body: dadosTabela, headStyles: { fillColor: [168, 85, 247], textColor: [255,255,255] },
+            didParseCell: function(data) { if(data.row.raw[1].includes("--- INÍCIO")) { data.cell.styles.fillColor = [241, 245, 249]; data.cell.styles.fontStyle = 'bold'; } }
         });
         doc.save(`Log_R389_${Date.now()}.pdf`);
     },
 
     // ==========================================
-    // LÓGICA DE FRENAGEM
+    // LÓGICA DE FRENAGEM (V3.4 - CHECKPOINTS)
     // ==========================================
     adicionarCicloFrenagem() {
-        const vel = document.getElementById('f-vel').value; const obs = document.getElementById('f-obs').value || "S/ Obs";
-        if(!vel) return alert("Digite a velocidade.");
-        this.ciclosFrenagem.push({ velocidade: vel + " km/h", observacao: obs, hora: new Date().toLocaleTimeString('pt-BR') });
-        document.getElementById('f-contador').innerText = this.ciclosFrenagem.length;
-        this.renderListaFrenagem();
-        document.getElementById('f-vel').value = ''; document.getElementById('f-obs').value = '';
+        if (this.ciclosFrenagem.length >= this.roteiroFrenagem.length) {
+            return alert("✅ Você já completou as 8 voltas oficiais do teste de frenagem!");
+        }
+
+        const vel = document.getElementById('f-vel').value; 
+        const obs = document.getElementById('f-obs').value || "OK - Sem anomalias";
+        
+        if(!vel) return alert("Por favor, informe a velocidade registrada.");
+
+        const nomeEtapa = this.roteiroFrenagem[this.ciclosFrenagem.length];
+
+        this.ciclosFrenagem.push({ 
+            etapa: nomeEtapa, 
+            velocidade: vel + " km/h", 
+            observacao: obs, 
+            hora: new Date().toLocaleTimeString('pt-BR') 
+        });
+
+        document.getElementById('f-vel').value = ''; 
+        document.getElementById('f-obs').value = '';
         if ('vibrate' in navigator) navigator.vibrate(50);
+        
+        this.renderListaFrenagem();
     },
+
     renderListaFrenagem() {
+        // Atualiza Interface Superior (Próxima Etapa e Contador)
+        document.getElementById('f-contador').innerText = `${this.ciclosFrenagem.length}/8`;
+        
+        let proximaEtapaTexto = "✅ TESTE CONCLUÍDO";
+        if (this.ciclosFrenagem.length < this.roteiroFrenagem.length) {
+            proximaEtapaTexto = this.roteiroFrenagem[this.ciclosFrenagem.length];
+        }
+        document.getElementById('f-proxima-etapa').innerText = proximaEtapaTexto;
+
+        // Renderiza Lista Inferior
         const lista = document.getElementById('lista-frenagem');
-        if(this.ciclosFrenagem.length === 0) return lista.innerHTML = '<div style="color: #475569; text-align: center; padding: 1rem;">Vazio.</div>';
-        lista.innerHTML = this.ciclosFrenagem.map((c, i) => `<div style="padding: 10px; border-bottom: 1px solid #334155;"><div><strong style="color: #f97316;">Ciclo ${i + 1}</strong> <span style="color: #64748b; font-size: 0.75rem;">(${c.hora})</span><br><strong>Vel:</strong> ${c.velocidade} | <strong>Obs:</strong> ${c.observacao}</div></div>`).reverse().join(''); 
+        if(this.ciclosFrenagem.length === 0) {
+            return lista.innerHTML = '<div style="color: #475569; text-align: center; padding: 1rem;">Nenhum checkpoint registrado.</div>';
+        }
+
+        lista.innerHTML = this.ciclosFrenagem.map((c, i) => `
+            <div style="padding: 10px; border-bottom: 1px solid #334155; display: flex; flex-direction: column;">
+                <div>
+                    <strong style="color: #f97316;">${c.etapa}</strong> <span style="color: #64748b; font-size: 0.75rem;">(${c.hora})</span>
+                </div>
+                <div style="margin-top: 4px;">
+                    <span style="color: #94a3b8;">Velocidade:</span> ${c.velocidade} <br>
+                    <span style="color: #94a3b8;">Status:</span> ${c.observacao}
+                </div>
+            </div>
+        `).reverse().join(''); 
     },
-    resetarFrenagem() { if(confirm("Apagar ciclos de frenagem?")) { this.ciclosFrenagem = []; document.getElementById('f-contador').innerText = "0"; this.renderListaFrenagem(); } },
+
+    resetarFrenagem() { 
+        if(confirm("Deseja apagar os dados e REINICIAR do zero o teste de frenagem?")) { 
+            this.ciclosFrenagem = []; 
+            this.renderListaFrenagem(); 
+        } 
+    },
+
     async gerarRelatorioFrenagem() {
         if (this.ciclosFrenagem.length === 0) return alert("Nenhum ciclo registrado.");
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
         
-        doc.setFillColor(15, 23, 42); 
-        doc.rect(0, 0, 210, 40, 'F');
+        doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 40, 'F');
         doc.setTextColor(249, 115, 22);
-        doc.setFontSize(16); doc.text("RELATÓRIO DE FRENAGEM", 105, 20, { align: "center" });
-        doc.setFontSize(10); doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')} - Ciclos: ${this.ciclosFrenagem.length}`, 105, 28, { align: "center" });
+        doc.setFontSize(16); doc.text("RELATÓRIO DE FRENAGEM OFICIAL", 105, 20, { align: "center" });
+        doc.setFontSize(10); doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')} - Protocolo: 8 Laps`, 105, 28, { align: "center" });
 
-        const dadosTabela = this.ciclosFrenagem.map((c, i) => [i + 1, c.hora, c.velocidade, c.observacao]);
-        doc.autoTable({ startY: 45, head: [['CICLO', 'HORÁRIO', 'VEL', 'OBSERVAÇÕES']], body: dadosTabela, headStyles: { fillColor: [249, 115, 22], textColor: [255,255,255] } });
-        doc.save(`Frenagem_${Date.now()}.pdf`);
+        const dadosTabela = this.ciclosFrenagem.map(c => [c.etapa, c.hora, c.velocidade, c.observacao]);
+        doc.autoTable({ startY: 45, head: [['CHECKPOINT', 'HORÁRIO', 'VEL', 'STATUS / ANOMALIA']], body: dadosTabela, headStyles: { fillColor: [249, 115, 22], textColor: [255,255,255] } });
+        doc.save(`Frenagem_Oficial_${Date.now()}.pdf`);
     },
 
     // ==========================================
@@ -337,10 +343,7 @@ const app = {
         const id = document.getElementById('i-id').value || "SN"; const motorista = document.getElementById('i-motorista').value || "Não informado"; const parecer = document.getElementById('i-obs').value || "Sem observações.";
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
         
-        doc.setFillColor(15, 23, 42); 
-        doc.rect(0, 0, 210, 30, 'F');
-        doc.setTextColor(56, 189, 248);
-        doc.setFontSize(18); doc.text("LAUDO DE AVARIA", 14, 20); doc.setFontSize(12); doc.text(`VIN: ${id}`, 196, 20, { align: "right" });
+        doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 30, 'F'); doc.setTextColor(56, 189, 248); doc.setFontSize(18); doc.text("LAUDO DE AVARIA", 14, 20); doc.setFontSize(12); doc.text(`VIN: ${id}`, 196, 20, { align: "right" });
         doc.setTextColor(0, 0, 0);
 
         doc.autoTable({ startY: 35, body: [['Veículo / VIN:', id, 'Data:', new Date().toLocaleString('pt-BR')], ['Condutor:', motorista, 'Mídias:', `${this.fotos.length} Foto(s), ${this.videosFiles.length} Vídeo(s)`]], theme: 'grid' });
@@ -366,10 +369,7 @@ const app = {
         try { await navigator.clipboard.writeText(texto); alert("Texto copiado para o WhatsApp!"); } catch (e) {}
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
         
-        doc.setFillColor(15, 23, 42); 
-        doc.rect(0, 0, 210, 30, 'F');
-        doc.setTextColor(16, 185, 129);
-        doc.setFontSize(16); doc.text("FECHAMENTO DE TURNO", 14, 20); doc.setTextColor(0,0,0);
+        doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 30, 'F'); doc.setTextColor(16, 185, 129); doc.setFontSize(16); doc.text("FECHAMENTO DE TURNO", 14, 20); doc.setTextColor(0,0,0);
         
         doc.setFontSize(12); doc.text(doc.splitTextToSize(texto.replace(/\*/g,''), 180), 14, 40);
         doc.save(`Turno_${document.getElementById('t-vin').value}.pdf`);
