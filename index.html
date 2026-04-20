@@ -1,290 +1,463 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ford VEV - Central Operacional</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="logo.png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
-<title>Ford VEV - Central CC: 2748</title>
+    <style>
+        /* ==========================================
+           DESIGN SYSTEM & VARIÁVEIS (Nível Tesla/Fintech)
+        ========================================== */
+        :root { 
+            --bg-body: #050507;          /* Preto profundo / Asfalto */
+            --bg-surface: rgba(20, 25, 35, 0.6); /* Painéis Glassmorphism */
+            --bg-surface-hover: rgba(30, 35, 50, 0.8);
+            
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(255, 255, 255, 0.15);
+            
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            
+            /* Cores Semânticas Neon */
+            --neon-blue: #38bdf8;
+            --neon-blue-rgb: 56, 189, 248;
+            --neon-purple: #a855f7;
+            --neon-purple-rgb: 168, 85, 247;
+            --neon-orange: #f97316;
+            --neon-orange-rgb: 249, 115, 22;
+            --neon-red: #ef4444;
+            --neon-red-rgb: 239, 68, 68;
+            --neon-green: #10b981;
+            --neon-green-rgb: 16, 185, 129;
+        }
 
-<link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" href="logo.png">
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg-body) radial-gradient(circle at 50% 0%, rgba(30, 40, 60, 0.5) 0%, transparent 70%) no-repeat;
+            color: var(--text-primary); 
+            line-height: 1.5; 
+            padding-bottom: 60px;
+            min-height: 100vh;
+        }
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+        /* HEADER GLASSMORPHISM */
+        header { 
+            background: rgba(5, 5, 7, 0.7); 
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-glass); 
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            padding: 1rem 1.5rem; 
+            display: flex; justify-content: space-between; align-items: center; 
+            position: sticky; top: 0; z-index: 50; 
+        }
+        header img { filter: brightness(1.2) drop-shadow(0 0 8px rgba(255,255,255,0.2)); height: 28px; }
+        .header-info { text-align: right; }
+        .header-info .eja { font-weight: 900; color: var(--neon-blue); font-size: 0.95rem; letter-spacing: 1px; text-shadow: 0 0 10px rgba(var(--neon-blue-rgb), 0.5); }
+        .header-info .cc { font-size: 0.7rem; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.5px; }
 
-<style>
-:root {
-    --bg-base:#020617;
-    --bg-card:rgba(30,41,59,0.6);
-    --border-glow:#38bdf8;
-    --text-main:#f8fafc;
-    --text-muted:#94a3b8;
-    --danger:#ef4444;
-    --success:#10b981;
-    --purple:#a855f7;
-    --orange:#f97316;
-}
+        .container { max-width: 600px; margin: 0 auto; padding: 1.5rem 1.2rem; }
+        h2 { font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.2em; margin: 2rem 0 1rem 0.5rem; font-weight: 700; }
 
-*{margin:0;padding:0;box-sizing:border-box;}
+        /* ==========================================
+           CARDS (Elevação e Microinterações)
+        ========================================== */
+        .grid-forms { display: grid; gap: 1rem; }
+        
+        .card-form { 
+            background: var(--bg-surface); 
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass); 
+            border-radius: 16px; 
+            padding: 1.2rem; 
+            display: flex; align-items: center; gap: 1.2rem; 
+            text-decoration: none; color: inherit; 
+            cursor: pointer; 
+            position: relative; overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Barra indicadora lateral */
+        .card-form::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+            background: var(--accent); transition: 0.3s;
+        }
 
-body{
-    font-family:'Inter',system-ui;
-    background:linear-gradient(180deg,#020617,#0f172a);
-    color:var(--text-main);
-}
+        .card-form:hover { 
+            background: var(--bg-surface-hover);
+            border-color: var(--border-glow);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4); 
+        }
+        .card-form:active { transform: scale(0.98); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); }
 
-/* HEADER */
-header{
-    background:rgba(2,6,23,0.8);
-    backdrop-filter:blur(12px);
-    border-bottom:1px solid rgba(56,189,248,0.2);
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:1rem 1.5rem;
-    position:sticky;
-    top:0;
-    z-index:50;
-}
+        .icon-circle { 
+            width: 48px; height: 48px; border-radius: 12px; 
+            background: rgba(var(--accent-rgb), 0.1); color: var(--accent); 
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0; 
+            border: 1px solid rgba(var(--accent-rgb), 0.2);
+            box-shadow: inset 0 0 15px rgba(var(--accent-rgb), 0.1);
+        }
+        
+        .card-text h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.2rem; color: var(--text-primary); }
+        .card-text p { font-size: 0.75rem; color: var(--text-secondary); font-weight: 400; }
 
-.header-info{
-    text-align:right;
-}
-.header-info small{
-    color:var(--text-muted);
-    font-size:0.7rem;
-}
-.header-info strong{
-    color:var(--border-glow);
-}
+        /* ==========================================
+           MODAIS (Bottom Sheet Style)
+        ========================================== */
+        @keyframes fadeIn { from { opacity: 0; backdrop-filter: blur(0px); } to { opacity: 1; backdrop-filter: blur(8px); } }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
-/* CONTAINER */
-.container{
-    max-width:720px;
-    margin:auto;
-    padding:1.5rem;
-}
+        .modal-overlay { 
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); 
+            display: none; align-items: flex-end; justify-content: center; z-index: 1000; 
+            animation: fadeIn 0.3s ease forwards;
+        }
+        
+        .modal-content { 
+            background: #0f141e; /* Fundo sólido para o modal não vazar leitura */
+            width: 100%; max-width: 600px; 
+            border-radius: 24px 24px 0 0; padding: 2rem 1.5rem; 
+            max-height: 92vh; overflow-y: auto; position: relative; 
+            border-top: 1px solid rgba(255,255,255,0.1); 
+            box-shadow: 0 -20px 50px rgba(0,0,0,0.8);
+            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
 
-/* TITLES */
-h2{
-    font-size:0.75rem;
-    text-transform:uppercase;
-    letter-spacing:2px;
-    color:var(--border-glow);
-    margin:2rem 0 0.8rem;
-}
+        /* Drag Handle Mobile */
+        .modal-content::before {
+            content: ''; position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+            width: 40px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 4px;
+        }
 
-/* CARDS */
-.grid{
-    display:grid;
-    gap:12px;
-}
+        .close-btn { 
+            position: absolute; top: 1.5rem; right: 1.5rem; 
+            background: rgba(255,255,255,0.05); border-radius: 50%; width: 36px; height: 36px; 
+            display: flex; align-items: center; justify-content: center; 
+            cursor: pointer; color: var(--text-secondary); border: 1px solid rgba(255,255,255,0.1); 
+            transition: 0.2s; 
+        }
+        .close-btn:active { background: var(--neon-red); color: white; border-color: var(--neon-red); transform: scale(0.9); }
 
-.card{
-    background:var(--bg-card);
-    backdrop-filter:blur(12px);
-    padding:1rem;
-    border-radius:0.8rem;
-    display:flex;
-    align-items:center;
-    gap:12px;
-    border:1px solid rgba(56,189,248,0.15);
-    border-left:4px solid var(--border-glow);
-    cursor:pointer;
-    transition:.25s;
-}
+        .modal-title { color: var(--accent); margin-bottom: 1.5rem; font-weight: 900; text-align: center; text-transform: uppercase; letter-spacing: 1px; font-size: 1.1rem; }
 
-.card:hover{
-    transform:translateY(-3px);
-    box-shadow:0 10px 25px rgba(0,0,0,0.5);
-}
+        /* ==========================================
+           FORMULÁRIOS E INPUTS (Nível Fintech)
+        ========================================== */
+        .input-group { margin-bottom: 1.2rem; text-align: left; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        
+        label { display: block; font-size: 0.7rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; }
+        
+        input, textarea, select { 
+            width: 100%; padding: 1rem; 
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; 
+            font-size: 1rem; font-family: 'Inter', sans-serif;
+            background: rgba(0, 0, 0, 0.4); color: var(--text-primary); 
+            transition: all 0.3s ease; outline: none;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+        }
+        input:focus, textarea:focus, select:focus { 
+            border-color: var(--accent); background: rgba(var(--accent-rgb), 0.02);
+            box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.15), inset 0 2px 4px rgba(0,0,0,0.5); 
+        }
+        input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.3); }
 
-.card:active{
-    transform:scale(0.96);
-}
+        /* Painel de Destaque Interno (Dashboards) */
+        .dashboard-panel {
+            background: rgba(0,0,0,0.3); border: 1px solid rgba(var(--accent-rgb), 0.3);
+            border-radius: 16px; padding: 1.5rem; text-align: center; margin-bottom: 1.5rem;
+            position: relative; overflow: hidden;
+        }
+        .dashboard-panel::after {
+            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            transform: skewX(-20deg); animation: shine 6s infinite;
+        }
+        @keyframes shine { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
 
-.icon{
-    width:42px;
-    height:42px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    border-radius:10px;
-    background:rgba(56,189,248,0.1);
-}
+        .big-value { font-size: 1.5rem; color: var(--text-primary); font-weight: 900; margin: 10px 0; line-height: 1.2; text-shadow: 0 0 20px rgba(255,255,255,0.2); }
 
-/* BUTTON */
-.btn{
-    width:100%;
-    padding:1rem;
-    border-radius:0.6rem;
-    border:1px solid var(--border-glow);
-    background:transparent;
-    color:var(--border-glow);
-    font-weight:bold;
-    cursor:pointer;
-    transition:.2s;
-}
+        /* ==========================================
+           BOTÕES AÇÃO
+        ========================================== */
+        .btn-main { 
+            background: rgba(var(--accent-rgb), 0.1); color: var(--accent); 
+            border: 1px solid var(--accent); padding: 1rem; 
+            border-radius: 12px; width: 100%; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; 
+            font-size: 0.9rem; transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(var(--accent-rgb), 0.15);
+        }
+        .btn-main:active { 
+            background: var(--accent); color: #000; transform: scale(0.98); 
+            box-shadow: 0 0 25px rgba(var(--accent-rgb), 0.6); 
+        }
+        
+        /* Helpers de Cores para Elementos Dinâmicos */
+        .color-purple { --accent: var(--neon-purple); --accent-rgb: var(--neon-purple-rgb); }
+        .color-orange { --accent: var(--neon-orange); --accent-rgb: var(--neon-orange-rgb); }
+        .color-blue { --accent: var(--neon-blue); --accent-rgb: var(--neon-blue-rgb); }
+        .color-green { --accent: var(--neon-green); --accent-rgb: var(--neon-green-rgb); }
+        .color-red { --accent: var(--neon-red); --accent-rgb: var(--neon-red-rgb); }
 
-.btn:hover{
-    background:var(--border-glow);
-    color:#000;
-}
+        .btn-solid { background: var(--accent); color: #000; border: none; }
+        .btn-solid:active { background: white; color: black; box-shadow: 0 0 30px rgba(255,255,255,0.5); }
 
-/* MODAL */
-.modal{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.85);
-    display:none;
-    align-items:flex-end;
-}
+        /* ==========================================
+           LISTAS DE DADOS (Logs e Colas)
+        ========================================== */
+        .log-container {
+            max-height: 250px; overflow-y: auto; background: rgba(0,0,0,0.3); 
+            border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); padding: 0.5rem;
+        }
+        .log-item { 
+            padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); 
+            font-size: 0.85rem; display: flex; align-items: center; gap: 12px; transition: 0.2s;
+        }
+        .log-item:last-child { border-bottom: none; }
+        .log-item.ativo { background: rgba(var(--accent-rgb), 0.15); border-radius: 8px; border-left: 4px solid var(--accent); color: var(--text-primary); font-weight: 700; }
+        .log-item.concluido { opacity: 0.5; text-decoration: line-through; }
+        
+        .camera-trigger { 
+            background: rgba(var(--accent-rgb), 0.05); border: 2px dashed rgba(var(--accent-rgb), 0.4); 
+            padding: 1.5rem; border-radius: 12px; text-align: center; cursor: pointer; 
+            color: var(--accent); font-weight: 700; margin: 1rem 0; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; transition: 0.3s;
+        }
+        .camera-trigger:active { background: rgba(var(--accent-rgb), 0.2); }
+        
+        .gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .photo-wrapper { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
+        .photo-wrapper img { width: 100%; height: 120px; object-fit: cover; display: block; }
+        .photo-wrapper input { width: 100%; font-size: 0.7rem; padding: 0.5rem; background: rgba(0,0,0,0.8); border: none; border-radius: 0; }
+        .btn-delete-photo { position: absolute; top: 5px; right: 5px; background: rgba(239, 68, 68, 0.9); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; backdrop-filter: blur(4px); }
 
-.modal-content{
-    width:100%;
-    max-width:720px;
-    margin:auto;
-    background:linear-gradient(180deg,#020617,#0f172a);
-    border-radius:20px 20px 0 0;
-    padding:1.5rem;
-    max-height:90vh;
-    overflow:auto;
-}
-
-.close{
-    position:absolute;
-    right:20px;
-    top:15px;
-    cursor:pointer;
-}
-
-/* INPUT */
-input,textarea{
-    width:100%;
-    padding:0.9rem;
-    margin-bottom:10px;
-    border-radius:8px;
-    border:1px solid #1e293b;
-    background:#020617;
-    color:white;
-}
-
-input:focus{
-    border-color:var(--border-glow);
-    box-shadow:0 0 10px rgba(56,189,248,0.3);
-}
-
-/* SCROLL */
-::-webkit-scrollbar{width:6px;}
-::-webkit-scrollbar-thumb{background:#334155;border-radius:10px;}
-
-</style>
+        /* Scrollbar Moderna */
+        ::-webkit-scrollbar { width: 4px; } 
+        ::-webkit-scrollbar-track { background: transparent; } 
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+    </style>
 </head>
-
 <body>
 
-<header>
-    <img src="logo.png" style="height:30px">
-    <div class="header-info">
-        <small>Unidade</small><br>
-        <strong>EJA: 3108</strong><br>
-        <small>CC: 2748</small>
+    <header>
+        <img src="logo.png" alt="VEV" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<span style=\'font-weight:900; font-size:1.2rem;\'>FORD <span style=\'color:var(--neon-blue)\'>VEV</span></span>');">
+        <div class="header-info">
+            <div class="eja">EJA: 3108</div>
+            <div class="cc">CC: 2748</div>
+        </div>
+    </header>
+
+    <div class="container">
+        <h2>Operações Diárias</h2>
+        <div class="grid-forms">
+            <a href="https://forms.office.com/r/LGrPxcte1T" target="_blank" class="card-form color-blue" style="--accent: var(--text-secondary); --accent-rgb: 148, 163, 184;">
+                <div class="icon-circle"><span class="material-icons">fact_check</span></div>
+                <div class="card-text"><h3>Check List</h3><p>Inspeção de Segurança</p></div>
+            </a>
+            <a href="https://forms.office.com/r/FmGd5gJF5e" target="_blank" class="card-form" style="--accent: var(--text-secondary); --accent-rgb: 148, 163, 184;">
+                <div class="icon-circle"><span class="material-icons">local_gas_station</span></div>
+                <div class="card-text"><h3>Abastecimento</h3><p>Litragem e KM (Oficial)</p></div>
+            </a>
+        </div>
+
+        <h2>Sistemas de Engenharia</h2>
+        <div class="grid-forms">
+            <div class="card-form color-purple" onclick="appUI.abrirModal('modal-roteiro')">
+                <div class="icon-circle"><span class="material-icons">alt_route</span></div>
+                <div class="card-text"><h3>Ciclos R389</h3><p>Loop Contínuo e Timeline</p></div>
+            </div>
+            
+            <div class="card-form color-blue" onclick="app.gerarRelatorioResumo()">
+                <div class="icon-circle"><span class="material-icons">analytics</span></div>
+                <div class="card-text"><h3>Analytics do Turno</h3><p>Exportar PDF Agrupado</p></div>
+            </div>
+            
+            <div class="card-form color-orange" onclick="appUI.abrirModal('modal-frenagem')">
+                <div class="icon-circle"><span class="material-icons">speed</span></div>
+                <div class="card-text"><h3>Telemetria de Frenagem</h3><p>Controle de Laps (8 Voltas)</p></div>
+            </div>
+
+            <div class="card-form color-blue" onclick="appUI.abrirModal('modal-laudo')">
+                <div class="icon-circle" style="background: var(--accent); color: #000; box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);"><span class="material-icons">auto_awesome</span></div>
+                <div class="card-text"><h3>Smart Laudo (IA)</h3><p>Análise Técnica e Mídias</p></div>
+            </div>
+
+            <div class="card-form color-green" onclick="appUI.abrirModal('modal-turno')">
+                <div class="icon-circle"><span class="material-icons">verified_user</span></div>
+                <div class="card-text"><h3>Fechamento de Turno</h3><p>Resumo WhatsApp e PDF</p></div>
+            </div>
+        </div>
     </div>
-</header>
 
-<div class="container">
+    <div id="modal-roteiro" class="modal-overlay color-purple">
+        <div class="modal-content">
+            <div class="close-btn" onclick="appUI.fecharModal('modal-roteiro')"><span class="material-icons">close</span></div>
+            <h3 class="modal-title">Controle R389</h3>
+            
+            <div class="dashboard-panel">
+                <label>Status / Etapa Atual</label>
+                <div id="etapa-atual" class="big-value">Carregando Sistema...</div>
+                
+                <div class="input-group" style="margin-top: 1.5rem;">
+                    <label>VIN (Target Vehicle)</label>
+                    <input type="text" id="c-vin" placeholder="Ex: VA29">
+                </div>
 
-<h2>Operações</h2>
-<div class="grid">
+                <button class="btn-main btn-solid" onclick="app.registrarPassagem()">
+                    <span class="material-icons">check_circle</span> REGISTRAR PASSAGEM
+                </button>
+            </div>
 
-<a href="https://forms.office.com/r/LGrPxcte1T" target="_blank" class="card">
-<div class="icon"><span class="material-icons">fact_check</span></div>
-<div>
-<b>Check List</b><br>
-<small>Diário</small>
-</div>
-</a>
+            <div class="input-group"><label>Timeline do Turno</label></div>
+            <div id="lista-cola" class="log-container"></div>
 
-<a href="https://forms.office.com/r/FmGd5gJF5e" target="_blank" class="card">
-<div class="icon"><span class="material-icons">local_gas_station</span></div>
-<div>
-<b>Abastecimento</b><br>
-<small>Litragem</small>
-</div>
-</a>
+            <div class="grid-2" style="margin-top: 1.5rem;">
+                <button class="btn-main" onclick="app.novaVolta()"><span class="material-icons">loop</span> FORÇAR NOVA VOLTA</button>
+                <button class="btn-main color-red" onclick="app.gerarRelatorioRoteiro()"><span class="material-icons">picture_as_pdf</span> PDF TIMELINE</button>
+            </div>
+        </div>
+    </div>
 
-</div>
+    <div id="modal-frenagem" class="modal-overlay color-orange">
+        <div class="modal-content">
+            <div class="close-btn" onclick="appUI.fecharModal('modal-frenagem')"><span class="material-icons">close</span></div>
+            <h3 class="modal-title">Protocolo de Frenagem</h3>
+            
+            <div class="dashboard-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <div id="f-ciclo-atual" style="background: rgba(249, 115, 22, 0.2); color: var(--accent); padding: 4px 12px; border-radius: 20px; font-weight: 800; font-size: 0.75rem; letter-spacing: 1px; border: 1px solid rgba(249, 115, 22, 0.4);">
+                        CICLO 1
+                    </div>
+                    <div id="f-progresso-ciclo" style="color: var(--text-primary); font-size: 0.85rem; font-weight: 800;">Lap 1/8</div>
+                </div>
 
-<h2>Engenharia</h2>
-<div class="grid">
+                <label>Próximo Checkpoint</label>
+                <div id="f-proxima-etapa" class="big-value" style="color: var(--accent);">Pista Baixa - Volta 1</div>
+                
+                <div class="input-group" style="margin-top: 1.5rem;">
+                    <label>Dados de Telemetria / Anomalia</label>
+                    <input type="text" id="f-obs" placeholder="OK / Sem Anomalias">
+                </div>
+                <button class="btn-main btn-solid" onclick="app.registrarVoltaFrenagem()">
+                    <span class="material-icons">flag</span> REGISTRAR VOLTA
+                </button>
+            </div>
 
-<div class="card" onclick="openModal('roteiro')" style="border-left-color:var(--purple)">
-<div class="icon" style="color:var(--purple)">
-<span class="material-icons">alt_route</span>
-</div>
-<div><b>Ciclos R389</b></div>
-</div>
+            <div class="input-group"><label>Histórico de Laps</label></div>
+            <div id="lista-frenagem" class="log-container"></div>
+            
+            <div class="grid-2" style="margin-top: 1.5rem;">
+                <button class="btn-main color-red" style="--accent: var(--neon-red);" onclick="app.resetarFrenagem()"><span class="material-icons">delete_sweep</span> ZERAR DADOS</button>
+                <button class="btn-main color-red" onclick="app.gerarRelatorioFrenagem()"><span class="material-icons">picture_as_pdf</span> GERAR PDF</button>
+            </div>
+        </div>
+    </div>
 
-<div class="card" onclick="app.gerarRelatorioResumo()">
-<div class="icon"><span class="material-icons">analytics</span></div>
-<div><b>Resumo do Turno</b></div>
-</div>
+    <div id="modal-laudo" class="modal-overlay color-blue">
+        <div class="modal-content">
+            <div class="close-btn" onclick="appUI.fecharModal('modal-laudo')"><span class="material-icons">close</span></div>
+            <h3 class="modal-title">Smart Laudo</h3>
+            
+            <div class="grid-2">
+                <div class="input-group"><label>Placa / VIN</label><input type="text" id="i-id" placeholder="Ex: VA29"></div>
+                <div class="input-group"><label>Engenheiro</label><input type="text" id="i-motorista" placeholder="Nome"></div>
+            </div>
+            
+            <div class="input-group">
+                <label style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>Parecer Técnico Bruto</span>
+                    <button type="button" onclick="app.melhorarTextoComIA(this)" style="background: rgba(56, 189, 248, 0.15); color: var(--accent); border: 1px solid var(--accent); padding: 4px 12px; border-radius: 8px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 4px; font-size: 0.65rem; transition: 0.2s; text-transform: uppercase;">
+                        <span class="material-icons" style="font-size: 1rem;">auto_awesome</span> PROCESSAR COM IA
+                    </button>
+                </label>
+                <textarea id="i-obs" rows="4" placeholder="Descreva a falha estrutural ou digite RESETAR para limpar a API Key..."></textarea>
+            </div>
+            
+            <div class="input-group">
+                <label>Evidências Visuais (Mídia)</label>
+                <div class="camera-trigger" onclick="document.getElementById('media-input').click()">
+                    <span class="material-icons" style="font-size: 2rem; margin-bottom: 5px;">camera_alt</span><br>Upload de Fotos e Vídeos
+                </div>
+                <input type="file" id="media-input" accept="image/*,video/*" multiple style="display:none" onchange="app.handleMedia(event)">
+                <div id="galeria-avaria" class="gallery"></div>
+            </div>
+            
+            <button class="btn-main btn-solid" style="margin-top: 1.5rem;" onclick="app.gerarECompartilharLaudo()">
+                <span class="material-icons">send</span> EMITIR RELATÓRIO FINAL
+            </button>
+        </div>
+    </div>
 
-<div class="card" onclick="openModal('frenagem')" style="border-left-color:var(--orange)">
-<div class="icon" style="color:var(--orange)">
-<span class="material-icons">speed</span>
-</div>
-<div><b>Frenagem</b></div>
-</div>
+    <div id="modal-turno" class="modal-overlay color-green">
+        <div class="modal-content">
+            <div class="close-btn" onclick="appUI.fecharModal('modal-turno')"><span class="material-icons">close</span></div>
+            <h3 class="modal-title">Finalizar Turno</h3>
+            
+            <div class="grid-2">
+                <div class="input-group"><label>Data</label><input type="date" id="t-data"></div>
+                <div class="input-group">
+                    <label>Turno Operacional</label>
+                    <select id="t-turno" style="appearance: none;">
+                        <option>1º Turno</option><option>2º Turno</option><option>3º Turno</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="input-group"><label>Veículo (Modelo)</label><input type="text" id="t-veiculo" placeholder="Ex: Ranger Tremor"></div>
+            
+            <div class="grid-2">
+                <div class="input-group"><label>VIN Target</label><input type="text" id="t-vin"></div>
+                <div class="input-group"><label>Posto Base</label><input type="text" id="t-posto"></div>
+            </div>
+            
+            <div class="grid-2">
+                <div class="input-group"><label>Odomêtro Final (KM)</label><input type="number" id="t-km" inputmode="decimal"></div>
+                <div class="input-group"><label>Trip</label><input type="number" id="t-trip" inputmode="decimal"></div>
+            </div>
+            
+            <div class="grid-2">
+                <div class="input-group"><label>Litragem Abastecida</label><input type="number" id="t-litros" inputmode="decimal"></div>
+                <div class="input-group"><label>Saldo (R$)</label><input type="number" id="t-saldo" inputmode="decimal"></div>
+            </div>
+            
+            <button class="btn-main btn-solid" style="margin-top: 1.5rem;" onclick="app.finalizarTurnoIntegrado()">
+                <span class="material-icons">flight_takeoff</span> TRANSMITIR DADOS
+            </button>
+        </div>
+    </div>
 
-<div class="card" onclick="openModal('laudo')">
-<div class="icon"><span class="material-icons">verified</span></div>
-<div><b>Laudo IA</b></div>
-</div>
-
-</div>
-</div>
-
-<!-- MODALS -->
-
-<div id="roteiro" class="modal">
-<div class="modal-content">
-<span class="close" onclick="closeModal('roteiro')">X</span>
-<h3>Ciclos</h3>
-<input placeholder="VIN">
-<button class="btn">Registrar</button>
-</div>
-</div>
-
-<div id="frenagem" class="modal">
-<div class="modal-content">
-<span class="close" onclick="closeModal('frenagem')">X</span>
-<h3>Frenagem</h3>
-<button class="btn">Registrar Volta</button>
-</div>
-</div>
-
-<div id="laudo" class="modal">
-<div class="modal-content">
-<span class="close" onclick="closeModal('laudo')">X</span>
-<h3>Laudo</h3>
-<input placeholder="VIN">
-<textarea placeholder="Observação"></textarea>
-<button class="btn">Emitir</button>
-</div>
-</div>
-
-<script src="app.js"></script>
-
-<script>
-function openModal(id){
-    document.getElementById(id).style.display="flex";
-}
-function closeModal(id){
-    document.getElementById(id).style.display="none";
-}
-</script>
-
+    <script src="app.js?v=3.7"></script>
+    
+    <script>
+        const appUI = { 
+            abrirModal: (id) => {
+                const modal = document.getElementById(id);
+                modal.style.display = 'flex';
+                // Evita rolagem do body quando modal está aberto
+                document.body.style.overflow = 'hidden';
+            }, 
+            fecharModal: (id) => {
+                const modal = document.getElementById(id);
+                // Animação de saída (opcional, pode ser melhorada com CSS)
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            } 
+        };
+        window.appUI = appUI;
+    </script>
 </body>
 </html>
