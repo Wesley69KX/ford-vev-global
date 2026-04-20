@@ -12,7 +12,7 @@ const app = {
     ],
     
     sequenciaDiasPares: [
-        "Labirinto: 1ª volta", "Labirinto: 2ª volta", "Labirinto: 3ª volta", "Enrola Camisa: 1ª volta",
+        "Labirinto: 1ª volta",  "Enrola Camisa: 1ª volta",
         "Enrola Camisa: 2ª volta", "Enrola Camisa: 3ª volta", "Enrola Camisa: 4ª volta", "Areia Pista: 1ª volta",
         "Areia Pista: 2ª volta", "Areia Pista: 3ª volta", "Power Hop Hill", "Lombadas: 1ª passagem",
         "Lombadas: 2ª passagem", "Lombadas: 3ª passagem", "Lombadas: 4ª passagem", "Lombadas: 5ª passagem",
@@ -55,7 +55,7 @@ const app = {
         
         // 1. LISTA DE QUEM PODE ENTRAR E A SENHA
         // Colocando os nomes em Maiúsculo aqui para comparar com o que o cara digitou
-        const USUARIOS_PERMITIDOS = ["WESLEY", "CLEIDIVALDO"]; 
+        const USUARIOS_PERMITIDOS = ["WESLEY", "CLD"]; 
         const SENHA_CORRETA = "1234";
 
         // 2. VERIFICAÇÃO DE SEGURANÇA
