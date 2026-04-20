@@ -1,3 +1,27 @@
+efetuarLogin() {
+        const nome = document.getElementById("login-nome").value.trim().toUpperCase();
+        const senha = document.getElementById("login-senha").value.trim();
+
+        // 1. LISTA DE QUEM PODE ENTRAR E A SENHA
+        const USUARIOS_PERMITIDOS = ["Wesley", "CLeidivaldo"]; 
+        const SENHA_CORRETA = "1234";
+
+        // 2. VERIFICAÇÃO DE SEGURANÇA
+        let usuarioExiste = false;
+        for(let i=0; i < USUARIOS_PERMITIDOS.length; i++) {
+            if(nome.includes(USUARIOS_PERMITIDOS[i])) usuarioExiste = true;
+        }
+
+        if (!usuarioExiste) return alert("❌ Operador não cadastrado no sistema.");
+        if (senha !== SENHA_CORRETA) return alert("❌ PIN Incorreto. Acesso Negado.");
+
+        // Salva Sessão
+        localStorage.setItem("app_vev_operador", document.getElementById("login-nome").value.trim());
+        this.verificarSessao();
+        
+        document.getElementById("login-nome").value = "";
+        document.getElementById("login-senha").value = "";
+    },
 const app = {
     fotos: [], videosFiles: [], etapaAtualIndex: 0, checkins: [],
     
