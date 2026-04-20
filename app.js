@@ -4,7 +4,7 @@ const app = {
     etapaAtualIndex: 0,
     checkins: [],
     
-    // VARIÁVEIS DE FRENAGEM (V3.4)
+    // VARIÁVEIS DE FRENAGEM (V3.5 - POR VOLTA)
     ciclosFrenagem: [],
     roteiroFrenagem: [
         "Pista Baixa - Volta 1", "Pista Baixa - Volta 2", "Pista Baixa - Volta 3", "Pista Baixa - Volta 4",
@@ -78,7 +78,7 @@ const app = {
     init() {
         document.getElementById('t-data').value = new Date().toISOString().split('T')[0];
         this.atualizarInterfaceCola();
-        this.renderListaFrenagem(); // Inicializa o modal de frenagem
+        this.renderListaFrenagem(); 
     },
 
     // ==========================================
@@ -140,7 +140,7 @@ const app = {
     },
 
     // ==========================================
-    // ROTEIRO: LOOP CONTÍNUO (V3.3)
+    // ROTEIRO: LOOP CONTÍNUO
     // ==========================================
     novaVolta() {
         if(confirm("Deseja iniciar uma NOVA VOLTA mantendo todo o histórico já registrado?")) {
@@ -232,36 +232,29 @@ const app = {
     },
 
     // ==========================================
-    // LÓGICA DE FRENAGEM (V3.4 - CHECKPOINTS)
+    // LÓGICA DE FRENAGEM (V3.5 - POR VOLTA COMPLETA)
     // ==========================================
-    adicionarCicloFrenagem() {
+    registrarVoltaFrenagem() {
         if (this.ciclosFrenagem.length >= this.roteiroFrenagem.length) {
-            return alert("✅ Você já completou as 8 voltas oficiais do teste de frenagem!");
+            return alert("✅ Você já completou as 8 voltas do protocolo de frenagem (4 Baixas + 4 Altas)!");
         }
 
-        const vel = document.getElementById('f-vel').value; 
-        const obs = document.getElementById('f-obs').value || "OK - Sem anomalias";
-        
-        if(!vel) return alert("Por favor, informe a velocidade registrada.");
-
+        const obs = document.getElementById('f-obs').value || "OK";
         const nomeEtapa = this.roteiroFrenagem[this.ciclosFrenagem.length];
 
         this.ciclosFrenagem.push({ 
             etapa: nomeEtapa, 
-            velocidade: vel + " km/h", 
             observacao: obs, 
             hora: new Date().toLocaleTimeString('pt-BR') 
         });
 
-        document.getElementById('f-vel').value = ''; 
-        document.getElementById('f-obs').value = '';
+        document.getElementById('f-obs').value = ''; 
         if ('vibrate' in navigator) navigator.vibrate(50);
         
         this.renderListaFrenagem();
     },
 
     renderListaFrenagem() {
-        // Atualiza Interface Superior (Próxima Etapa e Contador)
         document.getElementById('f-contador').innerText = `${this.ciclosFrenagem.length}/8`;
         
         let proximaEtapaTexto = "✅ TESTE CONCLUÍDO";
@@ -270,10 +263,9 @@ const app = {
         }
         document.getElementById('f-proxima-etapa').innerText = proximaEtapaTexto;
 
-        // Renderiza Lista Inferior
         const lista = document.getElementById('lista-frenagem');
         if(this.ciclosFrenagem.length === 0) {
-            return lista.innerHTML = '<div style="color: #475569; text-align: center; padding: 1rem;">Nenhum checkpoint registrado.</div>';
+            return lista.innerHTML = '<div style="color: #475569; text-align: center; padding: 1rem;">Nenhuma volta registrada ainda.</div>';
         }
 
         lista.innerHTML = this.ciclosFrenagem.map((c, i) => `
@@ -281,9 +273,8 @@ const app = {
                 <div>
                     <strong style="color: #f97316;">${c.etapa}</strong> <span style="color: #64748b; font-size: 0.75rem;">(${c.hora})</span>
                 </div>
-                <div style="margin-top: 4px;">
-                    <span style="color: #94a3b8;">Velocidade:</span> ${c.velocidade} <br>
-                    <span style="color: #94a3b8;">Status:</span> ${c.observacao}
+                <div style="margin-top: 4px; color: #94a3b8;">
+                    <span>Obs:</span> ${c.observacao}
                 </div>
             </div>
         `).reverse().join(''); 
@@ -297,17 +288,17 @@ const app = {
     },
 
     async gerarRelatorioFrenagem() {
-        if (this.ciclosFrenagem.length === 0) return alert("Nenhum ciclo registrado.");
+        if (this.ciclosFrenagem.length === 0) return alert("Nenhuma volta registrada.");
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
         
         doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 40, 'F');
         doc.setTextColor(249, 115, 22);
-        doc.setFontSize(16); doc.text("RELATÓRIO DE FRENAGEM OFICIAL", 105, 20, { align: "center" });
-        doc.setFontSize(10); doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')} - Protocolo: 8 Laps`, 105, 28, { align: "center" });
+        doc.setFontSize(16); doc.text("RELATÓRIO DE FRENAGEM (VOLTAS)", 105, 20, { align: "center" });
+        doc.setFontSize(10); doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')} - Protocolo: 4 Baixas + 4 Altas`, 105, 28, { align: "center" });
 
-        const dadosTabela = this.ciclosFrenagem.map(c => [c.etapa, c.hora, c.velocidade, c.observacao]);
-        doc.autoTable({ startY: 45, head: [['CHECKPOINT', 'HORÁRIO', 'VEL', 'STATUS / ANOMALIA']], body: dadosTabela, headStyles: { fillColor: [249, 115, 22], textColor: [255,255,255] } });
-        doc.save(`Frenagem_Oficial_${Date.now()}.pdf`);
+        const dadosTabela = this.ciclosFrenagem.map(c => [c.etapa, c.hora, c.observacao]);
+        doc.autoTable({ startY: 45, head: [['ETAPA / VOLTA', 'HORÁRIO', 'OBSERVAÇÕES']], body: dadosTabela, headStyles: { fillColor: [249, 115, 22], textColor: [255,255,255] } });
+        doc.save(`Frenagem_Voltas_${Date.now()}.pdf`);
     },
 
     // ==========================================
