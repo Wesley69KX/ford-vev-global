@@ -19,7 +19,7 @@
            DESIGN SYSTEM & VARIÁVEIS
         ========================================== */
         :root { 
-            --bg-body: #030305; /* Fundo ainda mais profundo */
+            --bg-body: #030305;
             --bg-surface: rgba(20, 25, 35, 0.4); 
             --bg-surface-hover: rgba(30, 35, 50, 0.6);
             
@@ -49,7 +49,6 @@
             overflow-x: hidden;
         }
 
-        /* Efeito de luz ambiente no fundo da tela inteira */
         body::before {
             content: ''; position: fixed; top: -10%; left: -10%; width: 50vw; height: 50vh;
             background: radial-gradient(circle, rgba(56, 189, 248, 0.08) 0%, transparent 70%);
@@ -79,7 +78,7 @@
         h2 { font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.2em; margin: 2rem 0 1.2rem 0.2rem; font-weight: 800; }
 
         /* ==========================================
-           BENTO BOX LAYOUT (A Mágica Acontece Aqui)
+           BENTO BOX LAYOUT
         ========================================== */
         .bento-grid {
             display: grid;
@@ -99,19 +98,17 @@
             position: relative;
             overflow: hidden;
             cursor: pointer;
-            min-height: 150px; /* Cartões quadrados perfeitos no mobile */
+            min-height: 150px;
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             box-shadow: inset 0 1px 1px rgba(255,255,255,0.05), 0 8px 24px rgba(0,0,0,0.4);
             text-decoration: none;
         }
 
-        /* O Card Largo (Ocupa 2 colunas) */
         .bento-full {
             grid-column: span 2;
             min-height: 130px;
         }
 
-        /* Efeito de Glow Interno (Aquele LED no canto) */
         .bento-glow {
             position: absolute;
             top: -30px; right: -30px;
@@ -138,7 +135,7 @@
             border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
             border: 1px solid rgba(var(--accent-rgb), 0.2);
-            margin-bottom: auto; /* Empurra o texto para baixo */
+            margin-bottom: auto; 
             z-index: 2;
         }
 
@@ -152,10 +149,11 @@
         .color-blue { --accent: var(--neon-blue); --accent-rgb: var(--neon-blue-rgb); }
         .color-green { --accent: var(--neon-green); --accent-rgb: var(--neon-green-rgb); }
         .color-gray { --accent: var(--neon-gray); --accent-rgb: var(--neon-gray-rgb); }
+        .color-red { --accent: var(--neon-red); --accent-rgb: var(--neon-red-rgb); }
         .color-white { --accent: #fff; --accent-rgb: 255, 255, 255; }
 
         /* ==========================================
-           O RESTANTE DO CSS (Modais, Inputs, Botoes)
+           MODAIS, INPUTS E BOTÕES
         ========================================== */
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); display: none; align-items: flex-end; justify-content: center; z-index: 1000; backdrop-filter: blur(8px); }
@@ -236,7 +234,7 @@
                 <div class="bento-icon"><span class="material-icons">fact_check</span></div>
                 <div class="bento-content">
                     <h3>Check List</h3>
-                    <p>Inspeção de Segurança Diária</p>
+                    <p>Inspeção Diária</p>
                 </div>
             </a>
             
@@ -244,13 +242,25 @@
                 <div class="bento-glow"></div>
                 <div class="bento-icon"><span class="material-icons">local_gas_station</span></div>
                 <div class="bento-content">
-                    <h3>Litragem</h3>
-                    <p>Forms Oficial de Abastecimento</p>
+                    <h3>Abastecimento</h3>
+                    <p>Litragem e KM</p>
+                </div>
+            </a>
+
+            <a href="https://forms.office.com/r/KqBNKV9zjS" target="_blank" class="bento-card bento-full color-red">
+                <div class="bento-glow"></div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div class="bento-icon"><span class="material-icons">report_problem</span></div>
+                    <span class="material-icons" style="color: rgba(255,255,255,0.2);">open_in_new</span>
+                </div>
+                <div class="bento-content">
+                    <h3 style="font-size: 1.2rem;">Drive Team Issues</h3>
+                    <p>Reportar Anomalias e Problemas Críticos</p>
                 </div>
             </a>
         </div>
 
-        <h2>Módulos de Engenharia</h2>
+        <h2>Sistemas de Engenharia</h2>
         <div class="bento-grid">
             
             <div class="bento-card bento-full color-purple" onclick="appUI.abrirModal('modal-roteiro')">
@@ -288,7 +298,7 @@
                 <div class="bento-icon" style="color: #000; background: #fff;"><span class="material-icons">analytics</span></div>
                 <div class="bento-content">
                     <h3>Resumo</h3>
-                    <p>Exportar PDF Agrupado</p>
+                    <p>PDF Agrupado do Dia</p>
                 </div>
             </div>
 
@@ -297,7 +307,7 @@
                 <div class="bento-icon"><span class="material-icons">verified_user</span></div>
                 <div class="bento-content">
                     <h3>Encerrar</h3>
-                    <p>Fechamento WhatsApp</p>
+                    <p>Fechamento de Turno</p>
                 </div>
             </div>
 
