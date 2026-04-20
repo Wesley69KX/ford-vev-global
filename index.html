@@ -13,7 +13,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
     <style>
-        /* TEMA DARK: AGRESSIVO E MARCANTE */
         :root { 
             --bg-base: #0f172a; --bg-card: #1e293b; --border-glow: #38bdf8; 
             --text-main: #f8fafc; --text-muted: #94a3b8; 
@@ -22,108 +21,75 @@
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg-base); color: var(--text-main); line-height: 1.5; padding-bottom: 40px; }
-
         header { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(56, 189, 248, 0.3); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
-        header img { filter: brightness(1.2); }
         .container { max-width: 700px; margin: 0 auto; padding: 1.5rem 1rem; }
-        h2 { font-size: 0.8rem; color: var(--border-glow); text-transform: uppercase; letter-spacing: 0.15em; margin: 1.5rem 0 0.75rem 0.5rem; font-weight: 800; text-shadow: 0 0 8px rgba(56, 189, 248, 0.3); }
-
+        h2 { font-size: 0.8rem; color: var(--border-glow); text-transform: uppercase; letter-spacing: 0.15em; margin: 1.5rem 0 0.75rem 0.5rem; font-weight: 800; }
         .grid-forms { display: grid; gap: 0.85rem; }
-        .card-form { background: var(--bg-card); padding: 1rem; border-radius: 0.5rem; display: flex; align-items: center; gap: 1rem; text-decoration: none; color: inherit; border: 1px solid #334155; border-left: 4px solid var(--border-glow); cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); }
-        .card-form:active { transform: scale(0.97); box-shadow: inset 0 2px 10px rgba(0,0,0,0.5); border-color: var(--border-glow); }
-        .card-form.danger { border-left-color: var(--danger); }
+        .card-form { background: var(--bg-card); padding: 1rem; border-radius: 0.5rem; display: flex; align-items: center; gap: 1rem; text-decoration: none; color: inherit; border: 1px solid #334155; border-left: 4px solid var(--border-glow); cursor: pointer; transition: 0.3s; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); }
+        .card-form:active { transform: scale(0.97); border-color: var(--border-glow); }
         .icon-circle { width: 42px; height: 42px; border-radius: 0.5rem; background: rgba(56, 189, 248, 0.1); color: var(--border-glow); display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(56, 189, 248, 0.2); }
-        .card-form.danger .icon-circle { color: var(--danger); background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); }
-
         .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px); display: none; align-items: flex-end; justify-content: center; z-index: 1000; }
-        .modal-content { background: var(--bg-base); width: 100%; max-width: 700px; border-radius: 1.5rem 1.5rem 0 0; padding: 1.5rem; max-height: 90vh; overflow-y: auto; position: relative; border-top: 1px solid #334155; box-shadow: 0 -10px 40px rgba(0,0,0,0.8); }
-        .close-btn { position: absolute; top: 1rem; right: 1.5rem; background: #1e293b; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); font-weight: bold; border: 1px solid #334155; transition: 0.2s; }
-        .close-btn:active { background: var(--danger); color: white; border-color: var(--danger); }
-
-        .form-section { margin-bottom: 1.2rem; padding-bottom: 1rem; border-bottom: 1px solid #1e293b; }
-        .form-section h4 { font-size: 0.8rem; color: var(--border-glow); margin-bottom: 0.8rem; text-transform: uppercase; }
-
+        .modal-content { background: var(--bg-base); width: 100%; max-width: 700px; border-radius: 1.5rem 1.5rem 0 0; padding: 1.5rem; max-height: 90vh; overflow-y: auto; position: relative; border-top: 1px solid #334155; }
+        .close-btn { position: absolute; top: 1rem; right: 1.5rem; background: #1e293b; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); border: 1px solid #334155; }
         .input-group { margin-bottom: 1rem; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        label { display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-        input, textarea, select { width: 100%; padding: 0.85rem; border: 1px solid #334155; border-radius: 0.5rem; font-size: 0.95rem; outline: none; background: #020617; color: var(--text-main); transition: border 0.3s, box-shadow 0.3s; }
-        input:focus, textarea:focus, select:focus { border-color: var(--border-glow); box-shadow: 0 0 10px rgba(56, 189, 248, 0.2); background: #0f172a; }
-        
-        .btn-main { background: transparent; color: var(--border-glow); border: 1px solid var(--border-glow); padding: 1.2rem; border-radius: 0.5rem; width: 100%; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 1rem; font-size: 0.95rem; transition: all 0.2s ease; }
-        .btn-main:active { background: var(--border-glow); color: #000; box-shadow: 0 0 20px rgba(56, 189, 248, 0.6); }
+        label { display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--text-muted); text-transform: uppercase; }
+        input, textarea, select { width: 100%; padding: 0.85rem; border: 1px solid #334155; border-radius: 0.5rem; font-size: 0.95rem; background: #020617; color: var(--text-main); outline: none; }
+        input:focus { border-color: var(--border-glow); box-shadow: 0 0 10px rgba(56, 189, 248, 0.2); }
+        .btn-main { background: transparent; color: var(--border-glow); border: 1px solid var(--border-glow); padding: 1.2rem; border-radius: 0.5rem; width: 100%; font-weight: 800; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 1rem; }
+        .btn-main:active { background: var(--border-glow); color: #000; }
         .btn-purple { color: var(--purple-neon); border-color: var(--purple-neon); }
-        .btn-purple:active { background: var(--purple-neon); color: #fff; box-shadow: 0 0 20px rgba(168, 85, 247, 0.6); }
         .btn-orange { color: var(--orange-neon); border-color: var(--orange-neon); }
-        .btn-orange:active { background: var(--orange-neon); color: #000; box-shadow: 0 0 20px rgba(249, 115, 22, 0.6); }
         .btn-danger { color: var(--danger); border-color: var(--danger); }
-        .btn-danger:active { background: var(--danger); color: #fff; box-shadow: 0 0 20px rgba(239, 68, 68, 0.6); }
         .btn-success { background: var(--success); color: #000; border: none; }
-        .btn-success:active { box-shadow: 0 0 20px rgba(16, 185, 129, 0.6); background: #059669; }
-
-        .camera-trigger { background: rgba(56, 189, 248, 0.05); border: 1px dashed var(--border-glow); padding: 1.5rem; border-radius: 0.5rem; text-align: center; cursor: pointer; color: var(--border-glow); font-weight: 600; margin: 1rem 0; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
-        .gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .photo-wrapper { position: relative; border: 1px solid #334155; border-radius: 0.5rem; padding: 0.5rem; background: #020617; text-align: center; }
-        .photo-wrapper img { width: 100%; height: 120px; object-fit: cover; border-radius: 0.25rem; margin-bottom: 0.5rem; opacity: 0.9; }
-        .photo-wrapper input { width: 100%; font-size: 0.75rem; padding: 0.4rem; background: #1e293b; color: white; border: 1px solid #334155; }
-        .btn-delete-photo { position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid var(--bg-base); z-index: 10;}
-
-        .cola-item { padding: 1rem; border-bottom: 1px solid #1e293b; font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .cola-item { padding: 1rem; border-bottom: 1px solid #1e293b; font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 10px; }
         .cola-item.ativo { background: rgba(168, 85, 247, 0.1); color: var(--purple-neon); font-weight: 800; border-left: 4px solid var(--purple-neon); }
-        .cola-item.concluido { background: transparent; color: #475569; text-decoration: line-through; }
-        ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: var(--bg-base); } ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .cola-item.concluido { color: #475569; text-decoration: line-through; }
     </style>
 </head>
 <body>
 
     <header>
-        <img src="logo.png" style="height: 30px;" alt="Logo" onerror="this.style.display='none'">
+        <img src="logo.png" style="height: 30px;" alt="Ford" onerror="this.style.display='none'">
         <div style="text-align: right">
-            <div style="font-weight: 900; color: var(--border-glow); font-size: 0.9rem; letter-spacing: 1px;">EJA: 3108</div>
+            <div style="font-weight: 900; color: var(--border-glow); font-size: 0.9rem;">EJA: 3108</div>
             <div style="font-size: 0.65rem; font-weight: 700; color: var(--text-muted)">CC: 2748</div>
         </div>
     </header>
 
     <div class="container">
-        <h2>Painel Operacional</h2>
+        <h2>Operações de Pista</h2>
         <div class="grid-forms">
             <a href="https://forms.office.com/r/LGrPxcte1T" target="_blank" class="card-form">
                 <div class="icon-circle"><span class="material-icons">fact_check</span></div>
-                <div><div style="font-weight: 700;">Check List de Segurança</div><div style="font-size: 0.7rem; color: var(--text-muted);">Inspeção Diária</div></div>
+                <div><div style="font-weight: 700;">Check List</div><div style="font-size: 0.7rem; color: var(--text-muted);">Diário</div></div>
             </a>
             <a href="https://forms.office.com/r/FmGd5gJF5e" target="_blank" class="card-form">
                 <div class="icon-circle"><span class="material-icons">local_gas_station</span></div>
-                <div><div style="font-weight: 700;">Forms Abastecimento</div><div style="font-size: 0.7rem; color: var(--text-muted);">Litragem e KM (Oficial)</div></div>
-            </a>
-            <a href="https://forms.office.com/r/KqBNKV9zjS" target="_blank" class="card-form danger">
-                <div class="icon-circle"><span class="material-icons">report_problem</span></div>
-                <div><div style="font-weight: 700; color: #f8fafc;">Drive Team Issues</div><div style="font-size: 0.7rem; color: var(--text-muted);">Anomalias Externas</div></div>
+                <div><div style="font-weight: 700;">Abastecimento</div><div style="font-size: 0.7rem; color: var(--text-muted);">Litragem</div></div>
             </a>
         </div>
 
         <h2 style="margin-top: 2rem;">Módulos de Engenharia</h2>
         <div class="grid-forms">
             <div class="card-form" onclick="appUI.abrirModal('modal-roteiro')" style="border-left-color: var(--purple-neon);">
-                <div class="icon-circle" style="color: var(--purple-neon); background: rgba(168, 85, 247, 0.1); border-color: rgba(168, 85, 247, 0.2);"><span class="material-icons">alt_route</span></div>
-                <div><div style="font-weight: 700;">Guia de Ciclos (Loop Contínuo)</div><div style="font-size: 0.7rem; color: var(--text-muted);">Sequência Passo-a-Passo</div></div>
+                <div class="icon-circle" style="color: var(--purple-neon);"><span class="material-icons">alt_route</span></div>
+                <div><div style="font-weight: 700;">Ciclos R389</div><div style="font-size: 0.7rem; color: var(--text-muted);">Loop Contínuo</div></div>
             </div>
             
-            <div class="card-form" onclick="app.gerarRelatorioResumo()" style="border-left-color: var(--border-glow); background: rgba(56, 189, 248, 0.05);">
-                <div class="icon-circle" style="color: var(--border-glow); background: rgba(56, 189, 248, 0.1); border-color: rgba(56, 189, 248, 0.2);"><span class="material-icons">analytics</span></div>
-                <div><div style="font-weight: 700;">Resumo de Atividades</div><div style="font-size: 0.7rem; color: var(--text-muted);">Agrupamento Automático de Voltas</div></div>
+            <div class="card-form" onclick="app.gerarRelatorioResumo()" style="border-left-color: var(--border-glow);">
+                <div class="icon-circle" style="color: var(--border-glow);"><span class="material-icons">analytics</span></div>
+                <div><div style="font-weight: 700;">Resumo do Turno</div><div style="font-size: 0.7rem; color: var(--text-muted);">Totalizador de Voltas</div></div>
             </div>
             
             <div class="card-form" onclick="appUI.abrirModal('modal-frenagem')" style="border-left-color: var(--orange-neon);">
-                <div class="icon-circle" style="color: var(--orange-neon); background: rgba(249, 115, 22, 0.1); border-color: rgba(249, 115, 22, 0.2);"><span class="material-icons">speed</span></div>
-                <div><div style="font-weight: 700;">Teste de Frenagem (Por Volta)</div><div style="font-size: 0.7rem; color: var(--text-muted);">Controle de 4 Baixas + 4 Altas</div></div>
+                <div class="icon-circle" style="color: var(--orange-neon);"><span class="material-icons">speed</span></div>
+                <div><div style="font-weight: 700;">Frenagem</div><div style="font-size: 0.7rem; color: var(--text-muted);">Ciclos Infinitos</div></div>
             </div>
 
             <div class="card-form" onclick="appUI.abrirModal('modal-laudo')" style="border-left-color: var(--border-glow);">
-                <div class="icon-circle" style="color: var(--bg-base); background: var(--border-glow); border: none;"><span class="material-icons">verified</span></div>
-                <div><div style="font-weight: 700;">Laudo de Avaria (IA)</div><div style="font-size: 0.7rem; color: var(--text-muted);">Relatório PDF Inteligente</div></div>
-            </div>
-            <div class="card-form" onclick="appUI.abrirModal('modal-turno')" style="border-left-color: var(--success);">
-                <div class="icon-circle" style="color: var(--success); background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.2);"><span class="material-icons">local_gas_station</span></div>
-                <div><div style="font-weight: 700;">Fechamento de Turno</div><div style="font-size: 0.7rem; color: var(--text-muted);">Resumo Rápido</div></div>
+                <div class="icon-circle" style="color: #000; background: var(--border-glow);"><span class="material-icons">verified</span></div>
+                <div><div style="font-weight: 700;">Laudo IA</div><div style="font-size: 0.7rem; color: var(--text-muted);">Relatório Técnico</div></div>
             </div>
         </div>
     </div>
@@ -131,32 +97,17 @@
     <div id="modal-roteiro" class="modal-overlay">
         <div class="modal-content">
             <div class="close-btn" onclick="appUI.fecharModal('modal-roteiro')"><span class="material-icons">close</span></div>
-            <h3 style="color: var(--purple-neon); margin-bottom: 1rem; font-weight: 900; text-align: center; text-transform: uppercase; letter-spacing: 1px;">Controle de Ciclos</h3>
-            
-            <div style="background: #020617; border: 1px solid var(--purple-neon); border-radius: 0.5rem; padding: 1.5rem 1rem; text-align: center; margin-bottom: 1rem; box-shadow: inset 0 0 20px rgba(168, 85, 247, 0.1);">
-                <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">Etapa Atual:</div>
-                <div id="etapa-atual" style="font-size: 1.3rem; color: var(--text-main); font-weight: 900; margin: 10px 0; line-height: 1.3; text-shadow: 0 0 10px rgba(255,255,255,0.2);">Carregando...</div>
-                <div id="etapa-seguinte" style="font-size: 0.8rem; color: #64748b;">Em seguida: ...</div>
-
-                <div class="input-group" style="margin-top: 1rem; text-align: left;">
-                    <label style="color: var(--purple-neon);">VIN do Veículo (Ciclos):</label>
-                    <input type="text" id="c-vin" placeholder="Digite o VIN em teste..." style="border-color: var(--purple-neon); background: rgba(168, 85, 247, 0.05);">
-                </div>
-
-                <button class="btn-main btn-purple" style="font-size: 1rem; padding: 1rem; margin-top: 1.5rem;" onclick="app.registrarPassagem()">
-                    <span class="material-icons" style="font-size: 1.3rem;">check_circle</span> REGISTRAR PASSAGEM
-                </button>
+            <h3 style="color: var(--purple-neon); margin-bottom: 1rem; font-weight: 900; text-align: center; text-transform: uppercase;">Roteiro R389</h3>
+            <div style="background: #020617; border: 1px solid var(--purple-neon); border-radius: 0.5rem; padding: 1.5rem; text-align: center; margin-bottom: 1rem;">
+                <label style="color: var(--purple-neon);">Etapa Atual:</label>
+                <div id="etapa-atual" style="font-size: 1.2rem; font-weight: 900; margin: 10px 0;">Carregando...</div>
+                <input type="text" id="c-vin" placeholder="VIN..." style="margin-bottom: 1rem; border-color: var(--purple-neon);">
+                <button class="btn-main btn-purple" onclick="app.registrarPassagem()">REGISTRAR PASSAGEM</button>
             </div>
-
-            <h4 style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem; padding-left: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Histórico do Turno:</h4>
-            <div id="lista-cola" style="height: 220px; overflow-y: auto; background: #020617; border-radius: 0.5rem; border: 1px solid #334155;"></div>
-
+            <div id="lista-cola" style="height: 200px; overflow-y: auto; background: #020617; border-radius: 0.5rem;"></div>
             <div class="grid-2" style="margin-top: 1rem;">
-                <button class="btn-main" style="color: var(--purple-neon); border-color: var(--purple-neon); margin-top: 0; padding: 1rem;" onclick="app.novaVolta()"><span class="material-icons">loop</span> NOVA VOLTA</button>
-                <button class="btn-main btn-danger" style="margin-top: 0; padding: 1rem;" onclick="app.gerarRelatorioRoteiro()"><span class="material-icons">picture_as_pdf</span> PDF LOG</button>
-            </div>
-            <div style="text-align: center; margin-top: 15px;">
-                <a href="#" onclick="app.resetarRoteiro()" style="color: var(--danger); font-size: 0.7rem; text-decoration: underline; opacity: 0.7;">⚠️ Apagar todo o histórico e começar do zero</a>
+                <button class="btn-main" onclick="app.novaVolta()"><span class="material-icons">loop</span> NOVA VOLTA</button>
+                <button class="btn-main btn-danger" onclick="app.gerarRelatorioRoteiro()">PDF LOG</button>
             </div>
         </div>
     </div>
@@ -164,32 +115,20 @@
     <div id="modal-frenagem" class="modal-overlay">
         <div class="modal-content">
             <div class="close-btn" onclick="appUI.fecharModal('modal-frenagem')"><span class="material-icons">close</span></div>
-            <h3 style="color: var(--orange-neon); margin-bottom: 1.5rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">Frenagem (Por Volta)</h3>
-            
-            <div style="background: #020617; border: 1px solid rgba(249, 115, 22, 0.5); padding: 1.5rem 1rem; border-radius: 0.5rem; margin-bottom: 1rem; box-shadow: inset 0 0 20px rgba(249, 115, 22, 0.1); text-align: center;">
-                <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">Registrar Próxima Etapa:</div>
-                <div id="f-proxima-etapa" style="font-size: 1.3rem; color: var(--orange-neon); font-weight: 900; margin: 10px 0; text-shadow: 0 0 10px rgba(249, 115, 22, 0.3);">Pista Baixa - Volta 1</div>
-                
-                <div class="input-group" style="text-align: left; margin-top: 1.5rem;">
-                    <label>Observação da Volta (Opcional)</label>
-                    <input type="text" id="f-obs" placeholder="Ex: Tudo OK, Fading leve, etc..." style="border-color: rgba(249, 115, 22, 0.4);">
-                </div>
-                
-                <button class="btn-main btn-orange" style="margin-top: 0;" onclick="app.registrarVoltaFrenagem()">
-                    <span class="material-icons">flag</span> REGISTRAR VOLTA COMPLETA
-                </button>
+            <h3 style="color: var(--orange-neon); margin-bottom: 1rem; font-weight: 900; text-align: center; text-transform: uppercase;">Teste de Frenagem</h3>
+            <div style="background: #020617; border: 1px solid var(--orange-neon); padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1rem; text-align: center;">
+                <label>Vez de Atuar em:</label>
+                <div id="f-proxima-etapa" style="font-size: 1.2rem; color: var(--orange-neon); font-weight: 900; margin: 10px 0;">Pista Baixa - Volta 1</div>
+                <input type="text" id="f-obs" placeholder="Obs da volta..." style="border-color: var(--orange-neon); margin-bottom: 1rem;">
+                <button class="btn-main btn-orange" onclick="app.registrarVoltaFrenagem()">REGISTRAR VOLTA COMPLETA</button>
             </div>
-
             <div class="form-section">
-                <h4 style="color: var(--text-muted); font-size: 0.75rem; letter-spacing: 1px;">Voltas Concluídas: <span id="f-contador" style="color: var(--orange-neon); font-weight: bold; font-size: 0.9rem;">0/8</span></h4>
-                <div id="lista-frenagem" style="max-height: 200px; overflow-y: auto; font-size: 0.85rem; border: 1px solid #334155; border-radius: 0.5rem; padding: 0.5rem; background: #020617;">
-                    <div style="color: #475569; text-align: center; padding: 1rem; font-style: italic;">Nenhuma volta registrada ainda.</div>
-                </div>
+                <h4 style="color: var(--text-muted);">Voltas no Turno: <span id="f-contador" style="color: var(--orange-neon);">0/8</span></h4>
+                <div id="lista-frenagem" style="max-height: 200px; overflow-y: auto; background: #020617; border-radius: 0.5rem;"></div>
             </div>
-
-            <div class="grid-2" style="margin-top: 1rem;">
-                <button class="btn-main" style="color: var(--text-muted); border-color: #334155; margin-top: 0;" onclick="app.resetarFrenagem()"><span class="material-icons">refresh</span> REINICIAR TESTE</button>
-                <button class="btn-main btn-danger" style="margin-top: 0;" onclick="app.gerarRelatorioFrenagem()"><span class="material-icons">picture_as_pdf</span> GERAR PDF</button>
+            <div class="grid-2">
+                <button class="btn-main" onclick="app.resetarFrenagem()">REINICIAR</button>
+                <button class="btn-main btn-danger" onclick="app.gerarRelatorioFrenagem()">GERAR PDF</button>
             </div>
         </div>
     </div>
@@ -197,58 +136,26 @@
     <div id="modal-laudo" class="modal-overlay">
         <div class="modal-content">
             <div class="close-btn" onclick="appUI.fecharModal('modal-laudo')"><span class="material-icons">close</span></div>
-            <h3 style="color: var(--border-glow); margin-bottom: 1.5rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">Laudo de Avaria</h3>
+            <h3 style="color: var(--border-glow); margin-bottom: 1.5rem; font-weight: 900; text-transform: uppercase;">Laudo de Avaria</h3>
             <div class="grid-2">
-                <div class="input-group"><label>Placa / VIN</label><input type="text" id="i-id" placeholder="Ex: VA29"></div>
-                <div class="input-group"><label>Condutor</label><input type="text" id="i-motorista" placeholder="Nome"></div>
+                <div class="input-group"><label>VIN</label><input type="text" id="i-id"></div>
+                <div class="input-group"><label>Engenheiro</label><input type="text" id="i-motorista"></div>
             </div>
             <div class="input-group">
-                <label style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                    <span>Parecer Técnico / Análise</span>
-                    <button type="button" onclick="app.melhorarTextoComIA(this)" style="background: rgba(168, 85, 247, 0.1); color: var(--purple-neon); border: 1px solid var(--purple-neon); padding: 4px 10px; border-radius: 4px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 4px; font-size: 0.7rem; transition: 0.2s; text-transform: uppercase;">
-                        <span class="material-icons" style="font-size: 1rem;">auto_awesome</span> MELHORAR COM IA
-                    </button>
-                </label>
-                <textarea id="i-obs" rows="4" placeholder="Descreva o problema ou digite RESETAR para trocar a chave da IA..."></textarea>
+                <label>Parecer Técnico <button onclick="app.melhorarTextoComIA(this)" style="float:right; background:none; border:1px solid var(--purple-neon); color:var(--purple-neon); cursor:pointer; padding:2px 5px; font-size:0.6rem;">IA AUTO</button></label>
+                <textarea id="i-obs" rows="4"></textarea>
             </div>
-            <div class="form-section">
-                <h4>Evidências Mídia</h4>
-                <div class="camera-trigger" onclick="document.getElementById('media-input').click()"><span class="material-icons" style="font-size: 1.5rem; margin-bottom: 5px;">camera_alt</span><br>Selecionar Fotos e Vídeos</div>
-                <input type="file" id="media-input" accept="image/*,video/*" multiple style="display:none" onchange="app.handleMedia(event)">
-                <div id="galeria-avaria" class="gallery"></div>
-            </div>
-            <button class="btn-main" onclick="app.gerarECompartilharLaudo()"><span class="material-icons">send</span> EMITIR LAUDO + VÍDEO</button>
+            <div class="camera-trigger" onclick="document.getElementById('media-input').click()">Anexar Mídias</div>
+            <input type="file" id="media-input" accept="image/*,video/*" multiple style="display:none" onchange="app.handleMedia(event)">
+            <div id="galeria-avaria" class="gallery" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
+            <button class="btn-main" onclick="app.gerarECompartilharLaudo()">EMITIR LAUDO</button>
         </div>
     </div>
 
-    <div id="modal-turno" class="modal-overlay">
-        <div class="modal-content">
-            <div class="close-btn" onclick="appUI.fecharModal('modal-turno')"><span class="material-icons">close</span></div>
-            <h3 style="color: var(--success); margin-bottom: 1.5rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">Fechamento de Turno</h3>
-            <div class="grid-2">
-                <div class="input-group"><label>Data</label><input type="date" id="t-data"></div>
-                <div class="input-group"><label>Turno</label><select id="t-turno"><option>1º Turno</option><option>2º Turno</option><option>3º Turno</option></select></div>
-            </div>
-            <div class="input-group"><label>Veículo</label><input type="text" id="t-veiculo" placeholder="Ex: Ranger Tremor"></div>
-            <div class="grid-2">
-                <div class="input-group"><label>VIN</label><input type="text" id="t-vin"></div>
-                <div class="input-group"><label>Posto</label><input type="text" id="t-posto"></div>
-            </div>
-            <div class="grid-2">
-                <div class="input-group"><label>KM Total</label><input type="number" id="t-km" inputmode="decimal" step="any"></div>
-                <div class="input-group"><label>Trip</label><input type="number" id="t-trip" inputmode="decimal" step="any"></div>
-            </div>
-            <div class="grid-2">
-                <div class="input-group"><label>Litros</label><input type="number" id="t-litros" inputmode="decimal" step="any"></div>
-                <div class="input-group"><label>Saldo R$</label><input type="number" id="t-saldo" inputmode="decimal" step="any"></div>
-            </div>
-            <button class="btn-main btn-success" onclick="app.finalizarTurnoIntegrado()"><span class="material-icons">flight_takeoff</span> ENVIAR RELATÓRIO</button>
-        </div>
-    </div>
-
-    <script src="app.js?v=3.5"></script>
+    <script src="app.js?v=3.6"></script>
     <script>
-        const appUI = { abrirModal: (id) => document.getElementById(id).style.display = 'flex', fecharModal: (id) => document.getElementById(id).style.display = 'none' }; window.appUI = appUI;
+        const appUI = { abrirModal: (id) => document.getElementById(id).style.display = 'flex', fecharModal: (id) => document.getElementById(id).style.display = 'none' };
+        window.appUI = appUI;
     </script>
 </body>
 </html>
