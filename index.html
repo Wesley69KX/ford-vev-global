@@ -12,6 +12,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+
     <style>
         /* ==========================================
            TEMA DARK: AGRESSIVO E MARCANTE
@@ -64,7 +67,7 @@
         .card-form.danger:hover { box-shadow: 0 0 15px rgba(239, 68, 68, 0.2); border-color: var(--danger); }
         
         .icon-circle { 
-            width: 42px; height: 42px; border-radius: 0.5rem; /* Quadrado arredondado mais moderno */
+            width: 42px; height: 42px; border-radius: 0.5rem; 
             background: rgba(56, 189, 248, 0.1); color: var(--border-glow); 
             display: flex; align-items: center; justify-content: center; flex-shrink: 0; 
             border: 1px solid rgba(56, 189, 248, 0.2);
@@ -189,6 +192,11 @@
                 <div><div style="font-weight: 700;">Guia de Ciclos (Dias Pares)</div><div style="font-size: 0.7rem; color: var(--text-muted);">Sequência Passo-a-Passo</div></div>
             </div>
             
+            <div class="card-form" onclick="app.gerarRelatorioDiarioFirebase()" style="border-left-color: #38bdf8; background: rgba(56, 189, 248, 0.05);">
+                <div class="icon-circle" style="color: #38bdf8; background: rgba(56, 189, 248, 0.1); border-color: rgba(56, 189, 248, 0.2);"><span class="material-icons">analytics</span></div>
+                <div><div style="font-weight: 700;">Resumo de Atividades</div><div style="font-size: 0.7rem; color: var(--text-muted);">Total de voltas e tempos do dia (Nuvem)</div></div>
+            </div>
+            
             <div class="card-form" onclick="appUI.abrirModal('modal-frenagem')" style="border-left-color: var(--orange-neon);">
                 <div class="icon-circle" style="color: var(--orange-neon); background: rgba(249, 115, 22, 0.1); border-color: rgba(249, 115, 22, 0.2);"><span class="material-icons">speed</span></div>
                 <div><div style="font-weight: 700;">Teste de Frenagem</div><div style="font-size: 0.7rem; color: var(--text-muted);">Anotação de Ocorrências</div></div>
@@ -215,6 +223,11 @@
                 <div id="etapa-atual" style="font-size: 1.3rem; color: var(--text-main); font-weight: 900; margin: 10px 0; line-height: 1.3; text-shadow: 0 0 10px rgba(255,255,255,0.2);">Carregando...</div>
                 <div id="etapa-seguinte" style="font-size: 0.8rem; color: #64748b;">Em seguida: ...</div>
 
+                <div class="input-group" style="margin-top: 1rem; text-align: left;">
+                    <label style="color: var(--purple-neon);">VIN do Veículo em Teste:</label>
+                    <input type="text" id="t-vin" placeholder="Digite o VIN para salvar na nuvem..." style="border-color: var(--purple-neon); background: rgba(168, 85, 247, 0.05);">
+                </div>
+
                 <button class="btn-main btn-purple" style="font-size: 1rem; padding: 1rem; margin-top: 1.5rem;" onclick="app.registrarPassagem()">
                     <span class="material-icons" style="font-size: 1.3rem;">check_circle</span> REGISTRAR PASSAGEM
                 </button>
@@ -228,7 +241,7 @@
                     <span class="material-icons">refresh</span> ZERAR
                 </button>
                 <button class="btn-main btn-danger" style="margin-top: 0; padding: 1rem;" onclick="app.gerarRelatorioRoteiro()">
-                    <span class="material-icons">picture_as_pdf</span> GERAR PDF
+                    <span class="material-icons">picture_as_pdf</span> GERAR PDF (LOCAL)
                 </button>
             </div>
         </div>
@@ -315,22 +328,20 @@
             </div>
             <div class="input-group"><label>Veículo</label><input type="text" id="t-veiculo" placeholder="Ex: Ranger Tremor"></div>
             <div class="grid-2">
-                <div class="input-group"><label>VIN</label><input type="text" id="t-vin"></div>
                 <div class="input-group"><label>Posto</label><input type="text" id="t-posto"></div>
-            </div>
-            <div class="grid-2">
                 <div class="input-group"><label>KM Total</label><input type="number" id="t-km" inputmode="decimal" step="any"></div>
-                <div class="input-group"><label>Trip</label><input type="number" id="t-trip" inputmode="decimal" step="any"></div>
             </div>
             <div class="grid-2">
+                <div class="input-group"><label>Trip</label><input type="number" id="t-trip" inputmode="decimal" step="any"></div>
                 <div class="input-group"><label>Litros</label><input type="number" id="t-litros" inputmode="decimal" step="any"></div>
-                <div class="input-group"><label>Saldo R$</label><input type="number" id="t-saldo" inputmode="decimal" step="any"></div>
             </div>
+            <div class="input-group"><label>Saldo R$</label><input type="number" id="t-saldo" inputmode="decimal" step="any"></div>
+            
             <button class="btn-main btn-success" onclick="app.finalizarTurnoIntegrado()"><span class="material-icons">flight_takeoff</span> ENVIAR RELATÓRIO</button>
         </div>
     </div>
 
-    <script src="app.js?v=2.9"></script>
+    <script src="app.js?v=3.1"></script>
     <script>
         const appUI = {
             abrirModal: (id) => document.getElementById(id).style.display = 'flex',
