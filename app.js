@@ -1,27 +1,3 @@
-efetuarLogin() {
-        const nome = document.getElementById("login-nome").value.trim().toUpperCase();
-        const senha = document.getElementById("login-senha").value.trim();
-
-        // 1. LISTA DE QUEM PODE ENTRAR E A SENHA
-        const USUARIOS_PERMITIDOS = ["Wesley", "CLeidivaldo"]; 
-        const SENHA_CORRETA = "1234";
-
-        // 2. VERIFICAÇÃO DE SEGURANÇA
-        let usuarioExiste = false;
-        for(let i=0; i < USUARIOS_PERMITIDOS.length; i++) {
-            if(nome.includes(USUARIOS_PERMITIDOS[i])) usuarioExiste = true;
-        }
-
-        if (!usuarioExiste) return alert("❌ Operador não cadastrado no sistema.");
-        if (senha !== SENHA_CORRETA) return alert("❌ PIN Incorreto. Acesso Negado.");
-
-        // Salva Sessão
-        localStorage.setItem("app_vev_operador", document.getElementById("login-nome").value.trim());
-        this.verificarSessao();
-        
-        document.getElementById("login-nome").value = "";
-        document.getElementById("login-senha").value = "";
-    },
 const app = {
     fotos: [], videosFiles: [], etapaAtualIndex: 0, checkins: [],
     
@@ -53,7 +29,7 @@ const app = {
     },
 
     // ==========================================
-    // MÓDULO DE ACESSO E LOG (V4.1)
+    // MÓDULO DE ACESSO E LOG (COM TRAVA DE USUÁRIO)
     // ==========================================
     verificarSessao() {
         const usuarioSalvo = localStorage.getItem("app_vev_operador");
@@ -71,16 +47,36 @@ const app = {
     },
 
     efetuarLogin() {
-        const nome = document.getElementById("login-nome").value.trim();
-        const senha = document.getElementById("login-senha").value.trim();
+        // Converte o nome digitado para Maiúsculo para facilitar a busca
+        const nomeDigitado = document.getElementById("login-nome").value.trim().toUpperCase();
+        const senhaDigitada = document.getElementById("login-senha").value.trim();
 
-        if (nome.length < 3) return alert("Por favor, digite seu nome ou matrícula completo.");
+        if (nomeDigitado.length < 3) return alert("Por favor, digite seu nome completo.");
         
-        // Senha simples de validação (Pode ser removida no futuro se quiser liberar total)
-        if (senha === "") return alert("Digite o PIN para acessar.");
+        // 1. LISTA DE QUEM PODE ENTRAR E A SENHA
+        // Colocando os nomes em Maiúsculo aqui para comparar com o que o cara digitou
+        const USUARIOS_PERMITIDOS = ["WESLEY", "CLEIDIVALDO"]; 
+        const SENHA_CORRETA = "1234";
 
-        // Salva Sessão
-        localStorage.setItem("app_vev_operador", nome);
+        // 2. VERIFICAÇÃO DE SEGURANÇA
+        let usuarioExiste = false;
+        
+        // O loop varre a lista e vê se o nome que o cara digitou contém "WESLEY" ou "CLEIDIVALDO"
+        for(let i=0; i < USUARIOS_PERMITIDOS.length; i++) {
+            if(nomeDigitado.includes(USUARIOS_PERMITIDOS[i])) {
+                usuarioExiste = true;
+                break; // Achou o nome, pode parar de procurar
+            }
+        }
+
+        if (!usuarioExiste) return alert("❌ Operador não cadastrado no sistema.");
+        if (senhaDigitada !== SENHA_CORRETA) return alert("❌ PIN Incorreto. Acesso Negado.");
+
+        // Se chegou até aqui, é porque a senha tá certa e o nome tá na lista!
+        // Salva Sessão usando o nome exatamente como o cara digitou lá na caixa de texto
+        const nomeParaSalvar = document.getElementById("login-nome").value.trim();
+        localStorage.setItem("app_vev_operador", nomeParaSalvar);
+        
         this.verificarSessao();
         
         // Limpa campos
@@ -117,7 +113,7 @@ const app = {
     },
 
     // ==========================================
-    // ROTEIRO E RESUMO (V4.1 - COM ASSINATURA)
+    // ROTEIRO E RESUMO (COM ASSINATURA)
     // ==========================================
     registrarPassagem() {
         if (this.etapaAtualIndex >= this.sequenciaDiasPares.length) return this.novaVolta(); 
@@ -328,10 +324,6 @@ const app = {
         const texto = `*Fechamento: ${this.operadorAtual}*\n*Abastecimento ${v}*\n${document.getElementById('t-turno').value} ${dataFormatada}\nVIN: ${document.getElementById('t-vin').value}\nTrip: ${document.getElementById('t-trip').value}\nKm: ${document.getElementById('t-km').value}\nLitros: ${document.getElementById('t-litros').value}\nSaldo: R$ ${document.getElementById('t-saldo').value}`;
         
         try { await navigator.clipboard.writeText(texto); alert("Copiado para o WhatsApp!"); } catch (e) {}
-        
-        // Também desloga automaticamente após fechar o turno? Opcional. 
-        // Descomente a linha abaixo se quiser que o app deslogue ao enviar o relatório de fim de dia.
-        // this.efetuarLogout();
     }
 };
 
