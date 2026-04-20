@@ -114,7 +114,7 @@
             
             <div class="card-form" onclick="appUI.abrirModal('modal-frenagem')" style="border-left-color: var(--orange-neon);">
                 <div class="icon-circle" style="color: var(--orange-neon); background: rgba(249, 115, 22, 0.1); border-color: rgba(249, 115, 22, 0.2);"><span class="material-icons">speed</span></div>
-                <div><div style="font-weight: 700;">Teste de Frenagem (Checkpoints)</div><div style="font-size: 0.7rem; color: var(--text-muted);">Controle de 8 Voltas Oficiais</div></div>
+                <div><div style="font-weight: 700;">Teste de Frenagem (Por Volta)</div><div style="font-size: 0.7rem; color: var(--text-muted);">Controle de 4 Baixas + 4 Altas</div></div>
             </div>
 
             <div class="card-form" onclick="appUI.abrirModal('modal-laudo')" style="border-left-color: var(--border-glow);">
@@ -164,31 +164,26 @@
     <div id="modal-frenagem" class="modal-overlay">
         <div class="modal-content">
             <div class="close-btn" onclick="appUI.fecharModal('modal-frenagem')"><span class="material-icons">close</span></div>
-            <h3 style="color: var(--orange-neon); margin-bottom: 1.5rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">Teste de Frenagem</h3>
+            <h3 style="color: var(--orange-neon); margin-bottom: 1.5rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">Frenagem (Por Volta)</h3>
             
             <div style="background: #020617; border: 1px solid rgba(249, 115, 22, 0.5); padding: 1.5rem 1rem; border-radius: 0.5rem; margin-bottom: 1rem; box-shadow: inset 0 0 20px rgba(249, 115, 22, 0.1); text-align: center;">
-                <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">Checkpoint Atual:</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">Registrar Próxima Etapa:</div>
                 <div id="f-proxima-etapa" style="font-size: 1.3rem; color: var(--orange-neon); font-weight: 900; margin: 10px 0; text-shadow: 0 0 10px rgba(249, 115, 22, 0.3);">Pista Baixa - Volta 1</div>
                 
-                <div class="grid-2" style="text-align: left; margin-top: 1.5rem;">
-                    <div class="input-group">
-                        <label>Velocidade (km/h)</label>
-                        <input type="number" id="f-vel" placeholder="Ex: 80" inputmode="numeric" style="border-color: rgba(249, 115, 22, 0.4);">
-                    </div>
-                    <div class="input-group">
-                        <label>Anomalia (Opcional)</label>
-                        <input type="text" id="f-obs" placeholder="Deixe em branco se OK" style="border-color: rgba(249, 115, 22, 0.4);">
-                    </div>
+                <div class="input-group" style="text-align: left; margin-top: 1.5rem;">
+                    <label>Observação da Volta (Opcional)</label>
+                    <input type="text" id="f-obs" placeholder="Ex: Tudo OK, Fading leve, etc..." style="border-color: rgba(249, 115, 22, 0.4);">
                 </div>
-                <button class="btn-main btn-orange" style="margin-top: 0;" onclick="app.adicionarCicloFrenagem()">
-                    <span class="material-icons">flag</span> REGISTRAR CHECKPOINT
+                
+                <button class="btn-main btn-orange" style="margin-top: 0;" onclick="app.registrarVoltaFrenagem()">
+                    <span class="material-icons">flag</span> REGISTRAR VOLTA COMPLETA
                 </button>
             </div>
 
             <div class="form-section">
-                <h4 style="color: var(--text-muted); font-size: 0.75rem; letter-spacing: 1px;">Registros Oficiais: <span id="f-contador" style="color: var(--orange-neon); font-weight: bold; font-size: 0.9rem;">0/8</span></h4>
+                <h4 style="color: var(--text-muted); font-size: 0.75rem; letter-spacing: 1px;">Voltas Concluídas: <span id="f-contador" style="color: var(--orange-neon); font-weight: bold; font-size: 0.9rem;">0/8</span></h4>
                 <div id="lista-frenagem" style="max-height: 200px; overflow-y: auto; font-size: 0.85rem; border: 1px solid #334155; border-radius: 0.5rem; padding: 0.5rem; background: #020617;">
-                    <div style="color: #475569; text-align: center; padding: 1rem; font-style: italic;">Nenhum checkpoint registrado.</div>
+                    <div style="color: #475569; text-align: center; padding: 1rem; font-style: italic;">Nenhuma volta registrada ainda.</div>
                 </div>
             </div>
 
@@ -251,7 +246,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=3.4"></script>
+    <script src="app.js?v=3.5"></script>
     <script>
         const appUI = { abrirModal: (id) => document.getElementById(id).style.display = 'flex', fecharModal: (id) => document.getElementById(id).style.display = 'none' }; window.appUI = appUI;
     </script>
