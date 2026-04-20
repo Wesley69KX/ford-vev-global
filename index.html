@@ -12,150 +12,65 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-
     <style>
-        /* ==========================================
-           TEMA DARK: AGRESSIVO E MARCANTE
-        ========================================== */
+        /* TEMA DARK: AGRESSIVO E MARCANTE */
         :root { 
-            --bg-base: #0f172a;       /* Fundo principal escuro (Slate 900) */
-            --bg-card: #1e293b;       /* Fundo dos cartões (Slate 800) */
-            --border-glow: #38bdf8;   /* Azul Neon para brilho */
-            --text-main: #f8fafc;     /* Texto claro */
-            --text-muted: #94a3b8;    /* Texto secundário */
-            --danger: #ef4444;        /* Vermelho agressivo */
-            --success: #10b981;       /* Verde vibrante */
-            --purple-neon: #a855f7;   /* Roxo para IA e Ciclos */
-            --orange-neon: #f97316;   /* Laranja para Frenagem */
+            --bg-base: #0f172a; var(--bg-card): #1e293b; var(--border-glow): #38bdf8; 
+            --text-main: #f8fafc; var(--text-muted): #94a3b8; 
+            --danger: #ef4444; var(--success): #10b981; 
+            --purple-neon: #a855f7; var(--orange-neon): #f97316; 
         }
-        
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg-base); color: var(--text-main); line-height: 1.5; padding-bottom: 40px; }
 
-        /* HEADER CYBERPUNK */
-        header { 
-            background: rgba(15, 23, 42, 0.8); 
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(56, 189, 248, 0.3); 
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-            padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; 
-            position: sticky; top: 0; z-index: 50; 
-        }
-        header img { filter: brightness(1.2); } /* Realça a logo no fundo escuro */
-
+        header { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(56, 189, 248, 0.3); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
+        header img { filter: brightness(1.2); }
         .container { max-width: 700px; margin: 0 auto; padding: 1.5rem 1rem; }
         h2 { font-size: 0.8rem; color: var(--border-glow); text-transform: uppercase; letter-spacing: 0.15em; margin: 1.5rem 0 0.75rem 0.5rem; font-weight: 800; text-shadow: 0 0 8px rgba(56, 189, 248, 0.3); }
 
-        /* CARTÕES / BOTÕES DO MENU PRINCIPAL */
         .grid-forms { display: grid; gap: 0.85rem; }
-        .card-form { 
-            background: var(--bg-card); 
-            padding: 1rem; border-radius: 0.5rem; 
-            display: flex; align-items: center; gap: 1rem; 
-            text-decoration: none; color: inherit; 
-            border: 1px solid #334155; 
-            border-left: 4px solid var(--border-glow); 
-            cursor: pointer; transition: all 0.3s ease; 
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-        }
+        .card-form { background: var(--bg-card); padding: 1rem; border-radius: 0.5rem; display: flex; align-items: center; gap: 1rem; text-decoration: none; color: inherit; border: 1px solid #334155; border-left: 4px solid var(--border-glow); cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); }
         .card-form:active { transform: scale(0.97); box-shadow: inset 0 2px 10px rgba(0,0,0,0.5); border-color: var(--border-glow); }
-        .card-form:hover { border-color: var(--border-glow); box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
-        
         .card-form.danger { border-left-color: var(--danger); }
-        .card-form.danger:hover { box-shadow: 0 0 15px rgba(239, 68, 68, 0.2); border-color: var(--danger); }
-        
-        .icon-circle { 
-            width: 42px; height: 42px; border-radius: 0.5rem; 
-            background: rgba(56, 189, 248, 0.1); color: var(--border-glow); 
-            display: flex; align-items: center; justify-content: center; flex-shrink: 0; 
-            border: 1px solid rgba(56, 189, 248, 0.2);
-        }
+        .icon-circle { width: 42px; height: 42px; border-radius: 0.5rem; background: rgba(56, 189, 248, 0.1); color: var(--border-glow); display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(56, 189, 248, 0.2); }
         .card-form.danger .icon-circle { color: var(--danger); background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); }
 
-        /* MODAIS ESCUROS E ELEGANTES */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px); display: none; align-items: flex-end; justify-content: center; z-index: 1000; }
-        .modal-content { 
-            background: var(--bg-base); width: 100%; max-width: 700px; 
-            border-radius: 1.5rem 1.5rem 0 0; padding: 1.5rem; max-height: 90vh; overflow-y: auto; 
-            position: relative; border-top: 1px solid #334155; box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
-        }
-        .close-btn { 
-            position: absolute; top: 1rem; right: 1.5rem; 
-            background: #1e293b; border-radius: 50%; width: 32px; height: 32px; 
-            display: flex; align-items: center; justify-content: center; 
-            cursor: pointer; color: var(--text-muted); font-weight: bold; border: 1px solid #334155;
-            transition: 0.2s;
-        }
+        .modal-content { background: var(--bg-base); width: 100%; max-width: 700px; border-radius: 1.5rem 1.5rem 0 0; padding: 1.5rem; max-height: 90vh; overflow-y: auto; position: relative; border-top: 1px solid #334155; box-shadow: 0 -10px 40px rgba(0,0,0,0.8); }
+        .close-btn { position: absolute; top: 1rem; right: 1.5rem; background: #1e293b; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); font-weight: bold; border: 1px solid #334155; transition: 0.2s; }
         .close-btn:active { background: var(--danger); color: white; border-color: var(--danger); }
 
         .form-section { margin-bottom: 1.2rem; padding-bottom: 1rem; border-bottom: 1px solid #1e293b; }
         .form-section h4 { font-size: 0.8rem; color: var(--border-glow); margin-bottom: 0.8rem; text-transform: uppercase; }
 
-        /* INPUTS AGRESSIVOS */
         .input-group { margin-bottom: 1rem; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         label { display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        input, textarea, select { width: 100%; padding: 0.85rem; border: 1px solid #334155; border-radius: 0.5rem; font-size: 0.95rem; outline: none; background: #020617; color: var(--text-main); transition: border 0.3s, box-shadow 0.3s; }
+        input:focus, textarea:focus, select:focus { border-color: var(--border-glow); box-shadow: 0 0 10px rgba(56, 189, 248, 0.2); background: #0f172a; }
         
-        input, textarea, select { 
-            width: 100%; padding: 0.85rem; 
-            border: 1px solid #334155; border-radius: 0.5rem; 
-            font-size: 0.95rem; outline: none; 
-            background: #020617; color: var(--text-main); 
-            transition: border 0.3s, box-shadow 0.3s;
-        }
-        input:focus, textarea:focus, select:focus { 
-            border-color: var(--border-glow); 
-            box-shadow: 0 0 10px rgba(56, 189, 248, 0.2); 
-            background: #0f172a;
-        }
-        
-        /* BOTÕES PRINCIPAIS */
-        .btn-main { 
-            background: transparent; color: var(--border-glow); 
-            border: 1px solid var(--border-glow); padding: 1.2rem; 
-            border-radius: 0.5rem; width: 100%; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
-            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; 
-            margin-top: 1rem; font-size: 0.95rem; transition: all 0.2s ease;
-        }
+        .btn-main { background: transparent; color: var(--border-glow); border: 1px solid var(--border-glow); padding: 1.2rem; border-radius: 0.5rem; width: 100%; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 1rem; font-size: 0.95rem; transition: all 0.2s ease; }
         .btn-main:active { background: var(--border-glow); color: #000; box-shadow: 0 0 20px rgba(56, 189, 248, 0.6); }
-        
-        /* CORES ESPECÍFICAS DOS BOTÕES */
         .btn-purple { color: var(--purple-neon); border-color: var(--purple-neon); }
         .btn-purple:active { background: var(--purple-neon); color: #fff; box-shadow: 0 0 20px rgba(168, 85, 247, 0.6); }
-        
         .btn-orange { color: var(--orange-neon); border-color: var(--orange-neon); }
         .btn-orange:active { background: var(--orange-neon); color: #000; box-shadow: 0 0 20px rgba(249, 115, 22, 0.6); }
-
         .btn-danger { color: var(--danger); border-color: var(--danger); }
         .btn-danger:active { background: var(--danger); color: #fff; box-shadow: 0 0 20px rgba(239, 68, 68, 0.6); }
-
         .btn-success { background: var(--success); color: #000; border: none; }
         .btn-success:active { box-shadow: 0 0 20px rgba(16, 185, 129, 0.6); background: #059669; }
 
-        /* GALERIA DE MÍDIAS */
-        .camera-trigger { 
-            background: rgba(56, 189, 248, 0.05); border: 1px dashed var(--border-glow); 
-            padding: 1.5rem; border-radius: 0.5rem; text-align: center; cursor: pointer; 
-            color: var(--border-glow); font-weight: 600; margin: 1rem 0; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px;
-        }
+        .camera-trigger { background: rgba(56, 189, 248, 0.05); border: 1px dashed var(--border-glow); padding: 1.5rem; border-radius: 0.5rem; text-align: center; cursor: pointer; color: var(--border-glow); font-weight: 600; margin: 1rem 0; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
         .gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .photo-wrapper { position: relative; border: 1px solid #334155; border-radius: 0.5rem; padding: 0.5rem; background: #020617; text-align: center; }
         .photo-wrapper img { width: 100%; height: 120px; object-fit: cover; border-radius: 0.25rem; margin-bottom: 0.5rem; opacity: 0.9; }
         .photo-wrapper input { width: 100%; font-size: 0.75rem; padding: 0.4rem; background: #1e293b; color: white; border: 1px solid #334155; }
         .btn-delete-photo { position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid var(--bg-base); z-index: 10;}
 
-        /* LISTA DE COLA E FRENAGEM */
         .cola-item { padding: 1rem; border-bottom: 1px solid #1e293b; font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 10px; cursor: pointer; }
         .cola-item.ativo { background: rgba(168, 85, 247, 0.1); color: var(--purple-neon); font-weight: 800; border-left: 4px solid var(--purple-neon); }
         .cola-item.concluido { background: transparent; color: #475569; text-decoration: line-through; }
-        .cola-icon { font-size: 1.2rem; }
-
-        /* SCROLLBAR PERSONALIZADA */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg-base); }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: var(--bg-base); } ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -192,9 +107,9 @@
                 <div><div style="font-weight: 700;">Guia de Ciclos (Dias Pares)</div><div style="font-size: 0.7rem; color: var(--text-muted);">Sequência Passo-a-Passo</div></div>
             </div>
             
-            <div class="card-form" onclick="app.gerarRelatorioDiarioFirebase()" style="border-left-color: #38bdf8; background: rgba(56, 189, 248, 0.05);">
-                <div class="icon-circle" style="color: #38bdf8; background: rgba(56, 189, 248, 0.1); border-color: rgba(56, 189, 248, 0.2);"><span class="material-icons">analytics</span></div>
-                <div><div style="font-weight: 700;">Resumo de Atividades</div><div style="font-size: 0.7rem; color: var(--text-muted);">Total de voltas e tempos do dia (Nuvem)</div></div>
+            <div class="card-form" onclick="app.gerarRelatorioResumo()" style="border-left-color: var(--border-glow); background: rgba(56, 189, 248, 0.05);">
+                <div class="icon-circle" style="color: var(--border-glow); background: rgba(56, 189, 248, 0.1); border-color: rgba(56, 189, 248, 0.2);"><span class="material-icons">analytics</span></div>
+                <div><div style="font-weight: 700;">Resumo de Atividades</div><div style="font-size: 0.7rem; color: var(--text-muted);">Agrupamento Automático de Voltas</div></div>
             </div>
             
             <div class="card-form" onclick="appUI.abrirModal('modal-frenagem')" style="border-left-color: var(--orange-neon);">
@@ -224,8 +139,8 @@
                 <div id="etapa-seguinte" style="font-size: 0.8rem; color: #64748b;">Em seguida: ...</div>
 
                 <div class="input-group" style="margin-top: 1rem; text-align: left;">
-                    <label style="color: var(--purple-neon);">VIN do Veículo em Teste:</label>
-                    <input type="text" id="t-vin" placeholder="Digite o VIN para salvar na nuvem..." style="border-color: var(--purple-neon); background: rgba(168, 85, 247, 0.05);">
+                    <label style="color: var(--purple-neon);">VIN do Veículo (Ciclos):</label>
+                    <input type="text" id="c-vin" placeholder="Digite o VIN em teste..." style="border-color: var(--purple-neon); background: rgba(168, 85, 247, 0.05);">
                 </div>
 
                 <button class="btn-main btn-purple" style="font-size: 1rem; padding: 1rem; margin-top: 1.5rem;" onclick="app.registrarPassagem()">
@@ -241,7 +156,7 @@
                     <span class="material-icons">refresh</span> ZERAR
                 </button>
                 <button class="btn-main btn-danger" style="margin-top: 0; padding: 1rem;" onclick="app.gerarRelatorioRoteiro()">
-                    <span class="material-icons">picture_as_pdf</span> GERAR PDF (LOCAL)
+                    <span class="material-icons">picture_as_pdf</span> GERAR PDF LOG
                 </button>
             </div>
         </div>
@@ -254,34 +169,22 @@
             
             <div style="background: #020617; border: 1px solid rgba(249, 115, 22, 0.5); padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; box-shadow: inset 0 0 15px rgba(249, 115, 22, 0.1);">
                 <div class="grid-2">
-                    <div class="input-group">
-                        <label>Velocidade (km/h)</label>
-                        <input type="number" id="f-vel" placeholder="Ex: 80" inputmode="numeric">
-                    </div>
-                    <div class="input-group">
-                        <label>Anomalia / Obs</label>
-                        <input type="text" id="f-obs" placeholder="Ex: Fading">
-                    </div>
+                    <div class="input-group"><label>Velocidade (km/h)</label><input type="number" id="f-vel" placeholder="Ex: 80" inputmode="numeric"></div>
+                    <div class="input-group"><label>Anomalia / Obs</label><input type="text" id="f-obs" placeholder="Ex: Fading"></div>
                 </div>
                 <button class="btn-main btn-orange" style="margin-top: 0;" onclick="app.adicionarCicloFrenagem()">
                     <span class="material-icons">add_task</span> ADICIONAR CICLO
                 </button>
             </div>
-
             <div class="form-section">
                 <h4 style="color: var(--text-muted); font-size: 0.75rem; letter-spacing: 1px;">Registros: <span id="f-contador" style="color: var(--orange-neon); font-weight: bold; font-size: 0.9rem;">0</span></h4>
                 <div id="lista-frenagem" style="max-height: 200px; overflow-y: auto; font-size: 0.85rem; border: 1px solid #334155; border-radius: 0.5rem; padding: 0.5rem; background: #020617;">
-                    <div style="color: #475569; text-align: center; padding: 1rem; font-style: italic;">Aguardando dados da pista...</div>
+                    <div style="color: #475569; text-align: center; padding: 1rem; font-style: italic;">Aguardando dados...</div>
                 </div>
             </div>
-
             <div class="grid-2" style="margin-top: 1rem;">
-                <button class="btn-main" style="color: var(--text-muted); border-color: #334155; margin-top: 0;" onclick="app.resetarFrenagem()">
-                    <span class="material-icons">refresh</span> ZERAR
-                </button>
-                <button class="btn-main btn-danger" style="margin-top: 0;" onclick="app.gerarRelatorioFrenagem()">
-                    <span class="material-icons">picture_as_pdf</span> GERAR PDF
-                </button>
+                <button class="btn-main" style="color: var(--text-muted); border-color: #334155; margin-top: 0;" onclick="app.resetarFrenagem()"><span class="material-icons">refresh</span> ZERAR</button>
+                <button class="btn-main btn-danger" style="margin-top: 0;" onclick="app.gerarRelatorioFrenagem()"><span class="material-icons">picture_as_pdf</span> GERAR PDF</button>
             </div>
         </div>
     </div>
@@ -294,23 +197,18 @@
                 <div class="input-group"><label>Placa / VIN</label><input type="text" id="i-id" placeholder="Ex: VA29"></div>
                 <div class="input-group"><label>Condutor</label><input type="text" id="i-motorista" placeholder="Nome"></div>
             </div>
-            
             <div class="input-group">
                 <label style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                     <span>Parecer Técnico / Análise</span>
                     <button type="button" onclick="app.melhorarTextoComIA(this)" style="background: rgba(168, 85, 247, 0.1); color: var(--purple-neon); border: 1px solid var(--purple-neon); padding: 4px 10px; border-radius: 4px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 4px; font-size: 0.7rem; transition: 0.2s; text-transform: uppercase;">
-                        <span class="material-icons" style="font-size: 1rem;">auto_awesome</span>
-                        MELHORAR COM IA
+                        <span class="material-icons" style="font-size: 1rem;">auto_awesome</span> MELHORAR COM IA
                     </button>
                 </label>
-                <textarea id="i-obs" rows="4" placeholder="Descreva o problema ou anomalia estrutural..."></textarea>
+                <textarea id="i-obs" rows="4" placeholder="Descreva o problema ou digite RESETAR para trocar a chave da IA..."></textarea>
             </div>
-
             <div class="form-section">
                 <h4>Evidências Mídia</h4>
-                <div class="camera-trigger" onclick="document.getElementById('media-input').click()">
-                    <span class="material-icons" style="font-size: 1.5rem; margin-bottom: 5px;">camera_alt</span><br>Selecionar Fotos e Vídeos
-                </div>
+                <div class="camera-trigger" onclick="document.getElementById('media-input').click()"><span class="material-icons" style="font-size: 1.5rem; margin-bottom: 5px;">camera_alt</span><br>Selecionar Fotos e Vídeos</div>
                 <input type="file" id="media-input" accept="image/*,video/*" multiple style="display:none" onchange="app.handleMedia(event)">
                 <div id="galeria-avaria" class="gallery"></div>
             </div>
@@ -328,26 +226,24 @@
             </div>
             <div class="input-group"><label>Veículo</label><input type="text" id="t-veiculo" placeholder="Ex: Ranger Tremor"></div>
             <div class="grid-2">
+                <div class="input-group"><label>VIN</label><input type="text" id="t-vin"></div>
                 <div class="input-group"><label>Posto</label><input type="text" id="t-posto"></div>
-                <div class="input-group"><label>KM Total</label><input type="number" id="t-km" inputmode="decimal" step="any"></div>
             </div>
             <div class="grid-2">
+                <div class="input-group"><label>KM Total</label><input type="number" id="t-km" inputmode="decimal" step="any"></div>
                 <div class="input-group"><label>Trip</label><input type="number" id="t-trip" inputmode="decimal" step="any"></div>
-                <div class="input-group"><label>Litros</label><input type="number" id="t-litros" inputmode="decimal" step="any"></div>
             </div>
-            <div class="input-group"><label>Saldo R$</label><input type="number" id="t-saldo" inputmode="decimal" step="any"></div>
-            
+            <div class="grid-2">
+                <div class="input-group"><label>Litros</label><input type="number" id="t-litros" inputmode="decimal" step="any"></div>
+                <div class="input-group"><label>Saldo R$</label><input type="number" id="t-saldo" inputmode="decimal" step="any"></div>
+            </div>
             <button class="btn-main btn-success" onclick="app.finalizarTurnoIntegrado()"><span class="material-icons">flight_takeoff</span> ENVIAR RELATÓRIO</button>
         </div>
     </div>
 
-    <script src="app.js?v=3.1"></script>
+    <script src="app.js?v=3.2"></script>
     <script>
-        const appUI = {
-            abrirModal: (id) => document.getElementById(id).style.display = 'flex',
-            fecharModal: (id) => document.getElementById(id).style.display = 'none'
-        };
-        window.appUI = appUI;
+        const appUI = { abrirModal: (id) => document.getElementById(id).style.display = 'flex', fecharModal: (id) => document.getElementById(id).style.display = 'none' }; window.appUI = appUI;
     </script>
 </body>
 </html>
