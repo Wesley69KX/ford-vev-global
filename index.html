@@ -1,173 +1,290 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ford VEV - Central CC: 2748</title>
-    
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/png" href="logo.png">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    <style>
-        :root { 
-            --bg-base: #0f172a; --bg-card: #1e293b; --border-glow: #38bdf8; 
-            --text-main: #f8fafc; --text-muted: #94a3b8; 
-            --danger: #ef4444; --success: #10b981; 
-            --purple-neon: #a855f7; --orange-neon: #f97316; 
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg-base); color: var(--text-main); line-height: 1.5; padding-bottom: 40px; }
-        header { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(56, 189, 248, 0.3); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
-        .container { max-width: 700px; margin: 0 auto; padding: 1.5rem 1rem; }
-        h2 { font-size: 0.8rem; color: var(--border-glow); text-transform: uppercase; letter-spacing: 0.15em; margin: 1.5rem 0 0.75rem 0.5rem; font-weight: 800; }
-        .grid-forms { display: grid; gap: 0.85rem; }
-        .card-form { background: var(--bg-card); padding: 1rem; border-radius: 0.5rem; display: flex; align-items: center; gap: 1rem; text-decoration: none; color: inherit; border: 1px solid #334155; border-left: 4px solid var(--border-glow); cursor: pointer; transition: 0.3s; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); }
-        .card-form:active { transform: scale(0.97); border-color: var(--border-glow); }
-        .icon-circle { width: 42px; height: 42px; border-radius: 0.5rem; background: rgba(56, 189, 248, 0.1); color: var(--border-glow); display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(56, 189, 248, 0.2); }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px); display: none; align-items: flex-end; justify-content: center; z-index: 1000; }
-        .modal-content { background: var(--bg-base); width: 100%; max-width: 700px; border-radius: 1.5rem 1.5rem 0 0; padding: 1.5rem; max-height: 90vh; overflow-y: auto; position: relative; border-top: 1px solid #334155; }
-        .close-btn { position: absolute; top: 1rem; right: 1.5rem; background: #1e293b; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); border: 1px solid #334155; }
-        .input-group { margin-bottom: 1rem; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        label { display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--text-muted); text-transform: uppercase; }
-        input, textarea, select { width: 100%; padding: 0.85rem; border: 1px solid #334155; border-radius: 0.5rem; font-size: 0.95rem; background: #020617; color: var(--text-main); outline: none; }
-        input:focus { border-color: var(--border-glow); box-shadow: 0 0 10px rgba(56, 189, 248, 0.2); }
-        .btn-main { background: transparent; color: var(--border-glow); border: 1px solid var(--border-glow); padding: 1.2rem; border-radius: 0.5rem; width: 100%; font-weight: 800; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 1rem; }
-        .btn-main:active { background: var(--border-glow); color: #000; }
-        .btn-purple { color: var(--purple-neon); border-color: var(--purple-neon); }
-        .btn-orange { color: var(--orange-neon); border-color: var(--orange-neon); }
-        .btn-danger { color: var(--danger); border-color: var(--danger); }
-        .btn-success { background: var(--success); color: #000; border: none; }
-        .cola-item { padding: 1rem; border-bottom: 1px solid #1e293b; font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 10px; }
-        .cola-item.ativo { background: rgba(168, 85, 247, 0.1); color: var(--purple-neon); font-weight: 800; border-left: 4px solid var(--purple-neon); }
-        .cola-item.concluido { color: #475569; text-decoration: line-through; }
-    </style>
+<title>Ford VEV - Central CC: 2748</title>
+
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="logo.png">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+<style>
+:root {
+    --bg-base:#020617;
+    --bg-card:rgba(30,41,59,0.6);
+    --border-glow:#38bdf8;
+    --text-main:#f8fafc;
+    --text-muted:#94a3b8;
+    --danger:#ef4444;
+    --success:#10b981;
+    --purple:#a855f7;
+    --orange:#f97316;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+    font-family:'Inter',system-ui;
+    background:linear-gradient(180deg,#020617,#0f172a);
+    color:var(--text-main);
+}
+
+/* HEADER */
+header{
+    background:rgba(2,6,23,0.8);
+    backdrop-filter:blur(12px);
+    border-bottom:1px solid rgba(56,189,248,0.2);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:1rem 1.5rem;
+    position:sticky;
+    top:0;
+    z-index:50;
+}
+
+.header-info{
+    text-align:right;
+}
+.header-info small{
+    color:var(--text-muted);
+    font-size:0.7rem;
+}
+.header-info strong{
+    color:var(--border-glow);
+}
+
+/* CONTAINER */
+.container{
+    max-width:720px;
+    margin:auto;
+    padding:1.5rem;
+}
+
+/* TITLES */
+h2{
+    font-size:0.75rem;
+    text-transform:uppercase;
+    letter-spacing:2px;
+    color:var(--border-glow);
+    margin:2rem 0 0.8rem;
+}
+
+/* CARDS */
+.grid{
+    display:grid;
+    gap:12px;
+}
+
+.card{
+    background:var(--bg-card);
+    backdrop-filter:blur(12px);
+    padding:1rem;
+    border-radius:0.8rem;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    border:1px solid rgba(56,189,248,0.15);
+    border-left:4px solid var(--border-glow);
+    cursor:pointer;
+    transition:.25s;
+}
+
+.card:hover{
+    transform:translateY(-3px);
+    box-shadow:0 10px 25px rgba(0,0,0,0.5);
+}
+
+.card:active{
+    transform:scale(0.96);
+}
+
+.icon{
+    width:42px;
+    height:42px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:10px;
+    background:rgba(56,189,248,0.1);
+}
+
+/* BUTTON */
+.btn{
+    width:100%;
+    padding:1rem;
+    border-radius:0.6rem;
+    border:1px solid var(--border-glow);
+    background:transparent;
+    color:var(--border-glow);
+    font-weight:bold;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.btn:hover{
+    background:var(--border-glow);
+    color:#000;
+}
+
+/* MODAL */
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.85);
+    display:none;
+    align-items:flex-end;
+}
+
+.modal-content{
+    width:100%;
+    max-width:720px;
+    margin:auto;
+    background:linear-gradient(180deg,#020617,#0f172a);
+    border-radius:20px 20px 0 0;
+    padding:1.5rem;
+    max-height:90vh;
+    overflow:auto;
+}
+
+.close{
+    position:absolute;
+    right:20px;
+    top:15px;
+    cursor:pointer;
+}
+
+/* INPUT */
+input,textarea{
+    width:100%;
+    padding:0.9rem;
+    margin-bottom:10px;
+    border-radius:8px;
+    border:1px solid #1e293b;
+    background:#020617;
+    color:white;
+}
+
+input:focus{
+    border-color:var(--border-glow);
+    box-shadow:0 0 10px rgba(56,189,248,0.3);
+}
+
+/* SCROLL */
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-thumb{background:#334155;border-radius:10px;}
+
+</style>
 </head>
+
 <body>
 
-    <header>
-        <img src="logo.png" style="height: 30px;" alt="Ford" onerror="this.style.display='none'">
-        <div style="text-align: right">
-            <div style="font-weight: 900; color: var(--border-glow); font-size: 0.9rem;">EJA: 3108</div>
-            <div style="font-size: 0.65rem; font-weight: 700; color: var(--text-muted)">CC: 2748</div>
-        </div>
-    </header>
-
-    <div class="container">
-        <h2>Operações de Pista</h2>
-        <div class="grid-forms">
-            <a href="https://forms.office.com/r/LGrPxcte1T" target="_blank" class="card-form">
-                <div class="icon-circle"><span class="material-icons">fact_check</span></div>
-                <div><div style="font-weight: 700;">Check List</div><div style="font-size: 0.7rem; color: var(--text-muted);">Diário</div></div>
-            </a>
-            <a href="https://forms.office.com/r/FmGd5gJF5e" target="_blank" class="card-form">
-                <div class="icon-circle"><span class="material-icons">local_gas_station</span></div>
-                <div><div style="font-weight: 700;">Abastecimento</div><div style="font-size: 0.7rem; color: var(--text-muted);">Litragem</div></div>
-            </a>
-        </div>
-
-        <h2 style="margin-top: 2rem;">Módulos de Engenharia</h2>
-        <div class="grid-forms">
-            <div class="card-form" onclick="appUI.abrirModal('modal-roteiro')" style="border-left-color: var(--purple-neon);">
-                <div class="icon-circle" style="color: var(--purple-neon);"><span class="material-icons">alt_route</span></div>
-                <div><div style="font-weight: 700;">Ciclos R389</div><div style="font-size: 0.7rem; color: var(--text-muted);">Loop Contínuo</div></div>
-            </div>
-            
-            <div class="card-form" onclick="app.gerarRelatorioResumo()" style="border-left-color: var(--border-glow);">
-                <div class="icon-circle" style="color: var(--border-glow);"><span class="material-icons">analytics</span></div>
-                <div><div style="font-weight: 700;">Resumo do Turno</div><div style="font-size: 0.7rem; color: var(--text-muted);">Totalizador de Voltas & Ciclos</div></div>
-            </div>
-            
-            <div class="card-form" onclick="appUI.abrirModal('modal-frenagem')" style="border-left-color: var(--orange-neon);">
-                <div class="icon-circle" style="color: var(--orange-neon);"><span class="material-icons">speed</span></div>
-                <div><div style="font-weight: 700;">Frenagem</div><div style="font-size: 0.7rem; color: var(--text-muted);">Controle de Ciclos (8 Voltas)</div></div>
-            </div>
-
-            <div class="card-form" onclick="appUI.abrirModal('modal-laudo')" style="border-left-color: var(--border-glow);">
-                <div class="icon-circle" style="color: #000; background: var(--border-glow);"><span class="material-icons">verified</span></div>
-                <div><div style="font-weight: 700;">Laudo IA</div><div style="font-size: 0.7rem; color: var(--text-muted);">Relatório Técnico</div></div>
-            </div>
-        </div>
+<header>
+    <img src="logo.png" style="height:30px">
+    <div class="header-info">
+        <small>Unidade</small><br>
+        <strong>EJA: 3108</strong><br>
+        <small>CC: 2748</small>
     </div>
+</header>
 
-    <div id="modal-roteiro" class="modal-overlay">
-        <div class="modal-content">
-            <div class="close-btn" onclick="appUI.fecharModal('modal-roteiro')"><span class="material-icons">close</span></div>
-            <h3 style="color: var(--purple-neon); margin-bottom: 1rem; font-weight: 900; text-align: center; text-transform: uppercase;">Roteiro R389</h3>
-            <div style="background: #020617; border: 1px solid var(--purple-neon); border-radius: 0.5rem; padding: 1.5rem; text-align: center; margin-bottom: 1rem;">
-                <label style="color: var(--purple-neon);">Etapa Atual:</label>
-                <div id="etapa-atual" style="font-size: 1.2rem; font-weight: 900; margin: 10px 0;">Carregando...</div>
-                <input type="text" id="c-vin" placeholder="VIN..." style="margin-bottom: 1rem; border-color: var(--purple-neon);">
-                <button class="btn-main btn-purple" onclick="app.registrarPassagem()">REGISTRAR PASSAGEM</button>
-            </div>
-            <div id="lista-cola" style="height: 200px; overflow-y: auto; background: #020617; border-radius: 0.5rem;"></div>
-            <div class="grid-2" style="margin-top: 1rem;">
-                <button class="btn-main" onclick="app.novaVolta()"><span class="material-icons">loop</span> NOVA VOLTA</button>
-                <button class="btn-main btn-danger" onclick="app.gerarRelatorioRoteiro()">PDF LOG</button>
-            </div>
-        </div>
-    </div>
+<div class="container">
 
-    <div id="modal-frenagem" class="modal-overlay">
-        <div class="modal-content">
-            <div class="close-btn" onclick="appUI.fecharModal('modal-frenagem')"><span class="material-icons">close</span></div>
-            <h3 style="color: var(--orange-neon); margin-bottom: 1rem; font-weight: 900; text-align: center; text-transform: uppercase;">Teste de Frenagem</h3>
-            
-            <div style="background: #020617; border: 1px solid var(--orange-neon); padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1rem; text-align: center;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <div id="f-ciclo-atual" style="background: rgba(249, 115, 22, 0.15); color: var(--orange-neon); padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 0.8rem; border: 1px solid rgba(249, 115, 22, 0.3);">
-                        CICLO 1
-                    </div>
-                    <div id="f-progresso-ciclo" style="color: var(--text-muted); font-size: 0.8rem; font-weight: bold;">
-                        Volta 1/8
-                    </div>
-                </div>
+<h2>Operações</h2>
+<div class="grid">
 
-                <div id="f-proxima-etapa" style="font-size: 1.3rem; color: var(--text-main); font-weight: 900; margin: 15px 0;">Pista Baixa - Volta 1</div>
-                
-                <input type="text" id="f-obs" placeholder="Observação (Opcional)..." style="border-color: rgba(249, 115, 22, 0.4); margin-bottom: 1rem; text-align: center;">
-                <button class="btn-main btn-orange" onclick="app.registrarVoltaFrenagem()">REGISTRAR VOLTA COMPLETA</button>
-            </div>
+<a href="https://forms.office.com/r/LGrPxcte1T" target="_blank" class="card">
+<div class="icon"><span class="material-icons">fact_check</span></div>
+<div>
+<b>Check List</b><br>
+<small>Diário</small>
+</div>
+</a>
 
-            <div class="form-section">
-                <h4 style="color: var(--text-muted); font-size: 0.7rem;">Histórico do Turno</h4>
-                <div id="lista-frenagem" style="max-height: 200px; overflow-y: auto; background: #020617; border-radius: 0.5rem; border: 1px solid #334155;"></div>
-            </div>
-            
-            <div class="grid-2">
-                <button class="btn-main" onclick="app.resetarFrenagem()">REINICIAR</button>
-                <button class="btn-main btn-danger" onclick="app.gerarRelatorioFrenagem()">GERAR PDF</button>
-            </div>
-        </div>
-    </div>
+<a href="https://forms.office.com/r/FmGd5gJF5e" target="_blank" class="card">
+<div class="icon"><span class="material-icons">local_gas_station</span></div>
+<div>
+<b>Abastecimento</b><br>
+<small>Litragem</small>
+</div>
+</a>
 
-    <div id="modal-laudo" class="modal-overlay">
-        <div class="modal-content">
-            <div class="close-btn" onclick="appUI.fecharModal('modal-laudo')"><span class="material-icons">close</span></div>
-            <h3 style="color: var(--border-glow); margin-bottom: 1.5rem; font-weight: 900; text-transform: uppercase;">Laudo de Avaria</h3>
-            <div class="grid-2">
-                <div class="input-group"><label>VIN</label><input type="text" id="i-id"></div>
-                <div class="input-group"><label>Engenheiro</label><input type="text" id="i-motorista"></div>
-            </div>
-            <div class="input-group">
-                <label>Parecer Técnico <button onclick="app.melhorarTextoComIA(this)" style="float:right; background:none; border:1px solid var(--purple-neon); color:var(--purple-neon); cursor:pointer; padding:2px 5px; font-size:0.6rem;">IA AUTO</button></label>
-                <textarea id="i-obs" rows="4"></textarea>
-            </div>
-            <div class="camera-trigger" onclick="document.getElementById('media-input').click()">Anexar Mídias</div>
-            <input type="file" id="media-input" accept="image/*,video/*" multiple style="display:none" onchange="app.handleMedia(event)">
-            <div id="galeria-avaria" class="gallery" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
-            <button class="btn-main" onclick="app.gerarECompartilharLaudo()">EMITIR LAUDO</button>
-        </div>
-    </div>
+</div>
 
-    <script src="app.js?v=3.7"></script>
-    <script>
-        const appUI = { abrirModal: (id) => document.getElementById(id).style.display = 'flex', fecharModal: (id) => document.getElementById(id).style.display = 'none' };
-        window.appUI = appUI;
-    </script>
+<h2>Engenharia</h2>
+<div class="grid">
+
+<div class="card" onclick="openModal('roteiro')" style="border-left-color:var(--purple)">
+<div class="icon" style="color:var(--purple)">
+<span class="material-icons">alt_route</span>
+</div>
+<div><b>Ciclos R389</b></div>
+</div>
+
+<div class="card" onclick="app.gerarRelatorioResumo()">
+<div class="icon"><span class="material-icons">analytics</span></div>
+<div><b>Resumo do Turno</b></div>
+</div>
+
+<div class="card" onclick="openModal('frenagem')" style="border-left-color:var(--orange)">
+<div class="icon" style="color:var(--orange)">
+<span class="material-icons">speed</span>
+</div>
+<div><b>Frenagem</b></div>
+</div>
+
+<div class="card" onclick="openModal('laudo')">
+<div class="icon"><span class="material-icons">verified</span></div>
+<div><b>Laudo IA</b></div>
+</div>
+
+</div>
+</div>
+
+<!-- MODALS -->
+
+<div id="roteiro" class="modal">
+<div class="modal-content">
+<span class="close" onclick="closeModal('roteiro')">X</span>
+<h3>Ciclos</h3>
+<input placeholder="VIN">
+<button class="btn">Registrar</button>
+</div>
+</div>
+
+<div id="frenagem" class="modal">
+<div class="modal-content">
+<span class="close" onclick="closeModal('frenagem')">X</span>
+<h3>Frenagem</h3>
+<button class="btn">Registrar Volta</button>
+</div>
+</div>
+
+<div id="laudo" class="modal">
+<div class="modal-content">
+<span class="close" onclick="closeModal('laudo')">X</span>
+<h3>Laudo</h3>
+<input placeholder="VIN">
+<textarea placeholder="Observação"></textarea>
+<button class="btn">Emitir</button>
+</div>
+</div>
+
+<script src="app.js"></script>
+
+<script>
+function openModal(id){
+    document.getElementById(id).style.display="flex";
+}
+function closeModal(id){
+    document.getElementById(id).style.display="none";
+}
+</script>
+
 </body>
 </html>
