@@ -4,7 +4,7 @@ const app = {
     // GESTÃO DE SESSÃO / LOGIN
     operadorAtual: null,
 
-    // VARIÁVEIS DE FRENAGEM (V3.7+ - CONTADOR DE CICLOS)
+    // VARIÁVEIS DE FRENAGEM
     ciclosFrenagem: [],
     roteiroFrenagem: [
         "Pista Baixa - Volta 1", "Pista Baixa - Volta 2", "Pista Baixa - Volta 3", "Pista Baixa - Volta 4",
@@ -30,18 +30,17 @@ const app = {
     },
 
     // ==========================================
-    // MÓDULO DE ACESSO E LOG (PORTA DE SEGURANÇA)
+    // MÓDULO DE ACESSO E LOG
     // ==========================================
     verificarSessao() {
         const usuarioSalvo = localStorage.getItem("app_vev_operador");
         if (usuarioSalvo) {
             this.operadorAtual = usuarioSalvo;
             document.getElementById("ui-nome-usuario").innerText = usuarioSalvo;
-            document.getElementById("i-motorista").value = usuarioSalvo; // Preenche Laudo Automaticamente
+            document.getElementById("i-motorista").value = usuarioSalvo;
             document.getElementById("modal-login").style.display = "none";
             document.body.style.overflow = "auto";
         } else {
-            // Trava o app na tela de login
             document.getElementById("modal-login").style.display = "flex";
             document.body.style.overflow = "hidden";
         }
@@ -66,13 +65,11 @@ const app = {
         if (!usuarioExiste) return alert("❌ Operador não cadastrado no sistema.");
         if (senhaDigitada !== SENHA_CORRETA) return alert("❌ PIN Incorreto. Acesso Negado.");
 
-        // Salva Sessão
         const nomeParaSalvar = document.getElementById("login-nome").value.trim();
         localStorage.setItem("app_vev_operador", nomeParaSalvar);
         
         this.verificarSessao();
         
-        // Limpa campos
         document.getElementById("login-nome").value = "";
         document.getElementById("login-senha").value = "";
     },
@@ -87,7 +84,7 @@ const app = {
     },
 
     // ==========================================
-    // IA - GEMINI (ANALISTA DE PRODUTO)
+    // IA - GEMINI
     // ==========================================
     async melhorarTextoComIA(botao) {
         const textarea = document.getElementById('i-obs');
@@ -99,7 +96,6 @@ const app = {
         
         botao.innerHTML = '...';
         try {
-            // Comando estrito para não adicionar fatos
             const promptComando = "Atue como um Analista de Produto Automotivo Sênior. Melhore o texto a seguir tecnicamente e de forma formal para um laudo de avaria. NÃO altere os fatos, NÃO adicione informações que não estão no original, apenas corrija a gramática e deixe a linguagem mais profissional e direta. O texto é: " + textoOriginal;
             
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
@@ -273,7 +269,7 @@ const app = {
     },
 
     // ==========================================
-    // MÍDIAS (COMPRESSÃO 4K E COMPARTILHAMENTO)
+    // MÍDIAS, COMPRESSÃO 4K E ENVIO NATIVO (RESTAURADO)
     // ==========================================
     handleMedia(e) {
         Array.from(e.target.files).forEach(file => {
@@ -283,7 +279,6 @@ const app = {
             } else if (file.type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onload = (ev) => {
-                    // RESOLUÇÃO 4K (3840px) para máxima qualidade no PDF (Qualidade 100%)
                     this.comprimir(ev.target.result, 3840, 3840, (img) => {
                         this.fotos.push({ src: img, legenda: '' });
                         this.renderGaleria();
@@ -305,7 +300,7 @@ const app = {
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = 'high'; 
             ctx.drawImage(img, 0, 0, w, h);
-            cb(canvas.toDataURL('image/jpeg', 1.0)); // Qualidade 100%
+            cb(canvas.toDataURL('image/jpeg', 1.0)); 
         };
     },
 
@@ -365,29 +360,32 @@ const app = {
             this.fotos.forEach((f, i) => {
                 if (y > 200) { doc.addPage(); y = 20; }
                 const imgProps = doc.getImageProperties(f.src); const ratio = imgProps.height / imgProps.width;
-                doc.addImage(f.src, 'JPEG', 14, y, 90, 90 * ratio, undefined, 'FAST');
+                doc.addImage(f.src, 'JPEG', 14, y, 90, 90 * ratio, undefined, 'FAST'); 
                 doc.text(`Evidência ${i+1}: ${f.legenda || ''}`, 14, y + (90 * ratio) + 6); 
                 y += (90 * ratio) + 15;
             });
         }
 
-        // 2. Prepara EXCLUSIVAMENTE o PDF para Compartilhamento
+        // 2. Prepara o PDF para Compartilhamento (Blob)
         const pdfBlob = doc.output('blob');
         const pdfNome = `Laudo_${id}_${motorista.split(' ')[0]}.pdf`;
         const pdfFile = new File([pdfBlob], pdfNome, { type: 'application/pdf' });
 
-        // Aviso visual para o usuário lembrar do vídeo
+        // 3. Monta o pacote de arquivos (VOLTAMOS A COLOCAR O VÍDEO AQUI)
+        let arquivosParaCompartilhar = [pdfFile];
         if (this.videosFiles.length > 0) {
-            alert("Atenção: O PDF será enviado agora. Lembre-se de anexar o vídeo manualmente na conversa do WhatsApp direto da sua galeria para garantir a qualidade!");
+            this.videosFiles.forEach(video => {
+                arquivosParaCompartilhar.push(video);
+            });
         }
 
-        // 3. Compartilha apenas o PDF nativamente
-        if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+        // 4. Aciona a Tela Nativa de Compartilhamento do Celular
+        if (navigator.canShare && navigator.canShare({ files: arquivosParaCompartilhar })) {
             try {
                 await navigator.share({
-                    files: [pdfFile],
+                    files: arquivosParaCompartilhar,
                     title: `Laudo de Avaria - ${id}`,
-                    text: `Laudo Técnico gerado por ${motorista}.`
+                    text: `Laudo Técnico gerado por ${motorista}. Arquivos anexos do veículo: ${id}.`
                 });
                 setTimeout(() => { this.resetarFormularioLaudo(); }, 1000);
             } catch (err) {
@@ -396,6 +394,7 @@ const app = {
                 this.resetarFormularioLaudo();
             }
         } else {
+            alert("Seu aparelho não suporta o envio direto dos vídeos junto com o PDF. O PDF será baixado.");
             doc.save(pdfNome);
             this.resetarFormularioLaudo();
         }
