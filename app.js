@@ -25,6 +25,7 @@ const app = {
         this.renderListaFrenagem(); 
     },
 
+    // LOGIN
     verificarSessao() {
         const usuarioSalvo = localStorage.getItem("app_vev_operador");
         if (usuarioSalvo) {
@@ -76,9 +77,7 @@ const app = {
         }
     },
 
-    // ==========================================
-    // IA - GEMINI AJUSTADA
-    // ==========================================
+    // IA - GEMINI
     async melhorarTextoComIA(botao) {
         const textarea = document.getElementById('i-obs');
         const textoOriginal = textarea.value.trim();
@@ -87,7 +86,6 @@ const app = {
         if (!API_KEY) { API_KEY = prompt("Chave API Google:"); if (!API_KEY) return; localStorage.setItem("cofre_chave_gemini", API_KEY.trim()); }
         botao.innerHTML = '...';
         try {
-            // Comando mais restrito para não inventar moda:
             const promptComando = "Atue como um Analista de Produto Automotivo Sênior. Melhore o texto a seguir tecnicamente e de forma formal para um laudo de avaria. NÃO altere os fatos, NÃO adicione informações que não estão no original, apenas corrija a gramática e deixe a linguagem mais profissional e direta. O texto é: " + textoOriginal;
             
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
@@ -98,9 +96,7 @@ const app = {
         botao.innerHTML = '<span class="material-icons" style="font-size: 1rem;">auto_awesome</span> PROCESSAR IA';
     },
 
-    // ==========================================
     // ROTEIRO R389
-    // ==========================================
     registrarPassagem() {
         if (this.etapaAtualIndex >= this.sequenciaDiasPares.length) return this.novaVolta(); 
         const nomeEtapa = this.sequenciaDiasPares[this.etapaAtualIndex];
@@ -191,9 +187,7 @@ const app = {
         doc.save(`Log_R389_${this.operadorAtual.split(' ')[0]}.pdf`);
     },
 
-    // ==========================================
     // FRENAGEM
-    // ==========================================
     registrarVoltaFrenagem() {
         const totalVoltas = this.ciclosFrenagem.length;
         const indexNoCiclo = totalVoltas % 8; 
@@ -260,7 +254,7 @@ const app = {
     },
 
     // ==========================================
-    // MÍDIAS E LAUDO (RESTAURADO E AUTO-RESET)
+    // MÍDIAS, COMPRESSÃO 4K E ENVIO NATIVO
     // ==========================================
     handleMedia(e) {
         Array.from(e.target.files).forEach(file => {
@@ -270,7 +264,8 @@ const app = {
             } else if (file.type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onload = (ev) => {
-                    this.comprimir(ev.target.result, 1600, 1600, (img) => {
+                    // RESOLUÇÃO 4K (3840px) para máxima qualidade no PDF
+                    this.comprimir(ev.target.result, 3840, 3840, (img) => {
                         this.fotos.push({ src: img, legenda: '' });
                         this.renderGaleria();
                     });
@@ -278,7 +273,6 @@ const app = {
                 reader.readAsDataURL(file);
             }
         });
-        // Limpa o input para poder selecionar a mesma foto novamente se apagar
         e.target.value = '';
     },
 
@@ -288,8 +282,12 @@ const app = {
             const canvas = document.createElement('canvas'); let w = img.width, h = img.height;
             if (w > h) { if (w > maxW) { h *= maxW / w; w = maxW; } } else { if (h > maxH) { w *= maxH / h; h = maxH; } }
             canvas.width = w; canvas.height = h;
-            const ctx = canvas.getContext('2d'); ctx.imageSmoothingQuality = 'high'; ctx.drawImage(img, 0, 0, w, h);
-            cb(canvas.toDataURL('image/jpeg', 0.95));
+            const ctx = canvas.getContext('2d'); 
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high'; 
+            ctx.drawImage(img, 0, 0, w, h);
+            // QUALIDADE 100% (1.0)
+            cb(canvas.toDataURL('image/jpeg', 1.0));
         };
     },
 
@@ -310,16 +308,26 @@ const app = {
             html += `<div class="photo-wrapper" style="background: rgba(56, 189, 248, 0.1); border-color: #38bdf8; display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 1rem;">
                         <button class="btn-delete-photo" style="background: #0284c7;" onclick="app.removerVideo(${i})">×</button>
                         <span class="material-icons" style="font-size: 3rem; color: #38bdf8;">movie</span>
-                        <p style="font-size: 0.7rem; color: #38bdf8; font-weight: bold; margin-top: 10px;">Vídeo Anexado</p>
+                        <p style="font-size: 0.7rem; color: #38bdf8; font-weight: bold; margin-top: 10px; text-align: center;">${v.name}</p>
                      </div>`;
         });
         g.innerHTML = html;
+    },
+
+    resetarFormularioLaudo() {
+        document.getElementById('i-id').value = '';
+        document.getElementById('i-obs').value = '';
+        this.fotos = [];
+        this.videosFiles = [];
+        this.renderGaleria();
     },
 
     async gerarECompartilharLaudo() { 
         const id = document.getElementById('i-id').value || "SN"; 
         const motorista = document.getElementById('i-motorista').value || this.operadorAtual; 
         const parecer = document.getElementById('i-obs').value || "Sem observações.";
+        
+        // 1. Cria o PDF
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
         
         doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 30, 'F'); 
@@ -327,7 +335,6 @@ const app = {
         doc.setFontSize(12); doc.text(`VIN: ${id}`, 196, 20, { align: "right" });
         doc.setTextColor(0, 0, 0);
 
-        // Alterado de Engenheiro para Analista de Produto
         doc.autoTable({ startY: 35, body: [['Veículo / VIN:', id, 'Data:', new Date().toLocaleString('pt-BR')], ['Analista de Produto:', motorista, 'Assinatura (Auto):', 'Autenticado no App']], theme: 'grid' });
         
         let currentY = doc.lastAutoTable.finalY + 10; 
@@ -340,24 +347,47 @@ const app = {
             this.fotos.forEach((f, i) => {
                 if (y > 200) { doc.addPage(); y = 20; }
                 const imgProps = doc.getImageProperties(f.src); const ratio = imgProps.height / imgProps.width;
-                doc.addImage(f.src, 'JPEG', 14, y, 90, 90 * ratio); 
+                doc.addImage(f.src, 'JPEG', 14, y, 90, 90 * ratio, undefined, 'FAST'); // 'FAST' melhora o processamento de imagens gigantes
                 doc.text(`Evidência ${i+1}: ${f.legenda || ''}`, 14, y + (90 * ratio) + 6); 
                 y += (90 * ratio) + 15;
             });
         }
-        doc.save(`Laudo_${id}_${motorista.split(' ')[0]}.pdf`);
 
-        // =====================================
-        // AUTO-RESET DO FORMULÁRIO APÓS ENVIAR
-        // =====================================
-        setTimeout(() => {
-            document.getElementById('i-id').value = '';
-            document.getElementById('i-obs').value = '';
-            this.fotos = [];
-            this.videosFiles = [];
-            this.renderGaleria();
-            alert("✅ Laudo emitido com sucesso! O formulário foi limpo para a próxima avaliação.");
-        }, 800);
+        // 2. Prepara o PDF para Compartilhamento (Blob)
+        const pdfBlob = doc.output('blob');
+        const pdfNome = `Laudo_${id}_${motorista.split(' ')[0]}.pdf`;
+        const pdfFile = new File([pdfBlob], pdfNome, { type: 'application/pdf' });
+
+        // 3. Monta o pacote de arquivos (PDF + Vídeos gravados)
+        let arquivosParaCompartilhar = [pdfFile];
+        if (this.videosFiles.length > 0) {
+            this.videosFiles.forEach(video => {
+                arquivosParaCompartilhar.push(video);
+            });
+        }
+
+        // 4. Aciona a Tela Nativa de Compartilhamento do Celular
+        if (navigator.canShare && navigator.canShare({ files: arquivosParaCompartilhar })) {
+            try {
+                await navigator.share({
+                    files: arquivosParaCompartilhar,
+                    title: `Laudo de Avaria - ${id}`,
+                    text: `Laudo Técnico gerado por ${motorista}. Arquivos anexos do veículo: ${id}.`
+                });
+                // Só reseta a tela se o compartilhamento der certo
+                setTimeout(() => { this.resetarFormularioLaudo(); }, 1000);
+            } catch (err) {
+                console.log("Compartilhamento cancelado.", err);
+                // Se der erro ou o usuário cancelar, apenas baixa o PDF e reseta
+                doc.save(pdfNome);
+                this.resetarFormularioLaudo();
+            }
+        } else {
+            // Navegador não suporta (PC antigo, etc). Baixa o PDF normal.
+            alert("Seu aparelho não suporta o envio direto dos vídeos. O PDF será baixado e você precisará anexar o vídeo manualmente no WhatsApp.");
+            doc.save(pdfNome);
+            this.resetarFormularioLaudo();
+        }
     },
 
     // FECHAMENTO DE TURNO
@@ -365,7 +395,6 @@ const app = {
         const v = document.getElementById('t-veiculo').value; const dataBruta = document.getElementById('t-data').value;
         let dataFormatada = dataBruta ? `${dataBruta.split('-')[2]}/${dataBruta.split('-')[1]}` : "";
         const texto = `*Fechamento: ${this.operadorAtual}*\n*Abastecimento ${v}*\n${document.getElementById('t-turno').value} ${dataFormatada}\nVIN: ${document.getElementById('t-vin').value}\nTrip: ${document.getElementById('t-trip').value}\nKm: ${document.getElementById('t-km').value}\nLitros: ${document.getElementById('t-litros').value}\nSaldo: R$ ${document.getElementById('t-saldo').value}`;
-        
         try { await navigator.clipboard.writeText(texto); alert("Copiado para o WhatsApp!"); } catch (e) {}
     }
 };
