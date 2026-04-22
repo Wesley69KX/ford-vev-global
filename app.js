@@ -1,13 +1,17 @@
 const app = {
     fotos: [], videosFiles: [], etapaAtualIndex: 0, checkins: [],
     
+    // GESTÃO DE SESSÃO / LOGIN
     operadorAtual: null,
+
+    // VARIÁVEIS DE FRENAGEM (V3.7+ - CONTADOR DE CICLOS)
     ciclosFrenagem: [],
     roteiroFrenagem: [
         "Pista Baixa - Volta 1", "Pista Baixa - Volta 2", "Pista Baixa - Volta 3", "Pista Baixa - Volta 4",
         "Pista Alta - Volta 1",  "Pista Alta - Volta 2",  "Pista Alta - Volta 3",  "Pista Alta - Volta 4"
     ],
     
+    // ROTEIRO R389
     sequenciaDiasPares: [
         "Labirinto: 1ª volta", "Labirinto: 2ª volta", "Labirinto: 3ª volta", "Enrola Camisa: 1ª volta",
         "Enrola Camisa: 2ª volta", "Enrola Camisa: 3ª volta", "Enrola Camisa: 4ª volta", "Areia Pista: 1ª volta",
@@ -25,16 +29,19 @@ const app = {
         this.renderListaFrenagem(); 
     },
 
-    // LOGIN
+    // ==========================================
+    // MÓDULO DE ACESSO E LOG (PORTA DE SEGURANÇA)
+    // ==========================================
     verificarSessao() {
         const usuarioSalvo = localStorage.getItem("app_vev_operador");
         if (usuarioSalvo) {
             this.operadorAtual = usuarioSalvo;
             document.getElementById("ui-nome-usuario").innerText = usuarioSalvo;
-            document.getElementById("i-motorista").value = usuarioSalvo; 
+            document.getElementById("i-motorista").value = usuarioSalvo; // Preenche Laudo Automaticamente
             document.getElementById("modal-login").style.display = "none";
             document.body.style.overflow = "auto";
         } else {
+            // Trava o app na tela de login
             document.getElementById("modal-login").style.display = "flex";
             document.body.style.overflow = "hidden";
         }
@@ -59,11 +66,13 @@ const app = {
         if (!usuarioExiste) return alert("❌ Operador não cadastrado no sistema.");
         if (senhaDigitada !== SENHA_CORRETA) return alert("❌ PIN Incorreto. Acesso Negado.");
 
+        // Salva Sessão
         const nomeParaSalvar = document.getElementById("login-nome").value.trim();
         localStorage.setItem("app_vev_operador", nomeParaSalvar);
         
         this.verificarSessao();
         
+        // Limpa campos
         document.getElementById("login-nome").value = "";
         document.getElementById("login-senha").value = "";
     },
@@ -77,26 +86,34 @@ const app = {
         }
     },
 
-    // IA - GEMINI
+    // ==========================================
+    // IA - GEMINI (ANALISTA DE PRODUTO)
+    // ==========================================
     async melhorarTextoComIA(botao) {
         const textarea = document.getElementById('i-obs');
         const textoOriginal = textarea.value.trim();
         if (textoOriginal.toUpperCase() === "RESETAR") { localStorage.removeItem("cofre_chave_gemini"); textarea.value = ""; return alert("Chave apagada!"); }
+        
         let API_KEY = localStorage.getItem("cofre_chave_gemini");
-        if (!API_KEY) { API_KEY = prompt("Chave API Google:"); if (!API_KEY) return; localStorage.setItem("cofre_chave_gemini", API_KEY.trim()); }
+        if (!API_KEY) { API_KEY = prompt("Cole sua Chave API do Google:"); if (!API_KEY) return; localStorage.setItem("cofre_chave_gemini", API_KEY.trim()); }
+        
         botao.innerHTML = '...';
         try {
+            // Comando estrito para não adicionar fatos
             const promptComando = "Atue como um Analista de Produto Automotivo Sênior. Melhore o texto a seguir tecnicamente e de forma formal para um laudo de avaria. NÃO altere os fatos, NÃO adicione informações que não estão no original, apenas corrija a gramática e deixe a linguagem mais profissional e direta. O texto é: " + textoOriginal;
             
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
             const resposta = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: promptComando }] }] }) });
             const dados = await resposta.json();
+            
             if (dados.candidates) textarea.value = dados.candidates[0].content.parts[0].text.trim();
         } catch (e) { alert("Erro na comunicação com a IA."); }
         botao.innerHTML = '<span class="material-icons" style="font-size: 1rem;">auto_awesome</span> PROCESSAR IA';
     },
 
-    // ROTEIRO R389
+    // ==========================================
+    // ROTEIRO R389 & RESUMO GERAL
+    // ==========================================
     registrarPassagem() {
         if (this.etapaAtualIndex >= this.sequenciaDiasPares.length) return this.novaVolta(); 
         const nomeEtapa = this.sequenciaDiasPares[this.etapaAtualIndex];
@@ -187,7 +204,9 @@ const app = {
         doc.save(`Log_R389_${this.operadorAtual.split(' ')[0]}.pdf`);
     },
 
+    // ==========================================
     // FRENAGEM
+    // ==========================================
     registrarVoltaFrenagem() {
         const totalVoltas = this.ciclosFrenagem.length;
         const indexNoCiclo = totalVoltas % 8; 
@@ -254,7 +273,7 @@ const app = {
     },
 
     // ==========================================
-    // MÍDIAS, COMPRESSÃO 4K E ENVIO NATIVO
+    // MÍDIAS (COMPRESSÃO 4K E COMPARTILHAMENTO)
     // ==========================================
     handleMedia(e) {
         Array.from(e.target.files).forEach(file => {
@@ -264,7 +283,7 @@ const app = {
             } else if (file.type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onload = (ev) => {
-                    // RESOLUÇÃO 4K (3840px) para máxima qualidade no PDF
+                    // RESOLUÇÃO 4K (3840px) para máxima qualidade no PDF (Qualidade 100%)
                     this.comprimir(ev.target.result, 3840, 3840, (img) => {
                         this.fotos.push({ src: img, legenda: '' });
                         this.renderGaleria();
@@ -286,8 +305,7 @@ const app = {
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = 'high'; 
             ctx.drawImage(img, 0, 0, w, h);
-            // QUALIDADE 100% (1.0)
-            cb(canvas.toDataURL('image/jpeg', 1.0));
+            cb(canvas.toDataURL('image/jpeg', 1.0)); // Qualidade 100%
         };
     },
 
@@ -347,54 +365,50 @@ const app = {
             this.fotos.forEach((f, i) => {
                 if (y > 200) { doc.addPage(); y = 20; }
                 const imgProps = doc.getImageProperties(f.src); const ratio = imgProps.height / imgProps.width;
-                doc.addImage(f.src, 'JPEG', 14, y, 90, 90 * ratio, undefined, 'FAST'); // 'FAST' melhora o processamento de imagens gigantes
+                doc.addImage(f.src, 'JPEG', 14, y, 90, 90 * ratio, undefined, 'FAST');
                 doc.text(`Evidência ${i+1}: ${f.legenda || ''}`, 14, y + (90 * ratio) + 6); 
                 y += (90 * ratio) + 15;
             });
         }
 
-        // 2. Prepara o PDF para Compartilhamento (Blob)
+        // 2. Prepara EXCLUSIVAMENTE o PDF para Compartilhamento
         const pdfBlob = doc.output('blob');
         const pdfNome = `Laudo_${id}_${motorista.split(' ')[0]}.pdf`;
         const pdfFile = new File([pdfBlob], pdfNome, { type: 'application/pdf' });
 
-        // 3. Monta o pacote de arquivos (PDF + Vídeos gravados)
-        let arquivosParaCompartilhar = [pdfFile];
+        // Aviso visual para o usuário lembrar do vídeo
         if (this.videosFiles.length > 0) {
-            this.videosFiles.forEach(video => {
-                arquivosParaCompartilhar.push(video);
-            });
+            alert("Atenção: O PDF será enviado agora. Lembre-se de anexar o vídeo manualmente na conversa do WhatsApp direto da sua galeria para garantir a qualidade!");
         }
 
-        // 4. Aciona a Tela Nativa de Compartilhamento do Celular
-        if (navigator.canShare && navigator.canShare({ files: arquivosParaCompartilhar })) {
+        // 3. Compartilha apenas o PDF nativamente
+        if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
             try {
                 await navigator.share({
-                    files: arquivosParaCompartilhar,
+                    files: [pdfFile],
                     title: `Laudo de Avaria - ${id}`,
-                    text: `Laudo Técnico gerado por ${motorista}. Arquivos anexos do veículo: ${id}.`
+                    text: `Laudo Técnico gerado por ${motorista}.`
                 });
-                // Só reseta a tela se o compartilhamento der certo
                 setTimeout(() => { this.resetarFormularioLaudo(); }, 1000);
             } catch (err) {
                 console.log("Compartilhamento cancelado.", err);
-                // Se der erro ou o usuário cancelar, apenas baixa o PDF e reseta
                 doc.save(pdfNome);
                 this.resetarFormularioLaudo();
             }
         } else {
-            // Navegador não suporta (PC antigo, etc). Baixa o PDF normal.
-            alert("Seu aparelho não suporta o envio direto dos vídeos. O PDF será baixado e você precisará anexar o vídeo manualmente no WhatsApp.");
             doc.save(pdfNome);
             this.resetarFormularioLaudo();
         }
     },
 
+    // ==========================================
     // FECHAMENTO DE TURNO
+    // ==========================================
     async finalizarTurnoIntegrado() {
         const v = document.getElementById('t-veiculo').value; const dataBruta = document.getElementById('t-data').value;
         let dataFormatada = dataBruta ? `${dataBruta.split('-')[2]}/${dataBruta.split('-')[1]}` : "";
         const texto = `*Fechamento: ${this.operadorAtual}*\n*Abastecimento ${v}*\n${document.getElementById('t-turno').value} ${dataFormatada}\nVIN: ${document.getElementById('t-vin').value}\nTrip: ${document.getElementById('t-trip').value}\nKm: ${document.getElementById('t-km').value}\nLitros: ${document.getElementById('t-litros').value}\nSaldo: R$ ${document.getElementById('t-saldo').value}`;
+        
         try { await navigator.clipboard.writeText(texto); alert("Copiado para o WhatsApp!"); } catch (e) {}
     }
 };
