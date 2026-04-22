@@ -13,13 +13,13 @@ const app = {
     
     // ROTEIRO R389
     sequenciaDiasPares: [
-        "Labirinto: 1ª volta", "Labirinto: 2ª volta", "Labirinto: 3ª volta", "Enrola Camisa: 1ª volta",
-        "Enrola Camisa: 2ª volta", "Enrola Camisa: 3ª volta", "Enrola Camisa: 4ª volta", "Areia Pista: 1ª volta",
-        "Areia Pista: 2ª volta", "Areia Pista: 3ª volta", "Power Hop Hill", "Lombadas: 1ª passagem",
-        "Lombadas: 2ª passagem", "Lombadas: 3ª passagem", "Lombadas: 4ª passagem", "Lombadas: 5ª passagem",
-        "Pistas 1-2", "Pista 4-3", "Slalom", "Pista 4-3", "Slalom", "Pistas 7-8", "Pistas 2-1", "P. de Baixa",
-        "10 metros marcha-à-ré", "Pista de Alta", "Pista de Alta + bolacha", "Pista de Baixa + bolacha",
-        "Condição: Veículo Vazio", "Condição: Veículo Carregado"
+        "Labirinto: 1ª volta",  "Power Hop Hill", "Lombadas: 1ª passagem",
+        "Pistas 1-2", "Pista 4-3", "Slalom", "Pista 4-3", "Slalom" , "Pistas 4-3", "Pistas 7-8", "Pistas 2-1", "Pistas 7-8", "P. de Baixa",
+         "Pistas 1-2", "Pista 4-3", "Slalom", "Pista 4-3", "Slalom" , "Pistas 4-3", "Pistas 7-8", "Pistas 2-1", "Pistas 7-8", "P. de Baixa",
+        "Pistas 1-2", "Pista 4-3", "Pista 5-8", "Slalom" , "Pistas 4-3", "Pistas 5-8", "Pistas 4-3", "Pistas 9-10", "Pistas 2-1" , "Pistas 9-10", "P. de Baixa",
+                "Pistas 1-2", "Pista 4-3", "Pista 5-8" , "Pistas 4-3", "Pistas 5-8", "Pistas 4-3", "Pistas 9-10",
+        "Pista de Alta + bolacha", "Pista de Baixa + bolacha",
+    
     ],
 
     init() {
