@@ -14,8 +14,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+
     <style>
-        /* DESIGN SYSTEM BENTO BOX INTACTO */
+        /* DESIGN SYSTEM BENTO BOX */
         :root { 
             --bg-body: #030305; --bg-surface: rgba(20, 25, 35, 0.4); --bg-surface-hover: rgba(30, 35, 50, 0.6);
             --border-glass: rgba(255, 255, 255, 0.05); --border-glow: rgba(255, 255, 255, 0.15);
@@ -96,10 +99,10 @@
         <div class="modal-login-box">
             <span class="material-icons" style="font-size: 3.5rem; color: var(--accent); margin-bottom: 10px; text-shadow: 0 0 25px rgba(56, 189, 248, 0.5);">fingerprint</span>
             <h3 style="color: var(--text-primary); font-weight: 900; margin-bottom: 5px; font-size: 1.3rem; text-transform: uppercase; letter-spacing: 1px;">Acesso Operacional</h3>
-            <p style="color: var(--text-secondary); font-size: 0.75rem; margin-bottom: 2.5rem;">Autentique-se para iniciar o turno</p>
+            <p style="color: var(--text-secondary); font-size: 0.75rem; margin-bottom: 2.5rem;">Autentique-se para iniciar o turno (Cloud)</p>
             <div class="input-group"><input type="text" id="login-nome" placeholder="NOME DO OPERADOR" style="text-align: center; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;"></div>
             <div class="input-group" style="margin-bottom: 2.5rem;"><input type="password" id="login-senha" placeholder="PIN" style="text-align: center; font-weight: 900; letter-spacing: 5px; font-size: 1.2rem;" inputmode="numeric"></div>
-            <button class="btn-main btn-solid" onclick="app.efetuarLogin()"><span class="material-icons">login</span> AUTENTICAR</button>
+            <button class="btn-main btn-solid" onclick="app.efetuarLogin()"><span class="material-icons">cloud_sync</span> AUTENTICAR</button>
         </div>
     </div>
 
@@ -166,13 +169,16 @@
                 <label>Status / Etapa Atual</label>
                 <div id="etapa-atual" class="big-value">Carregando Sistema...</div>
                 <div class="input-group" style="margin-top: 1.5rem;"><label>VIN (Target Vehicle)</label><input type="text" id="c-vin" placeholder="Ex: VA29" style="text-align:center; font-weight:800;"></div>
-                <button class="btn-main btn-solid" onclick="app.registrarPassagem()"><span class="material-icons">check_circle</span> REGISTRAR PASSAGEM</button>
+                <button class="btn-main btn-solid" onclick="app.registrarPassagem()"><span class="material-icons">cloud_upload</span> REGISTRAR PASSAGEM</button>
             </div>
             <div class="input-group"><label>Timeline do Turno</label></div>
             <div id="lista-cola" class="log-container"></div>
             <div class="grid-2" style="margin-top: 1.5rem;">
                 <button class="btn-main" onclick="app.novaVolta()"><span class="material-icons">loop</span> FORÇAR NOVA VOLTA</button>
                 <button class="btn-main color-red" onclick="app.gerarRelatorioRoteiro()"><span class="material-icons">picture_as_pdf</span> PDF TIMELINE</button>
+            </div>
+            <div style="text-align: center; margin-top: 15px;">
+                <a href="#" onclick="app.resetarRoteiro()" style="color: var(--danger); font-size: 0.7rem; text-decoration: underline; opacity: 0.7;">⚠️ Apagar Banco de Dados do Turno</a>
             </div>
         </div>
     </div>
@@ -189,12 +195,12 @@
                 <label>Próximo Checkpoint</label>
                 <div id="f-proxima-etapa" class="big-value" style="color: var(--accent);">Pista Baixa - Volta 1</div>
                 <div class="input-group" style="margin-top: 1.5rem;"><input type="text" id="f-obs" placeholder="OK / Sem Anomalias" style="text-align: center;"></div>
-                <button class="btn-main btn-solid" onclick="app.registrarVoltaFrenagem()"><span class="material-icons">flag</span> REGISTRAR VOLTA</button>
+                <button class="btn-main btn-solid" onclick="app.registrarVoltaFrenagem()"><span class="material-icons">cloud_upload</span> REGISTRAR VOLTA</button>
             </div>
             <div class="input-group"><label>Histórico de Laps</label></div>
             <div id="lista-frenagem" class="log-container"></div>
             <div class="grid-2" style="margin-top: 1.5rem;">
-                <button class="btn-main color-red" style="--accent: var(--neon-red);" onclick="app.resetarFrenagem()"><span class="material-icons">delete_sweep</span> ZERAR DADOS</button>
+                <button class="btn-main color-red" style="--accent: var(--neon-red);" onclick="app.resetarFrenagem()"><span class="material-icons">delete_sweep</span> ZERAR BANCO</button>
                 <button class="btn-main color-red" onclick="app.gerarRelatorioFrenagem()"><span class="material-icons">picture_as_pdf</span> GERAR PDF</button>
             </div>
         </div>
@@ -253,7 +259,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=4.5"></script>
+    <script src="app.js?v=4.8"></script>
     <script>
         const appUI = { 
             abrirModal: (id) => { document.getElementById(id).style.display = 'flex'; document.body.style.overflow = 'hidden'; }, 
