@@ -130,7 +130,7 @@ const app = {
 
         if (nomeDigitado.length < 3) return alert("Digite seu nome completo.");
         
-        const USUARIOS_PERMITIDOS = ["WESLEY", "CLEIDIVALDO" , "HEBER"]; 
+        const USUARIOS_PERMITIDOS = ["WESLEY", "CLEIDIVALDO" , "TESTE"]; 
         const SENHA_CORRETA = "1234";
 
         let usuarioExiste = false;
