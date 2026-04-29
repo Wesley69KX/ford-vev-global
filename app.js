@@ -130,7 +130,7 @@ const app = {
 
         if (nomeDigitado.length < 3) return alert("Digite seu nome completo.");
         
-        const USUARIOS_PERMITIDOS = ["WESLEY", "CLEIDIVALDO" , "TESTE"]; 
+        const USUARIOS_PERMITIDOS = ["WESLEY", "JOAO OLIVEIRA" , "HEBER PAES" , "TESTE"]; 
         const SENHA_CORRETA = "1234";
 
         let usuarioExiste = false;
@@ -163,26 +163,33 @@ const app = {
         }
     },
 
-    // ==========================================
-    // IA - GEMINI
+   // ==========================================
+    // IA - GEMINI (ANALISTA DE PRODUTO SCRIPT)
     // ==========================================
     async melhorarTextoComIA(botao) {
         const textarea = document.getElementById('i-obs');
         const textoOriginal = textarea.value.trim();
         if (textoOriginal.toUpperCase() === "RESETAR") { localStorage.removeItem("cofre_chave_gemini"); textarea.value = ""; return alert("Chave apagada!"); }
+        
         let API_KEY = localStorage.getItem("cofre_chave_gemini");
-        if (!API_KEY) { API_KEY = prompt("Chave API Google:"); if (!API_KEY) return; localStorage.setItem("cofre_chave_gemini", API_KEY.trim()); }
+        if (!API_KEY) { API_KEY = prompt("Cole sua Chave API do Google:"); if (!API_KEY) return; localStorage.setItem("cofre_chave_gemini", API_KEY.trim()); }
+        
         botao.innerHTML = '...';
         try {
-            const promptComando = "Atue como Analista de Produto Automotivo. Melhore tecnicamente o texto a seguir para um laudo. NÃO invente fatos novos, apenas corrija gramática e profissionalize: " + textoOriginal;
+            // O Segredo está aqui: A "Ordem de Script"
+            const promptComando = "Você é um algoritmo de conversão de texto. Atue como Analista de Produto Automotivo. Melhore tecnicamente e formalize o texto a seguir para um laudo de avaria de pista. REGRAS ESTRITAS DE SAÍDA: 1. NÃO altere os fatos. 2. NÃO adicione informações que não estão no original. 3. NÃO use nenhuma formatação Markdown (sem asteriscos, sem negrito, sem listas). 4. RETORNE EXCLUSIVAMENTE O TEXTO REESCRITO em texto puro, sem NENHUMA saudação, introdução (como 'Aqui está') ou conclusão. Apenas cuspa o texto final. Texto original: " + textoOriginal;
+            
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
             const resposta = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: promptComando }] }] }) });
             const dados = await resposta.json();
-            if (dados.candidates) textarea.value = dados.candidates[0].content.parts[0].text.trim();
-        } catch (e) { alert("Erro IA."); }
+            
+            if (dados.candidates) {
+                // Remove qualquer quebra de linha extra que a IA possa tentar colocar no começo/fim
+                textarea.value = dados.candidates[0].content.parts[0].text.trim();
+            }
+        } catch (e) { alert("Erro na comunicação com a IA."); }
         botao.innerHTML = '<span class="material-icons" style="font-size: 1rem;">auto_awesome</span> PROCESSAR IA';
     },
-
     // ==========================================
     // ROTEIRO R389
     // ==========================================
