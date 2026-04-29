@@ -31,10 +31,10 @@ const app = {
     
      // ROTEIRO R389
     sequenciaDiasPares: [
-        "Labirinto: 1ª volta",  "Power Hop Hill", "Lombadas: 1ª passagem",
+        "Labirinto: 1ª volta + Mata-burro",  "Power Hop Hill", "Lombadas: 1ª passagem",
         "Pistas 1-2", "Pista 4-3", "Slalom", "Pista 4-3", "Slalom" , "Pistas 4-3", "Pistas 7-8", "Pistas 2-1", "Pistas 7-8", "P. de Baixa",
          "Pistas 1-2", "Pista 4-3", "Slalom", "Pista 4-3", "Slalom" , "Pistas 4-3", "Pistas 7-8", "Pistas 2-1", "Pistas 7-8", "P. de Baixa",
-        "Pistas 1-2", "Pista 4-3", "Pista 5-8", "Slalom" , "Pistas 4-3", "Pistas 5-8", "Pistas 4-3", "Pistas 9-10", "Pistas 2-1" , "Pistas 9-10", "P. de Baixa",
+        "Pistas 1-2", "Pista 4-3", "Pista 5-8", "Pistas 4-3", "Pistas 5-8", "Pistas 4-3", "Pistas 9-10", "Pistas 2-1" , "Pistas 9-10", "P. de Baixa",
                 "Pistas 1-2", "Pista 4-3", "Pista 5-8" , "Pistas 4-3", "Pistas 5-8", "Pistas 4-3", "Pistas 9-10",
         "Pista de Alta + bolacha", "Pista de Baixa + bolacha",
     ],
