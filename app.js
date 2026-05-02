@@ -320,6 +320,166 @@ const app = {
         doc.save(`Log_Fren_${this.operadorAtual.split(' ')[0]}.pdf`);
     },
 
+
+
+
+
+
+// ==========================================
+// 📡 MÓDULO DE TELEMETRIA GPS E GEOFENCING
+// ==========================================
+
+// 1. O SEU MAPA MÚNDI (Dicionário de Coordenadas)
+// Substitua os zeros pelas coordenadas reais extraídas do Google Maps.
+const MAPA_PISTAS = {
+    // --- CICLO DE FRENAGEM ---
+    "P. de Baixa":               { lat: -23.398088084486734,  lng: -47.92362656463522, raio: 40 },
+    "Pista de Alta":             { lat: -23.392783132651925,  lng: -47.91720937962347, raio: 40 },
+
+    // --- TESTES ESPECIAIS ---
+    "Labirinto: 1ª volta + Mata-burro": { lat: -23.389897937338947, lng:  -47.90375005479293, raio: 30 },
+    "Power Hop Hill":            { lat: -23.389408882275966,  lng:  -47.920772503525185, raio: 30 },
+    "Lombadas: 1ª passagem":     { lat: -23.395171846083837,  lng: -47.92032189243844, raio: 30 },
+    "Pistas 1-2":                { lat: -23.397242119161156,  lng: -47.92448602193369, raio: 40 },
+    "Pista 4-3":                 { lat: -23.395709726328462,  lng: -47.92309797877286, raio: 40 },
+    "Slalom":                    { lat: -23.39748090007043,  lng: -47.9242084133005, raio: 40 },
+    "Pistas 7-8":                { lat: -23.397314738151422,  lng: -47.924327771600595, raio: 40 },
+    "Pistas 2-1":                { lat: -23.396490940978282,  lng: -47.92386790410527, raio: 40 },
+    "Pista 5-8":                 { lat: -23.397269640868,  lng: -47.92436583698041, raio: 40 },
+    "Pistas 9-10":               { lat: -23.397469035218407,  lng: -47.92421831548582, raio: 40 },
+    "Pista de Alta + bolacha":   { lat: -23.393033414214045,  lng: -47.91519833780578, raio: 40 },
+    "Pista de Baixa + bolacha":  { lat: -23.396999216729025,  lng: -47.91646970487802, raio: 40 }
+};
+
+// 2. O ROTEIRO DOS TESTES ESPECIAIS (A Máquina de Estados)
+const sequenciaDiasPares = [
+    "Labirinto: 1ª volta + Mata-burro", "Power Hop Hill", "Lombadas: 1ª passagem",
+    "Pistas 1-2", "Pista 4-3", "Slalom", "Pista 4-3", "Slalom", "Pistas 4-3", "Pistas 7-8", "Pistas 2-1", "Pistas 7-8", "P. de Baixa",
+    "Pistas 1-2", "Pista 4-3", "Slalom", "Pista 4-3", "Slalom", "Pistas 4-3", "Pistas 7-8", "Pistas 2-1", "Pistas 7-8", "P. de Baixa",
+    "Pistas 1-2", "Pista 4-3", "Pista 5-8", "Pistas 4-3", "Pistas 5-8", "Pistas 4-3", "Pistas 9-10", "Pistas 2-1", "Pistas 9-10", "P. de Baixa",
+    "Pistas 1-2", "Pista 4-3", "Pista 5-8", "Pistas 4-3", "Pistas 5-8", "Pistas 4-3", "Pistas 9-10",
+    "Pista de Alta + bolacha", "Pista de Baixa + bolacha"
+];
+
+// Variáveis de Controle Global
+let rastreadorGpsID = null;
+let indiceEtapaAtual = 0; // Controla qual item da lista o carro está buscando agora
+let bloqueioTempo = false; // Trava para evitar duplo check-in (Cooldown)
+
+// 3. LOCUTOR VIRTUAL (Voz do App)
+function falar(mensagem) {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); // Interrompe a fala anterior para não sobrepor
+        const locutor = new SpeechSynthesisUtterance(mensagem);
+        locutor.lang = 'pt-BR';
+        locutor.rate = 1.1; // Velocidade da voz (1.0 é o normal)
+        locutor.pitch = 1.0;
+        window.speechSynthesis.speak(locutor);
+    }
+}
+
+// 4. MATEMÁTICA DO GPS (Fórmula de Haversine em Metros)
+function calcularDistanciaMetros(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // Raio da Terra em metros
+    const φ1 = lat1 * Math.PI/180;
+    const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180;
+    const Δλ = (lon2-lon1) * Math.PI/180;
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; 
+}
+
+// 5. O MOTOR PRINCIPAL (Ativa a Cerca Virtual)
+function iniciarPilotoAutomatico() {
+    if (!navigator.geolocation) {
+        alert("Seu navegador ou dispositivo não suporta rastreamento GPS.");
+        return;
+    }
+
+    falar("Piloto automático iniciado. Siga para: " + sequenciaDiasPares[indiceEtapaAtual]);
+    
+    // Fica lendo a posição continuamente (como um radar)
+    rastreadorGpsID = navigator.geolocation.watchPosition((posicao) => {
+        
+        // Se o carro acabou de dar check-in, ignora o GPS até passar o tempo de bloqueio
+        if (bloqueioTempo) return; 
+
+        const minhaLat = posicao.coords.latitude;
+        const minhaLng = posicao.coords.longitude;
+        
+        // Verifica qual é o alvo atual na array
+        let nomePistaAlvo = sequenciaDiasPares[indiceEtapaAtual];
+        
+        // Segurança: Se acabaram as etapas, desliga o radar automaticamente
+        if (!nomePistaAlvo) {
+            navigator.geolocation.clearWatch(rastreadorGpsID);
+            return;
+        }
+
+        let alvo = MAPA_PISTAS[nomePistaAlvo];
+
+        // Segurança: Avisa se você esqueceu de colocar as coordenadas de alguma pista
+        if (!alvo || alvo.lat === 0) {
+            console.warn(`Atenção: Pista '${nomePistaAlvo}' ainda não foi mapeada com coordenadas reais.`);
+            return;
+        }
+
+        let distancia = calcularDistanciaMetros(minhaLat, minhaLng, alvo.lat, alvo.lng);
+        
+        // SE O CARRO ENTROU NO RAIO DE CAPTURA (CHECK-IN)
+        if (distancia <= alvo.raio) {
+            
+            // 1. Ativa a Trava de Tempo (Impede que leia o mesmo ponto 2x). 
+            // 45000 = 45 segundos cegos para esse radar específico.
+            bloqueioTempo = true;
+            setTimeout(() => { bloqueioTempo = false; }, 45000); 
+
+            console.log(`✅ Check-in confirmado: ${nomePistaAlvo}`);
+            
+            // >>> AQUI VOCÊ CHAMA SUA FUNÇÃO DE SALVAR NO FIREBASE <<<
+            // Exemplo: salvarPassagemNoBancoDeDados(nomePistaAlvo);
+
+            // 2. Avança o roteiro para o próximo item
+            indiceEtapaAtual++;
+            let proximaPista = sequenciaDiasPares[indiceEtapaAtual];
+
+            // 3. O Locutor avisa o piloto e dita a próxima instrução
+            if (proximaPista) {
+                falar(`Check confirmado. Siga para: ${proximaPista}`);
+            } else {
+                falar("Ciclo de testes especiais concluído com sucesso. Retorne à base.");
+                navigator.geolocation.clearWatch(rastreadorGpsID); // Desliga o radar
+            }
+        }
+    }, 
+    (erro) => console.log("Aguardando sinal forte de GPS...", erro), 
+    { enableHighAccuracy: true, maximumAge: 0 }); // Força o uso da antena GPS máxima do aparelho
+}
+
+// Botão opcional para parar o rastreamento no meio do teste
+function pararPilotoAutomatico() {
+    if (rastreadorGpsID !== null) {
+        navigator.geolocation.clearWatch(rastreadorGpsID);
+        falar("Piloto automático desativado.");
+    }
+}
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
     // ==========================================
     // RESUMO GERAL (R389 + FRENAGEM)
     // ==========================================
