@@ -26,6 +26,7 @@
             --neon-blue: #38bdf8; --neon-blue-rgb: 56, 189, 248; --neon-purple: #a855f7; --neon-purple-rgb: 168, 85, 247;
             --neon-orange: #f97316; --neon-orange-rgb: 249, 115, 22; --neon-red: #ef4444; --neon-red-rgb: 239, 68, 68;
             --neon-green: #10b981; --neon-green-rgb: 16, 185, 129; --neon-gray: #64748b; --neon-gray-rgb: 100, 116, 139;
+            --neon-cyan: #22d3ee; --neon-cyan-rgb: 34, 211, 238; /* NOVA COR PARA O GPS */
         }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Inter', sans-serif; background: var(--bg-body); color: var(--text-primary); line-height: 1.5; padding-bottom: 80px; min-height: 100vh; overflow-x: hidden; }
@@ -58,6 +59,7 @@
         .color-green { --accent: var(--neon-green); --accent-rgb: var(--neon-green-rgb); }
         .color-gray { --accent: var(--neon-gray); --accent-rgb: var(--neon-gray-rgb); }
         .color-red { --accent: var(--neon-red); --accent-rgb: var(--neon-red-rgb); }
+        .color-cyan { --accent: var(--neon-cyan); --accent-rgb: var(--neon-cyan-rgb); }
         .color-white { --accent: #fff; --accent-rgb: 255, 255, 255; }
 
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -137,26 +139,70 @@
 
         <h2>Sistemas de Engenharia</h2>
         <div class="bento-grid">
+            <!-- R389 Full Width -->
             <div class="bento-card bento-full color-purple" onclick="appUI.abrirModal('modal-roteiro')">
                 <div class="bento-glow"></div>
                 <div style="display: flex; justify-content: space-between; align-items: flex-start;"><div class="bento-icon"><span class="material-icons">alt_route</span></div><span class="material-icons" style="color: rgba(255,255,255,0.2);">arrow_forward</span></div>
                 <div class="bento-content"><h3 style="font-size: 1.4rem;">Ciclos R389</h3><p>Controle de Trajeto em Loop Contínuo & Timeline</p></div>
             </div>
+            
+            <!-- NOVO: Telemetria GPS Cyan -->
+            <div class="bento-card color-cyan" onclick="appUI.abrirModal('modal-gps')">
+                <div class="bento-glow"></div><div class="bento-icon"><span class="material-icons">satellite_alt</span></div>
+                <div class="bento-content"><h3>GPS</h3><p>Piloto Automático</p></div>
+            </div>
+
+            <!-- Frenagem Orange -->
             <div class="bento-card color-orange" onclick="appUI.abrirModal('modal-frenagem')">
                 <div class="bento-glow"></div><div class="bento-icon"><span class="material-icons">speed</span></div>
                 <div class="bento-content"><h3>Frenagem</h3><p>Telemetria de 8 Laps</p></div>
             </div>
+            
+            <!-- Laudo IA Blue -->
             <div class="bento-card color-blue" onclick="appUI.abrirModal('modal-laudo')">
                 <div class="bento-glow"></div><div class="bento-icon"><span class="material-icons">auto_awesome</span></div>
                 <div class="bento-content"><h3>Laudo IA</h3><p>Análise Inteligente</p></div>
             </div>
+            
+            <!-- Resumo White -->
             <div class="bento-card color-white" onclick="app.gerarRelatorioResumo()">
                 <div class="bento-glow"></div><div class="bento-icon" style="color: #000; background: #fff;"><span class="material-icons">analytics</span></div>
                 <div class="bento-content"><h3>Resumo</h3><p>PDF Agrupado do Dia</p></div>
             </div>
-            <div class="bento-card color-green" onclick="appUI.abrirModal('modal-turno')">
-                <div class="bento-glow"></div><div class="bento-icon"><span class="material-icons">verified_user</span></div>
-                <div class="bento-content"><h3>Encerrar</h3><p>Fechamento de Turno</p></div>
+            
+            <!-- Encerrar Turno (Agora Full Width para fechar o grid com estilo) -->
+            <div class="bento-card bento-full color-green" onclick="appUI.abrirModal('modal-turno')">
+                <div class="bento-glow"></div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;"><div class="bento-icon"><span class="material-icons">verified_user</span></div><span class="material-icons" style="color: rgba(255,255,255,0.2);">check_circle</span></div>
+                <div class="bento-content"><h3>Encerrar Turno</h3><p>Fechamento e Transmissão de Dados</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GPS (NOVO) -->
+    <div id="modal-gps" class="modal-overlay color-cyan">
+        <div class="modal-content">
+            <div class="close-btn" onclick="appUI.fecharModal('modal-gps')"><span class="material-icons">close</span></div>
+            <h3 class="modal-title">Telemetria de Pista (GPS)</h3>
+            
+            <div class="dashboard-panel">
+                <label>Painel do Rastreador</label>
+                <div class="grid-2" style="margin-top: 1.5rem;">
+                    <button class="btn-main btn-solid" onclick="iniciarPilotoAutomatico()"><span class="material-icons">play_arrow</span> INICIAR VOO</button>
+                    <button class="btn-main color-red" style="--accent: var(--neon-red);" onclick="pararPilotoAutomatico()"><span class="material-icons">stop</span> PARAR</button>
+                </div>
+            </div>
+
+            <!-- PAINEL DE TOPOGRAFIA PARA O SÁBADO -->
+            <h4 style="color: var(--text-primary); font-size: 0.85rem; margin: 2rem 0 1rem; text-transform: uppercase; letter-spacing: 1px; text-align: center;">Modo Topografia (Calibração)</h4>
+            <div class="dashboard-panel" style="border-color: rgba(255, 255, 255, 0.1);">
+                <div class="input-group">
+                    <input type="text" id="nome-ponto" placeholder="NOME DO PONTO (Ex: Pista Baixa)" style="text-align: center; font-weight: bold;">
+                </div>
+                <button class="btn-main" style="--accent: var(--neon-orange); color: var(--neon-orange); border-color: var(--neon-orange);" onclick="mapearPontoAtual()">
+                    <span class="material-icons">my_location</span> CAPTURAR COORDENADA
+                </button>
+                <div id="resultado-gps" style="margin-top: 15px; font-family: monospace; font-size: 0.75rem; color: var(--neon-green); word-break: break-all; min-height: 20px; font-weight: bold;"></div>
             </div>
         </div>
     </div>
