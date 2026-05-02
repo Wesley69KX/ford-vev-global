@@ -25,6 +25,10 @@ const app = {
     fotos: [], videosFiles: [], etapaAtualIndex: 0, checkins: [],
     operadorAtual: null,
     
+    // VARIÁVEIS NOVO TESTE DE DESACELERAÇÃO
+    etapaDesaceleracaoIndex: 0, 
+    checkinsDesaceleracao: [],
+    
     ciclosFrenagem: [],
     roteiroFrenagem: [
         "Pista Baixa - Volta 1", "Pista Baixa - Volta 2", "Pista Baixa - Volta 3", "Pista Baixa - Volta 4",
@@ -41,6 +45,20 @@ const app = {
         "Pista de Alta + bolacha", "Pista de Baixa + bolacha",
     ],
 
+    // NOVO ROTEIRO: DESACELERAÇÃO 16 VOLTAS
+    roteiroDesaceleracao: [
+        // BATERIA 1
+        "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 0km/h)",
+        // BATERIA 2
+        "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 0km/h)",
+        // BATERIA 3
+        "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 0km/h)",
+        // BATERIA 4
+        "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 0km/h)",
+        // FIM DO CICLO - PISTAS ESPECIAIS
+        "Power Hop Hill", "Enrola Camisa", "Enrola Camisa", "Power Hop Hill"
+    ],
+
     init() {
         document.getElementById('t-data').value = new Date().toISOString().split('T')[0];
         this.verificarSessao();
@@ -52,6 +70,8 @@ const app = {
         const estado = {
             etapaAtualIndex: this.etapaAtualIndex,
             checkins: this.checkins,
+            etapaDesaceleracaoIndex: this.etapaDesaceleracaoIndex,
+            checkinsDesaceleracao: this.checkinsDesaceleracao,
             ciclosFrenagem: this.ciclosFrenagem,
             ultimaAtualizacao: new Date().toLocaleTimeString('pt-BR')
         };
@@ -68,6 +88,8 @@ const app = {
             if (estadoNuvem) {
                 this.etapaAtualIndex = estadoNuvem.etapaAtualIndex || 0;
                 this.checkins = estadoNuvem.checkins || [];
+                this.etapaDesaceleracaoIndex = estadoNuvem.etapaDesaceleracaoIndex || 0;
+                this.checkinsDesaceleracao = estadoNuvem.checkinsDesaceleracao || [];
                 this.ciclosFrenagem = estadoNuvem.ciclosFrenagem || [];
             } else {
                 this.restaurarBackupLocal();
@@ -76,6 +98,7 @@ const app = {
             this.restaurarBackupLocal();
         }
         this.atualizarInterfaceCola();
+        this.atualizarInterfaceDesaceleracao();
         this.renderListaFrenagem();
     },
 
@@ -85,9 +108,13 @@ const app = {
             const estadoLocal = JSON.parse(salvoLocal);
             this.etapaAtualIndex = estadoLocal.etapaAtualIndex || 0;
             this.checkins = estadoLocal.checkins || [];
+            this.etapaDesaceleracaoIndex = estadoLocal.etapaDesaceleracaoIndex || 0;
+            this.checkinsDesaceleracao = estadoLocal.checkinsDesaceleracao || [];
             this.ciclosFrenagem = estadoLocal.ciclosFrenagem || [];
         } else {
-            this.etapaAtualIndex = 0; this.checkins = []; this.ciclosFrenagem = [];
+            this.etapaAtualIndex = 0; this.checkins = []; 
+            this.etapaDesaceleracaoIndex = 0; this.checkinsDesaceleracao = []; 
+            this.ciclosFrenagem = [];
         }
     },
 
@@ -135,7 +162,9 @@ const app = {
             localStorage.removeItem("app_vev_operador");
             this.operadorAtual = null;
             document.getElementById("ui-nome-usuario").innerText = "NÃO LOGADO";
-            this.etapaAtualIndex = 0; this.checkins = []; this.ciclosFrenagem = [];
+            this.etapaAtualIndex = 0; this.checkins = []; 
+            this.etapaDesaceleracaoIndex = 0; this.checkinsDesaceleracao = [];
+            this.ciclosFrenagem = [];
             this.verificarSessao();
         }
     },
@@ -159,7 +188,9 @@ const app = {
         botao.innerHTML = '<span class="material-icons" style="font-size: 1rem;">auto_awesome</span> PROCESSAR IA';
     },
 
+    // ==========================================
     // ROTEIRO R389
+    // ==========================================
     registrarPassagem() {
         if (this.etapaAtualIndex >= this.sequenciaDiasPares.length) return this.novaVolta(); 
         const nomeEtapa = this.sequenciaDiasPares[this.etapaAtualIndex];
@@ -194,7 +225,7 @@ const app = {
                 ${e}
             </div>
         `).join('');
-        setTimeout(() => { const itemAtivo = document.querySelector('.log-item.ativo'); if(itemAtivo) itemAtivo.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+        setTimeout(() => { const itemAtivo = document.querySelector('#lista-cola .log-item.ativo'); if(itemAtivo) itemAtivo.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
     },
 
     resetarRoteiro() {
@@ -217,7 +248,60 @@ const app = {
         doc.save(`Log_R389_${this.operadorAtual.split(' ')[0]}.pdf`);
     },
 
+    // ==========================================
+    // NOVO: DESACELERAÇÃO 16 VOLTAS
+    // ==========================================
+    registrarPassagemDesaceleracao() {
+        if (this.etapaDesaceleracaoIndex >= this.roteiroDesaceleracao.length) return alert("O ciclo já foi concluído!"); 
+        const nomeEtapa = this.roteiroDesaceleracao[this.etapaDesaceleracaoIndex];
+        const vin = document.getElementById('d-vin')?.value || "---";
+        this.checkinsDesaceleracao.push({ atividade: nomeEtapa, hora: new Date().toLocaleTimeString('pt-BR'), vin: vin, operador: this.operadorAtual });
+        if ('vibrate' in navigator) navigator.vibrate(50);
+        this.etapaDesaceleracaoIndex++;
+        
+        this.salvarEstadoHibrido();
+        this.atualizarInterfaceDesaceleracao();
+    },
+
+    atualizarInterfaceDesaceleracao() {
+        if (this.etapaDesaceleracaoIndex < this.roteiroDesaceleracao.length) {
+            document.getElementById('etapa-desaceleracao-atual').innerText = this.roteiroDesaceleracao[this.etapaDesaceleracaoIndex];
+        } else {
+            document.getElementById('etapa-desaceleracao-atual').innerText = "✅ TESTE CONCLUÍDO";
+        }
+        const lista = document.getElementById('lista-desaceleracao');
+        lista.innerHTML = this.roteiroDesaceleracao.map((e, i) => `
+            <div class="log-item ${i < this.etapaDesaceleracaoIndex ? 'concluido' : (i === this.etapaDesaceleracaoIndex ? 'ativo' : '')}">
+                <span class="material-icons" style="font-size: 1rem; color: ${i === this.etapaDesaceleracaoIndex ? 'var(--accent)' : 'inherit'};">${i < this.etapaDesaceleracaoIndex ? 'check_circle' : 'radio_button_unchecked'}</span>
+                ${i + 1}. ${e}
+            </div>
+        `).join('');
+        setTimeout(() => { const itemAtivo = document.querySelector('#lista-desaceleracao .log-item.ativo'); if(itemAtivo) itemAtivo.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+    },
+
+    resetarDesaceleracao() {
+        if(confirm("Tem certeza que deseja APAGAR os registros deste teste de Desaceleração?")) { 
+            this.etapaDesaceleracaoIndex = 0; 
+            this.checkinsDesaceleracao = []; 
+            this.salvarEstadoHibrido(); 
+            this.atualizarInterfaceDesaceleracao(); 
+        }
+    },
+
+    async gerarRelatorioDesaceleracao() {
+        if (this.checkinsDesaceleracao.length === 0) return alert("Nenhuma passagem registrada.");
+        const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 40, 'F');
+        doc.setTextColor(236, 72, 153); doc.setFontSize(16); doc.text("LOG DE DESACELERAÇÃO (16 LAPS)", 105, 20, { align: "center" });
+        doc.setFontSize(10); doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')} | Analista: ${this.operadorAtual}`, 105, 28, { align: "center" });
+        const dadosTabela = this.checkinsDesaceleracao.map((c, i) => [i + 1, c.atividade, c.hora]);
+        doc.autoTable({ startY: 45, head: [['LAP / ETAPA', 'ATIVIDADE', 'HORA']], body: dadosTabela, headStyles: { fillColor: [236, 72, 153], textColor: [255,255,255] } });
+        doc.save(`Log_Desaceleracao_${this.operadorAtual.split(' ')[0]}.pdf`);
+    },
+
+    // ==========================================
     // FRENAGEM
+    // ==========================================
     registrarVoltaFrenagem() {
         const totalVoltas = this.ciclosFrenagem.length;
         const indexNoCiclo = totalVoltas % 8; 
@@ -284,8 +368,11 @@ const app = {
         doc.save(`Log_Fren_${this.operadorAtual.split(' ')[0]}.pdf`);
     },
 
+    // ==========================================
+    // PDF RESUMO GERAL CONSOLIDADO
+    // ==========================================
     gerarRelatorioResumo() {
-        if (this.checkins.length === 0 && this.ciclosFrenagem.length === 0) return alert("Sem dados registrados no turno.");
+        if (this.checkins.length === 0 && this.ciclosFrenagem.length === 0 && this.checkinsDesaceleracao.length === 0) return alert("Sem dados registrados no turno.");
         const vin = document.getElementById('c-vin')?.value || "VEV-TEST";
         
         const resumoR389 = {};
@@ -293,6 +380,11 @@ const app = {
             if(r.atividade.includes("---")) return;
             let nome = r.atividade.split(':')[0].trim();
             resumoR389[nome] = (resumoR389[nome] || 0) + 1;
+        });
+
+        const resumoDesaceleracao = {};
+        this.checkinsDesaceleracao.forEach(r => {
+            resumoDesaceleracao[r.atividade] = (resumoDesaceleracao[r.atividade] || 0) + 1;
         });
 
         const totalVoltasFrenagem = this.ciclosFrenagem.length;
@@ -307,6 +399,7 @@ const app = {
         
         let currentY = 45;
 
+        // Tabela Frenagem
         if (totalVoltasFrenagem > 0) {
             doc.setTextColor(0, 0, 0); doc.setFontSize(12); doc.setFont(undefined, 'bold');
             doc.text("RESUMO: TESTE DE FRENAGEM", 14, currentY);
@@ -315,16 +408,29 @@ const app = {
             currentY = doc.lastAutoTable.finalY + 15;
         }
 
+        // Tabela R389
         if (Object.keys(resumoR389).length > 0) {
             doc.setTextColor(0, 0, 0); doc.setFontSize(12); doc.setFont(undefined, 'bold');
             doc.text("RESUMO: CICLOS R389", 14, currentY);
             const tabelaR389 = Object.keys(resumoR389).map(k => [k, `${resumoR389[k]} vezes`]);
             doc.autoTable({ startY: currentY + 5, head: [['PISTA / ATIVIDADE', 'TOTAL NO TURNO']], body: tabelaR389, headStyles: { fillColor: [168, 85, 247] } });
+            currentY = doc.lastAutoTable.finalY + 15;
+        }
+
+        // Tabela Desaceleração
+        if (Object.keys(resumoDesaceleracao).length > 0) {
+            doc.setTextColor(0, 0, 0); doc.setFontSize(12); doc.setFont(undefined, 'bold');
+            doc.text("RESUMO: DESACELERAÇÃO 16 LAPS", 14, currentY);
+            const tabelaDesaceleracao = Object.keys(resumoDesaceleracao).map(k => [k, `${resumoDesaceleracao[k]} passagens`]);
+            doc.autoTable({ startY: currentY + 5, head: [['PISTA / ATIVIDADE', 'TOTAL NO TURNO']], body: tabelaDesaceleracao, headStyles: { fillColor: [236, 72, 153] } });
         }
 
         doc.save(`Resumo_${this.operadorAtual.split(' ')[0]}_${Date.now()}.pdf`);
     },
 
+    // ==========================================
+    // OUTROS MÉTODOS (Fotos, IA, Turno)
+    // ==========================================
     handleMedia(e) {
         Array.from(e.target.files).forEach(file => {
             if (file.type.startsWith('video/')) {
@@ -400,20 +506,24 @@ const app = {
         const texto = `*Fechamento: ${this.operadorAtual}*\n*Abastecimento ${v}*\n${document.getElementById('t-turno').value} ${dataFormatada}\nVIN: ${document.getElementById('t-vin').value}\nTrip: ${document.getElementById('t-trip').value}\nKm: ${document.getElementById('t-km').value}\nLitros: ${document.getElementById('t-litros').value}\nSaldo: R$ ${document.getElementById('t-saldo').value}`;
         try { await navigator.clipboard.writeText(texto); alert("Copiado para o WhatsApp!"); } catch (e) {}
     }
-}; // <<<<<<<<<< FIM DO OBJETO APP (FECHAMENTO DA CHAVE AQUI)
+};
 
-// Inicializa o App
 window.onload = () => app.init();
 
-
-
 // ====================================================
-// 3. MÓDULO DE TELEMETRIA GPS (ISOLADO E INTEGRADO)
+// 3. MÓDULO DE TELEMETRIA GPS INTEGRADO
 // ====================================================
 
 const MAPA_PISTAS = {
+    // Pistas Base
     "P. de Baixa":               { lat: -23.398088084486734,  lng: -47.92362656463522, raio: 40 },
     "Pista de Alta":             { lat: -23.392783132651925,  lng: -47.91720937962347, raio: 40 },
+    
+    // Nomes Dinâmicos que ocorrem na Pista de Alta (Mesma Coordenada)
+    "Alta (100 a 20km/h)":       { lat: -23.392783132651925,  lng: -47.91720937962347, raio: 40 },
+    "Alta (100 a 0km/h)":        { lat: -23.392783132651925,  lng: -47.91720937962347, raio: 40 },
+    
+    // Testes Especiais
     "Labirinto: 1ª volta + Mata-burro": { lat: -23.389897937338947, lng:  -47.90375005479293, raio: 30 },
     "Power Hop Hill":            { lat: -23.389408882275966,  lng:  -47.920772503525185, raio: 30 },
     "Lombadas: 1ª passagem":     { lat: -23.395171846083837,  lng: -47.92032189243844, raio: 30 },
@@ -425,7 +535,10 @@ const MAPA_PISTAS = {
     "Pista 5-8":                 { lat: -23.397269640868,  lng: -47.92436583698041, raio: 40 },
     "Pistas 9-10":               { lat: -23.397469035218407,  lng: -47.92421831548582, raio: 40 },
     "Pista de Alta + bolacha":   { lat: -23.393033414214045,  lng: -47.91519833780578, raio: 40 },
-    "Pista de Baixa + bolacha":  { lat: -23.396999216729025,  lng: -47.91646970487802, raio: 40 }
+    "Pista de Baixa + bolacha":  { lat: -23.396999216729025,  lng: -47.91646970487802, raio: 40 },
+    
+    // AINDA NÃO MAPEADO (Vai ignorar no GPS até você pegar a coordenada real)
+    "Enrola Camisa":             { lat: 0.000000, lng: 0.000000, raio: 40 } 
 };
 
 let rastreadorGpsID = null;
@@ -452,25 +565,40 @@ function calcularDistanciaMetros(lat1, lon1, lat2, lon2) {
 function iniciarPilotoAutomatico() {
     if (!navigator.geolocation) return alert("Dispositivo não suporta GPS.");
     
-    // Agora o GPS lê direto de dentro do aplicativo!
-    let nomePistaInicial = app.sequenciaDiasPares[app.etapaAtualIndex];
-    if (!nomePistaInicial) return alert("O ciclo de testes já foi concluído.");
+    // Descobre qual roteiro o engenheiro quer usar no dropdown
+    const modoSelecionado = document.getElementById('gps-rota-selecionada').value;
+    let arrayRota, indexAtual;
     
-    falar("Piloto automático ativado. Siga para: " + nomePistaInicial);
+    if (modoSelecionado === 'R389') {
+        arrayRota = app.sequenciaDiasPares;
+        indexAtual = app.etapaAtualIndex;
+    } else {
+        arrayRota = app.roteiroDesaceleracao;
+        indexAtual = app.etapaDesaceleracaoIndex;
+    }
+
+    let nomePistaInicial = arrayRota[indexAtual];
+    if (!nomePistaInicial) return alert("O ciclo selecionado já foi concluído.");
+    
+    falar("Piloto automático ativado. Modo " + (modoSelecionado === 'R389' ? "R 3 8 9" : "Desaceleração de 16 Voltas") + ". Siga para: " + nomePistaInicial);
     
     rastreadorGpsID = navigator.geolocation.watchPosition((posicao) => {
         if (bloqueioTempo) return; 
 
-        // Descobre onde o aplicativo parou
-        let nomePistaAlvo = app.sequenciaDiasPares[app.etapaAtualIndex];
-        
+        // Atualiza a memória de onde o app está em tempo real
+        if (modoSelecionado === 'R389') indexAtual = app.etapaAtualIndex;
+        else indexAtual = app.etapaDesaceleracaoIndex;
+
+        let nomePistaAlvo = arrayRota[indexAtual];
         if (!nomePistaAlvo) {
             navigator.geolocation.clearWatch(rastreadorGpsID);
             return;
         }
 
         let alvo = MAPA_PISTAS[nomePistaAlvo];
-        if (!alvo || alvo.lat === 0) return console.warn(`Sem coordenadas: ${nomePistaAlvo}`);
+        
+        // Se bater na Enrola Camisa que ainda não tem GPS, o app ignora sem dar erro
+        if (!alvo || alvo.lat === 0) return console.log(`Aguardando clique manual em: ${nomePistaAlvo}`);
 
         let distancia = calcularDistanciaMetros(posicao.coords.latitude, posicao.coords.longitude, alvo.lat, alvo.lng);
         
@@ -480,11 +608,18 @@ function iniciarPilotoAutomatico() {
 
             console.log(`✅ GPS Check-in: ${nomePistaAlvo}`);
             
-            // A MÁGICA ACONTECE AQUI: O GPS "Aperta o botão" do aplicativo automaticamente!
-            app.registrarPassagem();
+            // O GPS aperta o botão interno correspondente
+            if (modoSelecionado === 'R389') {
+                app.registrarPassagem();
+            } else {
+                app.registrarPassagemDesaceleracao();
+            }
 
-            // Pega o nome da PRÓXIMA pista após o app.registrarPassagem() ter avançado a etapa
-            let proximaPista = app.sequenciaDiasPares[app.etapaAtualIndex];
+            // Pega a próxima pista e fala
+            if (modoSelecionado === 'R389') indexAtual = app.etapaAtualIndex;
+            else indexAtual = app.etapaDesaceleracaoIndex;
+
+            let proximaPista = arrayRota[indexAtual];
 
             if (proximaPista) {
                 falar(`Check confirmado. Siga para: ${proximaPista}`);
@@ -505,7 +640,6 @@ function pararPilotoAutomatico() {
     }
 }
 
-// FERRAMENTA TEMPORÁRIA DE MAPEAMENTO PARA O SÁBADO
 function mapearPontoAtual() {
     const painelResultado = document.getElementById('resultado-gps');
     const nomePonto = document.getElementById('nome-ponto').value;
