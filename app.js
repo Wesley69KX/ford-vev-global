@@ -17,7 +17,6 @@ if (!firebase.apps.length) {
 }
 const db = firebase.database();
 
-
 // ====================================================
 // 2. O CORAÇÃO DO APLICATIVO
 // ====================================================
@@ -45,17 +44,12 @@ const app = {
         "Pista de Alta + bolacha", "Pista de Baixa + bolacha",
     ],
 
-    // NOVO ROTEIRO: DESACELERAÇÃO 16 VOLTAS
+    // ROTEIRO: DESACELERAÇÃO 16 VOLTAS
     roteiroDesaceleracao: [
-        // BATERIA 1
         "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 0km/h)",
-        // BATERIA 2
         "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 0km/h)",
-        // BATERIA 3
         "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 0km/h)",
-        // BATERIA 4
         "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 0km/h)",
-        // FIM DO CICLO - PISTAS ESPECIAIS
         "Power Hop Hill", "Enrola Camisa", "Enrola Camisa", "Power Hop Hill"
     ],
 
@@ -191,8 +185,8 @@ const app = {
     // ==========================================
     // ROTEIRO R389
     // ==========================================
-    registrarPassagem() {
-        if (this.etapaAtualIndex >= this.sequenciaDiasPares.length) return this.novaVolta(); 
+    registrarPassagem(forcarVindoDoCopiloto = false) {
+        if (this.etapaAtualIndex >= this.sequenciaDiasPares.length) return this.novaVolta(forcarVindoDoCopiloto); 
         const nomeEtapa = this.sequenciaDiasPares[this.etapaAtualIndex];
         const vin = document.getElementById('c-vin')?.value || "---";
         this.checkins.push({ atividade: nomeEtapa, hora: new Date().toLocaleTimeString('pt-BR'), vin: vin, operador: this.operadorAtual });
@@ -203,8 +197,9 @@ const app = {
         this.atualizarInterfaceCola();
     },
 
-    novaVolta() {
-        if(confirm("Iniciar nova volta na R389?")) {
+    novaVolta(forcarVindoDoCopiloto = false) {
+        // Se vier do copiloto, ele não abre a caixinha de OK/Cancelar, ele apenas reinicia direto.
+        if(forcarVindoDoCopiloto || confirm("Iniciar nova volta na R389?")) {
             this.etapaAtualIndex = 0;
             this.checkins.push({ atividade: "--- NOVA SÉRIE R389 ---", hora: new Date().toLocaleTimeString('pt-BR'), vin: document.getElementById('c-vin')?.value || "---", operador: this.operadorAtual });
             this.salvarEstadoHibrido();
@@ -244,12 +239,12 @@ const app = {
         doc.setTextColor(168, 85, 247); doc.setFontSize(16); doc.text("LOG DE CICLOS (R389)", 105, 20, { align: "center" });
         doc.setFontSize(10); doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')} | Analista: ${this.operadorAtual}`, 105, 28, { align: "center" });
         const dadosTabela = this.checkins.map((c, i) => [i + 1, c.atividade, c.hora]);
-        doc.autoTable({ startY: 45, head: [['#', 'CICLO / ETAPA', 'HORA']], body: dadosTabela, headStyles: { fillColor: [168, 85, 247], textColor: [255,255,255] }, didParseCell: function(data) { if(data.row.raw[1].includes("--- INÍCIO")) { data.cell.styles.fillColor = [241, 245, 249]; data.cell.styles.fontStyle = 'bold'; } } });
+        doc.autoTable({ startY: 45, head: [['#', 'CICLO / ETAPA', 'HORA']], body: dadosTabela, headStyles: { fillColor: [168, 85, 247], textColor: [255,255,255] }, didParseCell: function(data) { if(data.row.raw[1].includes("--- INÍCIO") || data.row.raw[1].includes("--- NOVA")) { data.cell.styles.fillColor = [241, 245, 249]; data.cell.styles.fontStyle = 'bold'; } } });
         doc.save(`Log_R389_${this.operadorAtual.split(' ')[0]}.pdf`);
     },
 
     // ==========================================
-    // NOVO: DESACELERAÇÃO 16 VOLTAS
+    // DESACELERAÇÃO 16 VOLTAS
     // ==========================================
     registrarPassagemDesaceleracao() {
         if (this.etapaDesaceleracaoIndex >= this.roteiroDesaceleracao.length) return alert("O ciclo já foi concluído!"); 
@@ -399,7 +394,6 @@ const app = {
         
         let currentY = 45;
 
-        // Tabela Frenagem
         if (totalVoltasFrenagem > 0) {
             doc.setTextColor(0, 0, 0); doc.setFontSize(12); doc.setFont(undefined, 'bold');
             doc.text("RESUMO: TESTE DE FRENAGEM", 14, currentY);
@@ -408,7 +402,6 @@ const app = {
             currentY = doc.lastAutoTable.finalY + 15;
         }
 
-        // Tabela R389
         if (Object.keys(resumoR389).length > 0) {
             doc.setTextColor(0, 0, 0); doc.setFontSize(12); doc.setFont(undefined, 'bold');
             doc.text("RESUMO: CICLOS R389", 14, currentY);
@@ -417,7 +410,6 @@ const app = {
             currentY = doc.lastAutoTable.finalY + 15;
         }
 
-        // Tabela Desaceleração
         if (Object.keys(resumoDesaceleracao).length > 0) {
             doc.setTextColor(0, 0, 0); doc.setFontSize(12); doc.setFont(undefined, 'bold');
             doc.text("RESUMO: DESACELERAÇÃO 16 LAPS", 14, currentY);
@@ -510,20 +502,31 @@ const app = {
 
 window.onload = () => app.init();
 
+
 // ====================================================
-// 3. MÓDULO DE TELEMETRIA GPS INTEGRADO
+// 3. COPILOTO KX - MÓDULO DE TELEMETRIA GPS INTEGRADO
 // ====================================================
 
 const MAPA_PISTAS = {
-    // Pistas Base
+    // ---- Pistas Base ----
     "P. de Baixa":               { lat: -23.398088084486734,  lng: -47.92362656463522, raio: 40 },
     "Pista de Alta":             { lat: -23.392783132651925,  lng: -47.91720937962347, raio: 40 },
     
-    // Nomes Dinâmicos que ocorrem na Pista de Alta (Mesma Coordenada)
+    // ---- Nomes Dinâmicos: FRENAGEM ----
+    "Pista Baixa - Volta 1":     { lat: -23.398088084486734,  lng: -47.92362656463522, raio: 40 },
+    "Pista Baixa - Volta 2":     { lat: -23.398088084486734,  lng: -47.92362656463522, raio: 40 },
+    "Pista Baixa - Volta 3":     { lat: -23.398088084486734,  lng: -47.92362656463522, raio: 40 },
+    "Pista Baixa - Volta 4":     { lat: -23.398088084486734,  lng: -47.92362656463522, raio: 40 },
+    "Pista Alta - Volta 1":      { lat: -23.392783132651925,  lng: -47.91720937962347, raio: 40 },
+    "Pista Alta - Volta 2":      { lat: -23.392783132651925,  lng: -47.91720937962347, raio: 40 },
+    "Pista Alta - Volta 3":      { lat: -23.392783132651925,  lng: -47.91720937962347, raio: 40 },
+    "Pista Alta - Volta 4":      { lat: -23.392783132651925,  lng: -47.91720937962347, raio: 40 },
+
+    // ---- Nomes Dinâmicos: DESACELERAÇÃO ----
     "Alta (100 a 20km/h)":       { lat: -23.392783132651925,  lng: -47.91720937962347, raio: 40 },
     "Alta (100 a 0km/h)":        { lat: -23.392783132651925,  lng: -47.91720937962347, raio: 40 },
     
-    // Testes Especiais
+    // ---- Testes Especiais e R389 ----
     "Labirinto: 1ª volta + Mata-burro": { lat: -23.389897937338947, lng:  -47.90375005479293, raio: 30 },
     "Power Hop Hill":            { lat: -23.389408882275966,  lng:  -47.920772503525185, raio: 30 },
     "Lombadas: 1ª passagem":     { lat: -23.395171846083837,  lng: -47.92032189243844, raio: 30 },
@@ -536,8 +539,6 @@ const MAPA_PISTAS = {
     "Pistas 9-10":               { lat: -23.397469035218407,  lng: -47.92421831548582, raio: 40 },
     "Pista de Alta + bolacha":   { lat: -23.393033414214045,  lng: -47.91519833780578, raio: 40 },
     "Pista de Baixa + bolacha":  { lat: -23.396999216729025,  lng: -47.91646970487802, raio: 40 },
-    
-    // AINDA NÃO MAPEADO (Vai ignorar no GPS até você pegar a coordenada real)
     "Enrola Camisa":             { lat: 0.000000, lng: 0.000000, raio: 40 } 
 };
 
@@ -548,7 +549,7 @@ function falar(mensagem) {
     if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
         const locutor = new SpeechSynthesisUtterance(mensagem);
-        locutor.lang = 'pt-BR'; locutor.rate = 1.1; locutor.pitch = 1.0;
+        locutor.lang = 'pt-BR'; locutor.rate = 1.15; locutor.pitch = 1.0;
         window.speechSynthesis.speak(locutor);
     }
 }
@@ -562,42 +563,45 @@ function calcularDistanciaMetros(lat1, lon1, lat2, lon2) {
     return R * c; 
 }
 
-function iniciarPilotoAutomatico() {
+function iniciarCopilotoKX() {
     if (!navigator.geolocation) return alert("Dispositivo não suporta GPS.");
     
-    // Descobre qual roteiro o engenheiro quer usar no dropdown
     const modoSelecionado = document.getElementById('gps-rota-selecionada').value;
-    let arrayRota, indexAtual;
-    
-    if (modoSelecionado === 'R389') {
-        arrayRota = app.sequenciaDiasPares;
-        indexAtual = app.etapaAtualIndex;
-    } else {
-        arrayRota = app.roteiroDesaceleracao;
-        indexAtual = app.etapaDesaceleracaoIndex;
-    }
+    let nomePistaAlvo = "";
 
-    let nomePistaInicial = arrayRota[indexAtual];
-    if (!nomePistaInicial) return alert("O ciclo selecionado já foi concluído.");
+    if (modoSelecionado === 'R389') {
+        nomePistaAlvo = app.sequenciaDiasPares[app.etapaAtualIndex];
+        if (!nomePistaAlvo) return alert("O ciclo R389 já foi concluído.");
+        falar("Olá. Copiloto K X ativado. Vamos iniciar mais um teste de R 3 8 9. Siga para: " + nomePistaAlvo);
     
-    falar("Piloto automático ativado. Modo " + (modoSelecionado === 'R389' ? "R 3 8 9" : "Desaceleração de 16 Voltas") + ". Siga para: " + nomePistaInicial);
+    } else if (modoSelecionado === 'FRENAGEM') {
+        const indexNoCiclo = app.ciclosFrenagem.length % 8;
+        nomePistaAlvo = app.roteiroFrenagem[indexNoCiclo];
+        falar("Olá. Copiloto K X ativado. Vamos iniciar a telemetria de Frenagem. Siga para: " + nomePistaAlvo);
+    
+    } else if (modoSelecionado === 'DESACELERACAO') {
+        nomePistaAlvo = app.roteiroDesaceleracao[app.etapaDesaceleracaoIndex];
+        if (!nomePistaAlvo) return alert("O teste de Desaceleração já foi concluído.");
+        falar("Olá. Copiloto K X ativado. Iniciando desaceleração de 16 voltas. Siga para: " + nomePistaAlvo);
+    }
     
     rastreadorGpsID = navigator.geolocation.watchPosition((posicao) => {
         if (bloqueioTempo) return; 
 
-        // Atualiza a memória de onde o app está em tempo real
-        if (modoSelecionado === 'R389') indexAtual = app.etapaAtualIndex;
-        else indexAtual = app.etapaDesaceleracaoIndex;
-
-        let nomePistaAlvo = arrayRota[indexAtual];
-        if (!nomePistaAlvo) {
-            navigator.geolocation.clearWatch(rastreadorGpsID);
-            return;
+        if (modoSelecionado === 'R389') {
+            nomePistaAlvo = app.sequenciaDiasPares[app.etapaAtualIndex];
+            if (!nomePistaAlvo) { navigator.geolocation.clearWatch(rastreadorGpsID); return; }
+        
+        } else if (modoSelecionado === 'FRENAGEM') {
+            const indexNoCiclo = app.ciclosFrenagem.length % 8;
+            nomePistaAlvo = app.roteiroFrenagem[indexNoCiclo];
+        
+        } else if (modoSelecionado === 'DESACELERACAO') {
+            nomePistaAlvo = app.roteiroDesaceleracao[app.etapaDesaceleracaoIndex];
+            if (!nomePistaAlvo) { navigator.geolocation.clearWatch(rastreadorGpsID); return; }
         }
 
         let alvo = MAPA_PISTAS[nomePistaAlvo];
-        
-        // Se bater na Enrola Camisa que ainda não tem GPS, o app ignora sem dar erro
         if (!alvo || alvo.lat === 0) return console.log(`Aguardando clique manual em: ${nomePistaAlvo}`);
 
         let distancia = calcularDistanciaMetros(posicao.coords.latitude, posicao.coords.longitude, alvo.lat, alvo.lng);
@@ -606,26 +610,42 @@ function iniciarPilotoAutomatico() {
             bloqueioTempo = true;
             setTimeout(() => { bloqueioTempo = false; }, 45000); 
 
-            console.log(`✅ GPS Check-in: ${nomePistaAlvo}`);
+            console.log(`✅ Copiloto KX Check-in: ${nomePistaAlvo}`);
             
-            // O GPS aperta o botão interno correspondente
+            // ===== LÓGICA DE REINÍCIO AUTOMÁTICO =====
             if (modoSelecionado === 'R389') {
-                app.registrarPassagem();
-            } else {
+                app.registrarPassagem(true); // O "true" faz o app saber que veio do copiloto (pula a mensagem de "Tem Certeza?")
+                
+                if (app.etapaAtualIndex >= app.sequenciaDiasPares.length) {
+                    app.novaVolta(true); // Força a nova volta
+                    let proximaPista = app.sequenciaDiasPares[0];
+                    falar("Ciclo concluído. O sistema já vai recomeçar. Siga para: " + proximaPista);
+                } else {
+                    let proximaPista = app.sequenciaDiasPares[app.etapaAtualIndex];
+                    falar(`Check. Siga para: ${proximaPista}`);
+                }
+            
+            } else if (modoSelecionado === 'FRENAGEM') {
+                app.registrarVoltaFrenagem();
+                const novoIndex = app.ciclosFrenagem.length % 8;
+                let proximaPista = app.roteiroFrenagem[novoIndex];
+                
+                if (novoIndex === 0) {
+                    falar("Ciclo de frenagem finalizado. O Copiloto já iniciou o próximo ciclo. Siga para: " + proximaPista);
+                } else {
+                    falar(`Check. Siga para: ${proximaPista}`);
+                }
+            
+            } else if (modoSelecionado === 'DESACELERACAO') {
                 app.registrarPassagemDesaceleracao();
-            }
-
-            // Pega a próxima pista e fala
-            if (modoSelecionado === 'R389') indexAtual = app.etapaAtualIndex;
-            else indexAtual = app.etapaDesaceleracaoIndex;
-
-            let proximaPista = arrayRota[indexAtual];
-
-            if (proximaPista) {
-                falar(`Check confirmado. Siga para: ${proximaPista}`);
-            } else {
-                falar("Ciclo concluído. Retorne à base.");
-                navigator.geolocation.clearWatch(rastreadorGpsID);
+                
+                if (app.etapaDesaceleracaoIndex >= app.roteiroDesaceleracao.length) {
+                    falar("Teste de desaceleração totalmente concluído. Bom trabalho! Retorne à base.");
+                    navigator.geolocation.clearWatch(rastreadorGpsID);
+                } else {
+                    let proximaPista = app.roteiroDesaceleracao[app.etapaDesaceleracaoIndex];
+                    falar(`Check. Siga para: ${proximaPista}`);
+                }
             }
         }
     }, 
@@ -633,10 +653,10 @@ function iniciarPilotoAutomatico() {
     { enableHighAccuracy: true, maximumAge: 0 });
 }
 
-function pararPilotoAutomatico() {
+function pararCopilotoKX() {
     if (rastreadorGpsID !== null) {
         navigator.geolocation.clearWatch(rastreadorGpsID);
-        falar("Piloto automático desativado.");
+        falar("Copiloto K X desativado. Bom descanso.");
     }
 }
 
