@@ -1,24 +1,26 @@
 // ====================================================
-// 1. CONFIGURAÇÃO DO FIREBASE (COLE SUAS CHAVES AQUI)
+// 1. CONFIGURAÇÃO DO FIREBASE
 // ====================================================
 const firebaseConfig = {
-  apiKey: "AIzaSyCY5aZ2WzeY8miMomN3OgR6al4psXGnE3A",
-  authDomain: "ford-vev.firebaseapp.com",
-  databaseURL: "https://ford-vev-default-rtdb.firebaseio.com",
-  projectId: "ford-vev",
-  storageBucket: "ford-vev.firebasestorage.app",
-  messagingSenderId: "391022165832",
-  appId: "1:391022165832:web:cfa6c741c946a030b37d7d",
-  measurementId: "G-EDFWJB8XE3"
+    apiKey: "AIzaSyCY5aZ2WzeY8miMomN3OgR6al4psXGnE3A",
+    authDomain: "ford-vev.firebaseapp.com",
+    databaseURL: "https://ford-vev-default-rtdb.firebaseio.com",
+    projectId: "ford-vev",
+    storageBucket: "ford-vev.firebasestorage.app",
+    messagingSenderId: "391022165832",
+    appId: "1:391022165832:web:cfa6c741c946a030b37d7d",
+    measurementId: "G-EDFWJB8XE3"
 };
 
-// Inicializa o Firebase apenas se não estiver inicializado
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
 const db = firebase.database();
 
 
+// ====================================================
+// 2. O CORAÇÃO DO APLICATIVO
+// ====================================================
 const app = {
     fotos: [], videosFiles: [], etapaAtualIndex: 0, checkins: [],
     operadorAtual: null,
@@ -44,12 +46,8 @@ const app = {
         this.verificarSessao();
     },
 
-    // ==========================================
-    // SISTEMA DE SINCRONIZAÇÃO (NUVEM + LOCAL)
-    // ==========================================
     salvarEstadoHibrido() {
         if (!this.operadorAtual) return;
-        
         const dataHoje = new Date().toISOString().split('T')[0];
         const estado = {
             etapaAtualIndex: this.etapaAtualIndex,
@@ -57,26 +55,17 @@ const app = {
             ciclosFrenagem: this.ciclosFrenagem,
             ultimaAtualizacao: new Date().toLocaleTimeString('pt-BR')
         };
-
-        // 1. Salva no Firebase (Se tiver internet, vai na hora)
-        db.ref(`vev_turnos/${dataHoje}/${this.operadorAtual}`).set(estado)
-          .catch(err => console.log("Erro Firebase, operando offline:", err));
-
-        // 2. Salva no LocalStorage (O Cinto de Segurança)
+        db.ref(`vev_turnos/${dataHoje}/${this.operadorAtual}`).set(estado).catch(err => console.log("Erro Firebase:", err));
         localStorage.setItem(`vev_estado_backup_${this.operadorAtual}`, JSON.stringify(estado));
     },
 
     async carregarEstadoHibrido() {
         if (!this.operadorAtual) return;
         const dataHoje = new Date().toISOString().split('T')[0];
-
         try {
-            // Tenta puxar a verdade do Firebase primeiro
             const snapshot = await db.ref(`vev_turnos/${dataHoje}/${this.operadorAtual}`).once('value');
             const estadoNuvem = snapshot.val();
-
             if (estadoNuvem) {
-                console.log("Dados carregados da Nuvem.");
                 this.etapaAtualIndex = estadoNuvem.etapaAtualIndex || 0;
                 this.checkins = estadoNuvem.checkins || [];
                 this.ciclosFrenagem = estadoNuvem.ciclosFrenagem || [];
@@ -84,10 +73,8 @@ const app = {
                 this.restaurarBackupLocal();
             }
         } catch (error) {
-            console.log("Sem internet no login. Carregando backup local.");
             this.restaurarBackupLocal();
         }
-        
         this.atualizarInterfaceCola();
         this.renderListaFrenagem();
     },
@@ -104,9 +91,6 @@ const app = {
         }
     },
 
-    // ==========================================
-    // LOGIN E SESSÃO
-    // ==========================================
     verificarSessao() {
         const usuarioSalvo = localStorage.getItem("app_vev_operador");
         if (usuarioSalvo) {
@@ -115,8 +99,6 @@ const app = {
             document.getElementById("i-motorista").value = usuarioSalvo; 
             document.getElementById("modal-login").style.display = "none";
             document.body.style.overflow = "auto";
-            
-            // Dispara o resgate de dados (Firebase ou Local)
             this.carregarEstadoHibrido();
         } else {
             document.getElementById("modal-login").style.display = "flex";
@@ -127,7 +109,6 @@ const app = {
     efetuarLogin() {
         const nomeDigitado = document.getElementById("login-nome").value.trim().toUpperCase();
         const senhaDigitada = document.getElementById("login-senha").value.trim();
-
         if (nomeDigitado.length < 3) return alert("Digite seu nome completo.");
         
         const USUARIOS_PERMITIDOS = ["WESLEY", "JOAO OLIVEIRA" , "HEBER PAES" , "TESTE"]; 
@@ -135,9 +116,7 @@ const app = {
 
         let usuarioExiste = false;
         for(let i=0; i < USUARIOS_PERMITIDOS.length; i++) {
-            if(nomeDigitado.includes(USUARIOS_PERMITIDOS[i])) {
-                usuarioExiste = true; break;
-            }
+            if(nomeDigitado.includes(USUARIOS_PERMITIDOS[i])) { usuarioExiste = true; break; }
         }
 
         if (!usuarioExiste) return alert("❌ Operador não cadastrado no sistema.");
@@ -156,16 +135,11 @@ const app = {
             localStorage.removeItem("app_vev_operador");
             this.operadorAtual = null;
             document.getElementById("ui-nome-usuario").innerText = "NÃO LOGADO";
-            
-            // Limpa a tela
             this.etapaAtualIndex = 0; this.checkins = []; this.ciclosFrenagem = [];
             this.verificarSessao();
         }
     },
 
-   // ==========================================
-    // IA - GEMINI (ANALISTA DE PRODUTO SCRIPT)
-    // ==========================================
     async melhorarTextoComIA(botao) {
         const textarea = document.getElementById('i-obs');
         const textoOriginal = textarea.value.trim();
@@ -176,23 +150,16 @@ const app = {
         
         botao.innerHTML = '...';
         try {
-            // O Segredo está aqui: A "Ordem de Script"
             const promptComando = "Você é um algoritmo de conversão de texto. Atue como Analista de Produto Automotivo. Melhore tecnicamente e formalize o texto a seguir para um laudo de avaria de pista. REGRAS ESTRITAS DE SAÍDA: 1. NÃO altere os fatos. 2. NÃO adicione informações que não estão no original. 3. NÃO use nenhuma formatação Markdown (sem asteriscos, sem negrito, sem listas). 4. RETORNE EXCLUSIVAMENTE O TEXTO REESCRITO em texto puro, sem NENHUMA saudação, introdução (como 'Aqui está') ou conclusão. Apenas cuspa o texto final. Texto original: " + textoOriginal;
-            
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
             const resposta = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: promptComando }] }] }) });
             const dados = await resposta.json();
-            
-            if (dados.candidates) {
-                // Remove qualquer quebra de linha extra que a IA possa tentar colocar no começo/fim
-                textarea.value = dados.candidates[0].content.parts[0].text.trim();
-            }
+            if (dados.candidates) { textarea.value = dados.candidates[0].content.parts[0].text.trim(); }
         } catch (e) { alert("Erro na comunicação com a IA."); }
         botao.innerHTML = '<span class="material-icons" style="font-size: 1rem;">auto_awesome</span> PROCESSAR IA';
     },
-    // ==========================================
+
     // ROTEIRO R389
-    // ==========================================
     registrarPassagem() {
         if (this.etapaAtualIndex >= this.sequenciaDiasPares.length) return this.novaVolta(); 
         const nomeEtapa = this.sequenciaDiasPares[this.etapaAtualIndex];
@@ -201,7 +168,7 @@ const app = {
         if ('vibrate' in navigator) navigator.vibrate(50);
         this.etapaAtualIndex++;
         
-        this.salvarEstadoHibrido(); // Dispara pra Nuvem
+        this.salvarEstadoHibrido();
         this.atualizarInterfaceCola();
     },
 
@@ -209,8 +176,7 @@ const app = {
         if(confirm("Iniciar nova volta na R389?")) {
             this.etapaAtualIndex = 0;
             this.checkins.push({ atividade: "--- NOVA SÉRIE R389 ---", hora: new Date().toLocaleTimeString('pt-BR'), vin: document.getElementById('c-vin')?.value || "---", operador: this.operadorAtual });
-            
-            this.salvarEstadoHibrido(); // Dispara pra Nuvem
+            this.salvarEstadoHibrido();
             this.atualizarInterfaceCola();
         }
     },
@@ -235,7 +201,7 @@ const app = {
         if(confirm("Tem certeza que deseja APAGAR os registros do R389 no Banco de Dados?")) { 
             this.etapaAtualIndex = 0; 
             this.checkins = []; 
-            this.salvarEstadoHibrido(); // Atualiza a nuvem com tudo vazio
+            this.salvarEstadoHibrido(); 
             this.atualizarInterfaceCola(); 
         }
     },
@@ -251,9 +217,7 @@ const app = {
         doc.save(`Log_R389_${this.operadorAtual.split(' ')[0]}.pdf`);
     },
 
-    // ==========================================
     // FRENAGEM
-    // ==========================================
     registrarVoltaFrenagem() {
         const totalVoltas = this.ciclosFrenagem.length;
         const indexNoCiclo = totalVoltas % 8; 
@@ -265,7 +229,7 @@ const app = {
         document.getElementById('f-obs').value = '';
         if ('vibrate' in navigator) navigator.vibrate(50);
         
-        this.salvarEstadoHibrido(); // Dispara pra Nuvem
+        this.salvarEstadoHibrido();
         this.renderListaFrenagem();
     },
 
@@ -304,7 +268,7 @@ const app = {
     resetarFrenagem() { 
         if(confirm("Deseja APAGAR os dados de Frenagem do Banco de Dados?")) { 
             this.ciclosFrenagem = []; 
-            this.salvarEstadoHibrido(); // Atualiza a nuvem
+            this.salvarEstadoHibrido();
             this.renderListaFrenagem(); 
         } 
     },
@@ -320,169 +284,6 @@ const app = {
         doc.save(`Log_Fren_${this.operadorAtual.split(' ')[0]}.pdf`);
     },
 
-
-
-
-
-
-// ==========================================
-// 📡 MÓDULO DE TELEMETRIA GPS E GEOFENCING
-// ==========================================
-
-// 1. O SEU MAPA MÚNDI (Dicionário de Coordenadas)
-// Substitua os zeros pelas coordenadas reais extraídas do Google Maps.
-const MAPA_PISTAS = {
-    // --- CICLO DE FRENAGEM ---
-    "P. de Baixa":               { lat: -23.398088084486734,  lng: -47.92362656463522, raio: 40 },
-    "Pista de Alta":             { lat: -23.392783132651925,  lng: -47.91720937962347, raio: 40 },
-
-    // --- TESTES ESPECIAIS ---
-    "Labirinto: 1ª volta + Mata-burro": { lat: -23.389897937338947, lng:  -47.90375005479293, raio: 30 },
-    "Power Hop Hill":            { lat: -23.389408882275966,  lng:  -47.920772503525185, raio: 30 },
-    "Lombadas: 1ª passagem":     { lat: -23.395171846083837,  lng: -47.92032189243844, raio: 30 },
-    "Pistas 1-2":                { lat: -23.397242119161156,  lng: -47.92448602193369, raio: 40 },
-    "Pista 4-3":                 { lat: -23.395709726328462,  lng: -47.92309797877286, raio: 40 },
-    "Slalom":                    { lat: -23.39748090007043,  lng: -47.9242084133005, raio: 40 },
-    "Pistas 7-8":                { lat: -23.397314738151422,  lng: -47.924327771600595, raio: 40 },
-    "Pistas 2-1":                { lat: -23.396490940978282,  lng: -47.92386790410527, raio: 40 },
-    "Pista 5-8":                 { lat: -23.397269640868,  lng: -47.92436583698041, raio: 40 },
-    "Pistas 9-10":               { lat: -23.397469035218407,  lng: -47.92421831548582, raio: 40 },
-    "Pista de Alta + bolacha":   { lat: -23.393033414214045,  lng: -47.91519833780578, raio: 40 },
-    "Pista de Baixa + bolacha":  { lat: -23.396999216729025,  lng: -47.91646970487802, raio: 40 }
-};
-
-// 2. O ROTEIRO DOS TESTES ESPECIAIS (A Máquina de Estados)
-const sequenciaDiasPares = [
-    "Labirinto: 1ª volta + Mata-burro", "Power Hop Hill", "Lombadas: 1ª passagem",
-    "Pistas 1-2", "Pista 4-3", "Slalom", "Pista 4-3", "Slalom", "Pistas 4-3", "Pistas 7-8", "Pistas 2-1", "Pistas 7-8", "P. de Baixa",
-    "Pistas 1-2", "Pista 4-3", "Slalom", "Pista 4-3", "Slalom", "Pistas 4-3", "Pistas 7-8", "Pistas 2-1", "Pistas 7-8", "P. de Baixa",
-    "Pistas 1-2", "Pista 4-3", "Pista 5-8", "Pistas 4-3", "Pistas 5-8", "Pistas 4-3", "Pistas 9-10", "Pistas 2-1", "Pistas 9-10", "P. de Baixa",
-    "Pistas 1-2", "Pista 4-3", "Pista 5-8", "Pistas 4-3", "Pistas 5-8", "Pistas 4-3", "Pistas 9-10",
-    "Pista de Alta + bolacha", "Pista de Baixa + bolacha"
-];
-
-// Variáveis de Controle Global
-let rastreadorGpsID = null;
-let indiceEtapaAtual = 0; // Controla qual item da lista o carro está buscando agora
-let bloqueioTempo = false; // Trava para evitar duplo check-in (Cooldown)
-
-// 3. LOCUTOR VIRTUAL (Voz do App)
-function falar(mensagem) {
-    if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel(); // Interrompe a fala anterior para não sobrepor
-        const locutor = new SpeechSynthesisUtterance(mensagem);
-        locutor.lang = 'pt-BR';
-        locutor.rate = 1.1; // Velocidade da voz (1.0 é o normal)
-        locutor.pitch = 1.0;
-        window.speechSynthesis.speak(locutor);
-    }
-}
-
-// 4. MATEMÁTICA DO GPS (Fórmula de Haversine em Metros)
-function calcularDistanciaMetros(lat1, lon1, lat2, lon2) {
-    const R = 6371e3; // Raio da Terra em metros
-    const φ1 = lat1 * Math.PI/180;
-    const φ2 = lat2 * Math.PI/180;
-    const Δφ = (lat2-lat1) * Math.PI/180;
-    const Δλ = (lon2-lon1) * Math.PI/180;
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c; 
-}
-
-// 5. O MOTOR PRINCIPAL (Ativa a Cerca Virtual)
-function iniciarPilotoAutomatico() {
-    if (!navigator.geolocation) {
-        alert("Seu navegador ou dispositivo não suporta rastreamento GPS.");
-        return;
-    }
-
-    falar("Piloto automático iniciado. Siga para: " + sequenciaDiasPares[indiceEtapaAtual]);
-    
-    // Fica lendo a posição continuamente (como um radar)
-    rastreadorGpsID = navigator.geolocation.watchPosition((posicao) => {
-        
-        // Se o carro acabou de dar check-in, ignora o GPS até passar o tempo de bloqueio
-        if (bloqueioTempo) return; 
-
-        const minhaLat = posicao.coords.latitude;
-        const minhaLng = posicao.coords.longitude;
-        
-        // Verifica qual é o alvo atual na array
-        let nomePistaAlvo = sequenciaDiasPares[indiceEtapaAtual];
-        
-        // Segurança: Se acabaram as etapas, desliga o radar automaticamente
-        if (!nomePistaAlvo) {
-            navigator.geolocation.clearWatch(rastreadorGpsID);
-            return;
-        }
-
-        let alvo = MAPA_PISTAS[nomePistaAlvo];
-
-        // Segurança: Avisa se você esqueceu de colocar as coordenadas de alguma pista
-        if (!alvo || alvo.lat === 0) {
-            console.warn(`Atenção: Pista '${nomePistaAlvo}' ainda não foi mapeada com coordenadas reais.`);
-            return;
-        }
-
-        let distancia = calcularDistanciaMetros(minhaLat, minhaLng, alvo.lat, alvo.lng);
-        
-        // SE O CARRO ENTROU NO RAIO DE CAPTURA (CHECK-IN)
-        if (distancia <= alvo.raio) {
-            
-            // 1. Ativa a Trava de Tempo (Impede que leia o mesmo ponto 2x). 
-            // 45000 = 45 segundos cegos para esse radar específico.
-            bloqueioTempo = true;
-            setTimeout(() => { bloqueioTempo = false; }, 45000); 
-
-            console.log(`✅ Check-in confirmado: ${nomePistaAlvo}`);
-            
-            // >>> AQUI VOCÊ CHAMA SUA FUNÇÃO DE SALVAR NO FIREBASE <<<
-            // Exemplo: salvarPassagemNoBancoDeDados(nomePistaAlvo);
-
-            // 2. Avança o roteiro para o próximo item
-            indiceEtapaAtual++;
-            let proximaPista = sequenciaDiasPares[indiceEtapaAtual];
-
-            // 3. O Locutor avisa o piloto e dita a próxima instrução
-            if (proximaPista) {
-                falar(`Check confirmado. Siga para: ${proximaPista}`);
-            } else {
-                falar("Ciclo de testes especiais concluído com sucesso. Retorne à base.");
-                navigator.geolocation.clearWatch(rastreadorGpsID); // Desliga o radar
-            }
-        }
-    }, 
-    (erro) => console.log("Aguardando sinal forte de GPS...", erro), 
-    { enableHighAccuracy: true, maximumAge: 0 }); // Força o uso da antena GPS máxima do aparelho
-}
-
-// Botão opcional para parar o rastreamento no meio do teste
-function pararPilotoAutomatico() {
-    if (rastreadorGpsID !== null) {
-        navigator.geolocation.clearWatch(rastreadorGpsID);
-        falar("Piloto automático desativado.");
-    }
-}
-
-
-
-
-
-
-
-
-
-  
-
-
-
-
-
-  
-    // ==========================================
-    // RESUMO GERAL (R389 + FRENAGEM)
-    // ==========================================
     gerarRelatorioResumo() {
         if (this.checkins.length === 0 && this.ciclosFrenagem.length === 0) return alert("Sem dados registrados no turno.");
         const vin = document.getElementById('c-vin')?.value || "VEV-TEST";
@@ -524,9 +325,6 @@ function pararPilotoAutomatico() {
         doc.save(`Resumo_${this.operadorAtual.split(' ')[0]}_${Date.now()}.pdf`);
     },
 
-    // ==========================================
-    // LAUDO IA + MÍDIAS (4K NATIVO)
-    // ==========================================
     handleMedia(e) {
         Array.from(e.target.files).forEach(file => {
             if (file.type.startsWith('video/')) {
@@ -596,13 +394,133 @@ function pararPilotoAutomatico() {
         }
     },
 
-    // FECHAMENTO DE TURNO
     async finalizarTurnoIntegrado() {
         const v = document.getElementById('t-veiculo').value; const dataBruta = document.getElementById('t-data').value;
         let dataFormatada = dataBruta ? `${dataBruta.split('-')[2]}/${dataBruta.split('-')[1]}` : "";
         const texto = `*Fechamento: ${this.operadorAtual}*\n*Abastecimento ${v}*\n${document.getElementById('t-turno').value} ${dataFormatada}\nVIN: ${document.getElementById('t-vin').value}\nTrip: ${document.getElementById('t-trip').value}\nKm: ${document.getElementById('t-km').value}\nLitros: ${document.getElementById('t-litros').value}\nSaldo: R$ ${document.getElementById('t-saldo').value}`;
         try { await navigator.clipboard.writeText(texto); alert("Copiado para o WhatsApp!"); } catch (e) {}
     }
+}; // <<<<<<<<<< FIM DO OBJETO APP (FECHAMENTO DA CHAVE AQUI)
+
+// Inicializa o App
+window.onload = () => app.init();
+
+
+
+// ====================================================
+// 3. MÓDULO DE TELEMETRIA GPS (ISOLADO E INTEGRADO)
+// ====================================================
+
+const MAPA_PISTAS = {
+    "P. de Baixa":               { lat: -23.398088084486734,  lng: -47.92362656463522, raio: 40 },
+    "Pista de Alta":             { lat: -23.392783132651925,  lng: -47.91720937962347, raio: 40 },
+    "Labirinto: 1ª volta + Mata-burro": { lat: -23.389897937338947, lng:  -47.90375005479293, raio: 30 },
+    "Power Hop Hill":            { lat: -23.389408882275966,  lng:  -47.920772503525185, raio: 30 },
+    "Lombadas: 1ª passagem":     { lat: -23.395171846083837,  lng: -47.92032189243844, raio: 30 },
+    "Pistas 1-2":                { lat: -23.397242119161156,  lng: -47.92448602193369, raio: 40 },
+    "Pista 4-3":                 { lat: -23.395709726328462,  lng: -47.92309797877286, raio: 40 },
+    "Slalom":                    { lat: -23.39748090007043,  lng: -47.9242084133005, raio: 40 },
+    "Pistas 7-8":                { lat: -23.397314738151422,  lng: -47.924327771600595, raio: 40 },
+    "Pistas 2-1":                { lat: -23.396490940978282,  lng: -47.92386790410527, raio: 40 },
+    "Pista 5-8":                 { lat: -23.397269640868,  lng: -47.92436583698041, raio: 40 },
+    "Pistas 9-10":               { lat: -23.397469035218407,  lng: -47.92421831548582, raio: 40 },
+    "Pista de Alta + bolacha":   { lat: -23.393033414214045,  lng: -47.91519833780578, raio: 40 },
+    "Pista de Baixa + bolacha":  { lat: -23.396999216729025,  lng: -47.91646970487802, raio: 40 }
 };
 
-window.onload = () => app.init();
+let rastreadorGpsID = null;
+let bloqueioTempo = false;
+
+function falar(mensagem) {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const locutor = new SpeechSynthesisUtterance(mensagem);
+        locutor.lang = 'pt-BR'; locutor.rate = 1.1; locutor.pitch = 1.0;
+        window.speechSynthesis.speak(locutor);
+    }
+}
+
+function calcularDistanciaMetros(lat1, lon1, lat2, lon2) {
+    const R = 6371e3;
+    const φ1 = lat1 * Math.PI/180; const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180; const Δλ = (lon2-lon1) * Math.PI/180;
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; 
+}
+
+function iniciarPilotoAutomatico() {
+    if (!navigator.geolocation) return alert("Dispositivo não suporta GPS.");
+    
+    // Agora o GPS lê direto de dentro do aplicativo!
+    let nomePistaInicial = app.sequenciaDiasPares[app.etapaAtualIndex];
+    if (!nomePistaInicial) return alert("O ciclo de testes já foi concluído.");
+    
+    falar("Piloto automático ativado. Siga para: " + nomePistaInicial);
+    
+    rastreadorGpsID = navigator.geolocation.watchPosition((posicao) => {
+        if (bloqueioTempo) return; 
+
+        // Descobre onde o aplicativo parou
+        let nomePistaAlvo = app.sequenciaDiasPares[app.etapaAtualIndex];
+        
+        if (!nomePistaAlvo) {
+            navigator.geolocation.clearWatch(rastreadorGpsID);
+            return;
+        }
+
+        let alvo = MAPA_PISTAS[nomePistaAlvo];
+        if (!alvo || alvo.lat === 0) return console.warn(`Sem coordenadas: ${nomePistaAlvo}`);
+
+        let distancia = calcularDistanciaMetros(posicao.coords.latitude, posicao.coords.longitude, alvo.lat, alvo.lng);
+        
+        if (distancia <= alvo.raio) {
+            bloqueioTempo = true;
+            setTimeout(() => { bloqueioTempo = false; }, 45000); 
+
+            console.log(`✅ GPS Check-in: ${nomePistaAlvo}`);
+            
+            // A MÁGICA ACONTECE AQUI: O GPS "Aperta o botão" do aplicativo automaticamente!
+            app.registrarPassagem();
+
+            // Pega o nome da PRÓXIMA pista após o app.registrarPassagem() ter avançado a etapa
+            let proximaPista = app.sequenciaDiasPares[app.etapaAtualIndex];
+
+            if (proximaPista) {
+                falar(`Check confirmado. Siga para: ${proximaPista}`);
+            } else {
+                falar("Ciclo concluído. Retorne à base.");
+                navigator.geolocation.clearWatch(rastreadorGpsID);
+            }
+        }
+    }, 
+    (erro) => console.log("Aguardando satélite...", erro), 
+    { enableHighAccuracy: true, maximumAge: 0 });
+}
+
+function pararPilotoAutomatico() {
+    if (rastreadorGpsID !== null) {
+        navigator.geolocation.clearWatch(rastreadorGpsID);
+        falar("Piloto automático desativado.");
+    }
+}
+
+// FERRAMENTA TEMPORÁRIA DE MAPEAMENTO PARA O SÁBADO
+function mapearPontoAtual() {
+    const painelResultado = document.getElementById('resultado-gps');
+    const nomePonto = document.getElementById('nome-ponto').value;
+    if (!nomePonto) return alert("Digite o nome do ponto antes.");
+
+    painelResultado.innerHTML = "Buscando satélites... 🛰️";
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (posicao) => {
+                const lat = posicao.coords.latitude; const lng = posicao.coords.longitude; const precisao = posicao.coords.accuracy;
+                const linhaCodigo = `"${nomePonto}": { lat: ${lat}, lng: ${lng}, raio: 40 }, // Erro GPS: ${precisao.toFixed(1)}m`;
+                painelResultado.innerHTML = `<span style="color: #10b981;">Capturado!</span><br><br>${linhaCodigo}`;
+            },
+            (erro) => { painelResultado.innerHTML = `<span style="color: #ef4444;">Erro: ${erro.message}</span>`; },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+    }
+}
