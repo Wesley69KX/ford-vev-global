@@ -243,10 +243,10 @@ const app = {
     },
 
     // ==========================================
-    // DESACELERAÇÃO 16 VOLTAS
+    // DESACELERAÇÃO 16 VOLTAS (COM LOOP)
     // ==========================================
-    registrarPassagemDesaceleracao() {
-        if (this.etapaDesaceleracaoIndex >= this.roteiroDesaceleracao.length) return alert("O ciclo já foi concluído!"); 
+    registrarPassagemDesaceleracao(forcarVindoDoCopiloto = false) {
+        if (this.etapaDesaceleracaoIndex >= this.roteiroDesaceleracao.length) return this.novaVoltaDesaceleracao(forcarVindoDoCopiloto); 
         const nomeEtapa = this.roteiroDesaceleracao[this.etapaDesaceleracaoIndex];
         const vin = document.getElementById('d-vin')?.value || "---";
         this.checkinsDesaceleracao.push({ atividade: nomeEtapa, hora: new Date().toLocaleTimeString('pt-BR'), vin: vin, operador: this.operadorAtual });
@@ -255,6 +255,16 @@ const app = {
         
         this.salvarEstadoHibrido();
         this.atualizarInterfaceDesaceleracao();
+    },
+
+    // NOVO: Função para forçar o reinício do ciclo de desaceleração automaticamente
+    novaVoltaDesaceleracao(forcarVindoDoCopiloto = false) {
+        if(forcarVindoDoCopiloto || confirm("Iniciar novo ciclo completo de Desaceleração?")) {
+            this.etapaDesaceleracaoIndex = 0;
+            this.checkinsDesaceleracao.push({ atividade: "--- NOVO CICLO DE DESACELERAÇÃO ---", hora: new Date().toLocaleTimeString('pt-BR'), vin: document.getElementById('d-vin')?.value || "---", operador: this.operadorAtual });
+            this.salvarEstadoHibrido();
+            this.atualizarInterfaceDesaceleracao();
+        }
     },
 
     atualizarInterfaceDesaceleracao() {
@@ -289,7 +299,7 @@ const app = {
         doc.setTextColor(236, 72, 153); doc.setFontSize(16); doc.text("LOG DE DESACELERAÇÃO (16 LAPS)", 105, 20, { align: "center" });
         doc.setFontSize(10); doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')} | Analista: ${this.operadorAtual}`, 105, 28, { align: "center" });
         const dadosTabela = this.checkinsDesaceleracao.map((c, i) => [i + 1, c.atividade, c.hora]);
-        doc.autoTable({ startY: 45, head: [['LAP / ETAPA', 'ATIVIDADE', 'HORA']], body: dadosTabela, headStyles: { fillColor: [236, 72, 153], textColor: [255,255,255] } });
+        doc.autoTable({ startY: 45, head: [['LAP / ETAPA', 'ATIVIDADE', 'HORA']], body: dadosTabela, headStyles: { fillColor: [236, 72, 153], textColor: [255,255,255] }, didParseCell: function(data) { if(data.row.raw[1].includes("--- NOVO")) { data.cell.styles.fillColor = [253, 232, 243]; data.cell.styles.fontStyle = 'bold'; } } });
         doc.save(`Log_Desaceleracao_${this.operadorAtual.split(' ')[0]}.pdf`);
     },
 
@@ -378,6 +388,7 @@ const app = {
 
         const resumoDesaceleracao = {};
         this.checkinsDesaceleracao.forEach(r => {
+            if(r.atividade.includes("---")) return;
             resumoDesaceleracao[r.atividade] = (resumoDesaceleracao[r.atividade] || 0) + 1;
         });
 
@@ -503,46 +514,49 @@ window.onload = () => app.init();
 
 
 // ====================================================
-// 3. COPILOTO KX - MÓDULO DE TELEMETRIA GPS INTEGRADO
+// 3. COPILOTO KX - MÓDULO DE TELEMETRIA GPS & MAPA AO VIVO
 // ====================================================
 
 const MAPA_PISTAS = {
     // ---- Pistas Base (Aumentado o raio para 70m para capturar a 100km/h) ----
-    "P. de Baixa":               { lat: -23.398088084486734,  lng: -47.92362656463522, raio: 40 },
-    "Pista de Alta":             { lat: -23.392783132651925,  lng: -47.91720937962347, raio: 70 },
+    "P. de Baixa":               { lat: -23.398088, lng: -47.923626, raio: 40 },
+    "Pista de Alta":             { lat: -23.392783, lng: -47.917209, raio: 70 },
     
     // ---- Nomes Dinâmicos: FRENAGEM ----
-    "Pista Baixa - Volta 1":     { lat: -23.398088084486734,  lng: -47.92362656463522, raio: 40 },
-    "Pista Baixa - Volta 2":     { lat: -23.398088084486734,  lng: -47.92362656463522, raio: 40 },
-    "Pista Baixa - Volta 3":     { lat: -23.398088084486734,  lng: -47.92362656463522, raio: 40 },
-    "Pista Baixa - Volta 4":     { lat: -23.398088084486734,  lng: -47.92362656463522, raio: 40 },
-    "Pista Alta - Volta 1":      { lat: -23.392783132651925,  lng: -47.91720937962347, raio: 70 },
-    "Pista Alta - Volta 2":      { lat: -23.392783132651925,  lng: -47.91720937962347, raio: 70 },
-    "Pista Alta - Volta 3":      { lat: -23.392783132651925,  lng: -47.91720937962347, raio: 70 },
-    "Pista Alta - Volta 4":      { lat: -23.392783132651925,  lng: -47.91720937962347, raio: 70 },
+    "Pista Baixa - Volta 1":     { lat: -23.398088, lng: -47.923626, raio: 40 },
+    "Pista Baixa - Volta 2":     { lat: -23.398088, lng: -47.923626, raio: 40 },
+    "Pista Baixa - Volta 3":     { lat: -23.398088, lng: -47.923626, raio: 40 },
+    "Pista Baixa - Volta 4":     { lat: -23.398088, lng: -47.923626, raio: 40 },
+    "Pista Alta - Volta 1":      { lat: -23.392783, lng: -47.917209, raio: 70 },
+    "Pista Alta - Volta 2":      { lat: -23.392783, lng: -47.917209, raio: 70 },
+    "Pista Alta - Volta 3":      { lat: -23.392783, lng: -47.917209, raio: 70 },
+    "Pista Alta - Volta 4":      { lat: -23.392783, lng: -47.917209, raio: 70 },
 
     // ---- Nomes Dinâmicos: DESACELERAÇÃO ----
-    "Alta (100 a 20km/h)":       { lat: -23.392783132651925,  lng: -47.91720937962347, raio: 70 },
-    "Alta (100 a 0km/h)":        { lat: -23.392783132651925,  lng: -47.91720937962347, raio: 70 },
+    "Alta (100 a 20km/h)":       { lat: -23.392783, lng: -47.917209, raio: 70 },
+    "Alta (100 a 0km/h)":        { lat: -23.392783, lng: -47.917209, raio: 70 },
     
     // ---- Testes Especiais e R389 ----
-    "Labirinto: 1ª volta + Mata-burro": { lat: -23.389897937338947, lng:  -47.90375005479293, raio: 30 },
-    "Power Hop Hill":            { lat: -23.389408882275966,  lng:  -47.920772503525185, raio: 30 },
-    "Lombadas: 1ª passagem":     { lat: -23.395171846083837,  lng: -47.92032189243844, raio: 30 },
-    "Pistas 1-2":                { lat: -23.397242119161156,  lng: -47.92448602193369, raio: 40 },
-    "Pista 4-3":                 { lat: -23.395709726328462,  lng: -47.92309797877286, raio: 40 },
-    "Slalom":                    { lat: -23.39748090007043,  lng: -47.9242084133005, raio: 40 },
-    "Pistas 7-8":                { lat: -23.397314738151422,  lng: -47.924327771600595, raio: 40 },
-    "Pistas 2-1":                { lat: -23.396490940978282,  lng: -47.92386790410527, raio: 40 },
-    "Pista 5-8":                 { lat: -23.397269640868,  lng: -47.92436583698041, raio: 40 },
-    "Pistas 9-10":               { lat: -23.397469035218407,  lng: -47.92421831548582, raio: 40 },
-    "Pista de Alta + bolacha":   { lat: -23.393033414214045,  lng: -47.91519833780578, raio: 70 },
-    "Pista de Baixa + bolacha":  { lat: -23.396999216729025,  lng: -47.91646970487802, raio: 40 },
+    "Labirinto: 1ª volta + Mata-burro": { lat: -23.389897, lng: -47.903750, raio: 30 },
+    "Power Hop Hill":            { lat: -23.389408, lng: -47.920772, raio: 30 },
+    "Lombadas: 1ª passagem":     { lat: -23.395171, lng: -47.920321, raio: 30 },
+    "Pistas 1-2":                { lat: -23.397242, lng: -47.924486, raio: 40 },
+    "Pista 4-3":                 { lat: -23.395709, lng: -47.923097, raio: 40 },
+    "Slalom":                    { lat: -23.397480, lng: -47.924208, raio: 40 },
+    "Pistas 7-8":                { lat: -23.397314, lng: -47.924327, raio: 40 },
+    "Pistas 2-1":                { lat: -23.396490, lng: -47.923867, raio: 40 },
+    "Pista 5-8":                 { lat: -23.397269, lng: -47.924365, raio: 40 },
+    "Pistas 9-10":               { lat: -23.397469, lng: -47.924218, raio: 40 },
+    "Pista de Alta + bolacha":   { lat: -23.393033, lng: -47.915198, raio: 70 },
+    "Pista de Baixa + bolacha":  { lat: -23.396999, lng: -47.916469, raio: 40 },
     "Enrola Camisa":             { lat: 0.000000, lng: 0.000000, raio: 40 } 
 };
 
 let rastreadorGpsID = null;
 let bloqueioTempo = false;
+let mapaTelemetria = null;
+let markerCarro = null;
+let circulosPistas = [];
 
 function falar(mensagem) {
     if ('speechSynthesis' in window) {
@@ -562,10 +576,57 @@ function calcularDistanciaMetros(lat1, lon1, lat2, lon2) {
     return R * c; 
 }
 
+// ==== INTEGRAÇÃO DO MAPA AO VIVO ====
+function abrirMapaAoVivo() {
+    const container = document.getElementById('container-mapa');
+    container.style.display = 'block';
+
+    if (!mapaTelemetria) {
+        // Inicia o mapa centralizado em Tatuí
+        mapaTelemetria = L.map('mapa-gps').setView([-23.395171, -47.920321], 15);
+        
+        // Camada de Satélite (OpenStreetMap não tem satélite puro grátis bom, usamos o padrão)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19, attribution: '© OpenStreetMap'
+        }).addTo(mapaTelemetria);
+
+        // Desenha todas as bolhas cadastradas no mapa
+        Object.keys(MAPA_PISTAS).forEach(nome => {
+            const p = MAPA_PISTAS[nome];
+            if (p.lat !== 0) {
+                // Remove duplicatas visuais (como as voltas repetidas da Frenagem)
+                let jaDesenhado = circulosPistas.some(c => c.getLatLng().lat === p.lat && c.getLatLng().lng === p.lng);
+                if(!jaDesenhado) {
+                    let circulo = L.circle([p.lat, p.lng], {
+                        color: '#38bdf8', fillColor: '#38bdf8', fillOpacity: 0.3, radius: p.raio
+                    }).addTo(mapaTelemetria).bindPopup(nome);
+                    circulosPistas.push(circulo);
+                }
+            }
+        });
+    }
+    
+    // Força o mapa a se redimensionar pois estava oculto (display: none)
+    setTimeout(() => { mapaTelemetria.invalidateSize(); }, 400);
+}
+
+function atualizarPosicaoNoMapa(lat, lng, accuracy) {
+    if (!mapaTelemetria) return;
+    
+    if (!markerCarro) {
+        markerCarro = L.circleMarker([lat, lng], {
+            color: '#ef4444', fillColor: '#ef4444', fillOpacity: 1, radius: 6
+        }).addTo(mapaTelemetria);
+        mapaTelemetria.setView([lat, lng], 16); // Centraliza no carro na primeira vez
+    } else {
+        markerCarro.setLatLng([lat, lng]);
+    }
+}
+// ====================================
+
 function iniciarCopilotoKX() {
     if (!navigator.geolocation) return alert("Dispositivo não suporta GPS.");
     
-    // Atualiza a Interface
     const btnAtivar = document.getElementById('btn-ativar-kx');
     if (btnAtivar) btnAtivar.innerHTML = '<span class="material-icons">radar</span> KX ATIVO';
     document.getElementById('status-kx').innerHTML = "Buscando satélites... Aguarde.";
@@ -576,7 +637,7 @@ function iniciarCopilotoKX() {
     if (modoSelecionado === 'R389') {
         nomePistaAlvo = app.sequenciaDiasPares[app.etapaAtualIndex];
         if (!nomePistaAlvo) { document.getElementById('status-kx').innerHTML = "Erro: R389 já concluído."; return alert("O ciclo R389 já foi concluído."); }
-        falar("Olá. Copiloto K X ativado. Vamos iniciar mais um teste de R 3 8 9. Siga para: " + nomePistaAlvo);
+        falar("Olá. Copiloto K X ativado. Vamos iniciar o teste de R 3 8 9. Siga para: " + nomePistaAlvo);
     
     } else if (modoSelecionado === 'FRENAGEM') {
         const indexNoCiclo = app.ciclosFrenagem.length % 8;
@@ -590,76 +651,70 @@ function iniciarCopilotoKX() {
     }
     
     rastreadorGpsID = navigator.geolocation.watchPosition((posicao) => {
-        // Feedback visual na tela
-        document.getElementById('status-kx').innerHTML = `Sinal conectado! (Margem: ${posicao.coords.accuracy.toFixed(0)}m)`;
+        // 1. Atualiza feedback visual (Texto e Mapa)
+        document.getElementById('status-kx').innerHTML = `Sinal: Conectado (Margem: ${posicao.coords.accuracy.toFixed(0)}m)`;
+        atualizarPosicaoNoMapa(posicao.coords.latitude, posicao.coords.longitude, posicao.coords.accuracy);
 
         if (bloqueioTempo) return; 
 
+        // 2. Define o Alvo Dinâmico
         if (modoSelecionado === 'R389') {
             nomePistaAlvo = app.sequenciaDiasPares[app.etapaAtualIndex];
             if (!nomePistaAlvo) { navigator.geolocation.clearWatch(rastreadorGpsID); return; }
-        
         } else if (modoSelecionado === 'FRENAGEM') {
             const indexNoCiclo = app.ciclosFrenagem.length % 8;
             nomePistaAlvo = app.roteiroFrenagem[indexNoCiclo];
-        
         } else if (modoSelecionado === 'DESACELERACAO') {
             nomePistaAlvo = app.roteiroDesaceleracao[app.etapaDesaceleracaoIndex];
             if (!nomePistaAlvo) { navigator.geolocation.clearWatch(rastreadorGpsID); return; }
         }
 
         let alvo = MAPA_PISTAS[nomePistaAlvo];
-        if (!alvo || alvo.lat === 0) return; // Ignora silenciosamente e espera a pessoa capturar na topografia
+        if (!alvo || alvo.lat === 0) return; // Se a pista não tem coordenada (ex: Enrola Camisa), ignora.
 
+        // 3. Matemática do Tiro
         let distancia = calcularDistanciaMetros(posicao.coords.latitude, posicao.coords.longitude, alvo.lat, alvo.lng);
         
+        // 4. CHECK-IN!
         if (distancia <= alvo.raio) {
             bloqueioTempo = true;
-            // 15 SEGUNDOS: Tempo perfeito para evitar duplo clique no mesmo lugar, mas rápido o suficiente para não perder a próxima pista.
-            setTimeout(() => { bloqueioTempo = false; }, 15000); 
+            // 12 SEGUNDOS DE COOLDOWN para evitar duplo clique mas dar tempo de ler o próximo obstáculo logo em seguida
+            setTimeout(() => { bloqueioTempo = false; }, 12000); 
 
             console.log(`✅ Copiloto KX Check-in: ${nomePistaAlvo}`);
             
+            // 5. Aciona as Funções Principais de acordo com o modo
             if (modoSelecionado === 'R389') {
                 app.registrarPassagem(true); 
-                
                 if (app.etapaAtualIndex >= app.sequenciaDiasPares.length) {
                     app.novaVolta(true); 
-                    let proximaPista = app.sequenciaDiasPares[0];
-                    falar("Ciclo concluído. O sistema já vai recomeçar. Siga para: " + proximaPista);
+                    falar("Ciclo concluído. O sistema já vai recomeçar. Siga para: " + app.sequenciaDiasPares[0]);
                 } else {
-                    let proximaPista = app.sequenciaDiasPares[app.etapaAtualIndex];
-                    falar(`Check. Siga para: ${proximaPista}`);
+                    falar(`Check. Siga para: ${app.sequenciaDiasPares[app.etapaAtualIndex]}`);
                 }
             
             } else if (modoSelecionado === 'FRENAGEM') {
                 app.registrarVoltaFrenagem();
                 const novoIndex = app.ciclosFrenagem.length % 8;
-                let proximaPista = app.roteiroFrenagem[novoIndex];
-                
                 if (novoIndex === 0) {
-                    falar("Ciclo de frenagem finalizado. O Copiloto já iniciou o próximo ciclo. Siga para: " + proximaPista);
+                    falar("Ciclo de frenagem finalizado. O Copiloto já iniciou o próximo ciclo. Siga para: " + app.roteiroFrenagem[0]);
                 } else {
-                    falar(`Check. Siga para: ${proximaPista}`);
+                    falar(`Check. Siga para: ${app.roteiroFrenagem[novoIndex]}`);
                 }
             
             } else if (modoSelecionado === 'DESACELERACAO') {
-                app.registrarPassagemDesaceleracao();
-                
+                app.registrarPassagemDesaceleracao(true);
                 if (app.etapaDesaceleracaoIndex >= app.roteiroDesaceleracao.length) {
-                    falar("Teste de desaceleração totalmente concluído. Bom trabalho! Retorne à base.");
-                    document.getElementById('status-kx').innerHTML = "Teste finalizado.";
-                    navigator.geolocation.clearWatch(rastreadorGpsID);
+                    app.novaVoltaDesaceleracao(true);
+                    falar("Ciclo de desaceleração concluído. O sistema já vai recomeçar o teste. Siga para: " + app.roteiroDesaceleracao[0]);
                 } else {
-                    let proximaPista = app.roteiroDesaceleracao[app.etapaDesaceleracaoIndex];
-                    falar(`Check. Siga para: ${proximaPista}`);
+                    falar(`Check. Siga para: ${app.roteiroDesaceleracao[app.etapaDesaceleracaoIndex]}`);
                 }
             }
         }
     }, 
     (erro) => { 
-        document.getElementById('status-kx').innerHTML = `<span style="color: #ef4444;">Aguardando sinal forte...</span>`;
-        console.log(erro); 
+        document.getElementById('status-kx').innerHTML = `<span style="color: #ef4444;">Buscando sinal do satélite...</span>`;
     }, 
     { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 });
 }
