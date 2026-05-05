@@ -46,10 +46,10 @@ const app = {
 
     // ROTEIRO: DESACELERAÇÃO 16 VOLTAS
     roteiroDesaceleracao: [
-        "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 0km/h)",
-        "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 0km/h)",
-        "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 0km/h)",
-        "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 0km/h)",
+        "Alta ", "Alta ", "Alta ", "Alta (100 a 20km/h)",
+         "Alta ", "Alta ", "Alta ", "Alta (100 a 20km/h)",
+        "Alta ", "Alta ", "Alta ", "Alta (100 a 0km/h)",
+         "Alta ", "Alta ", "Alta ", "Alta (100 a 20km/h)",
         "Power Hop Hill", "Enrola Camisa", "Enrola Camisa", "Power Hop Hill"
     ],
 
@@ -519,37 +519,37 @@ window.onload = () => app.init();
 
 const MAPA_PISTAS = {
     // ---- Pistas Base (Aumentado o raio para 70m para capturar a 100km/h) ----
-    "P. de Baixa":               { lat: -23.398088, lng: -47.923626, raio: 40 },
-    "Pista de Alta":             { lat: -23.392783, lng: -47.917209, raio: 70 },
+    "P. de Baixa":               { lat: -23.398088, lng: -47.923626, raio: 15 },
+    "Pista de Alta":             { lat: -23.392783, lng: -47.917209, raio: 15},
     
     // ---- Nomes Dinâmicos: FRENAGEM ----
-    "Pista Baixa - Volta 1":     { lat: -23.398088, lng: -47.923626, raio: 40 },
-    "Pista Baixa - Volta 2":     { lat: -23.398088, lng: -47.923626, raio: 40 },
-    "Pista Baixa - Volta 3":     { lat: -23.398088, lng: -47.923626, raio: 40 },
-    "Pista Baixa - Volta 4":     { lat: -23.398088, lng: -47.923626, raio: 40 },
-    "Pista Alta - Volta 1":      { lat: -23.392783, lng: -47.917209, raio: 70 },
-    "Pista Alta - Volta 2":      { lat: -23.392783, lng: -47.917209, raio: 70 },
-    "Pista Alta - Volta 3":      { lat: -23.392783, lng: -47.917209, raio: 70 },
-    "Pista Alta - Volta 4":      { lat: -23.392783, lng: -47.917209, raio: 70 },
+    "Pista Baixa - Volta 1":     { lat: -23.398088, lng: -47.923626, raio: 15 },
+    "Pista Baixa - Volta 2":     { lat: -23.398088, lng: -47.923626, raio: 15 },
+    "Pista Baixa - Volta 3":     { lat: -23.398088, lng: -47.923626, raio: 15 },
+    "Pista Baixa - Volta 4":     { lat: -23.398088, lng: -47.923626, raio: 15 },
+    "Pista Alta - Volta 1":      { lat: -23.392783, lng: -47.917209, raio: 15 },
+    "Pista Alta - Volta 2":      { lat: -23.392783, lng: -47.917209, raio: 15 },
+    "Pista Alta - Volta 3":      { lat: -23.392783, lng: -47.917209, raio: 15 },
+    "Pista Alta - Volta 4":      { lat: -23.392783, lng: -47.917209, raio: 15 },
 
     // ---- Nomes Dinâmicos: DESACELERAÇÃO ----
-    "Alta (100 a 20km/h)":       { lat: -23.392783, lng: -47.917209, raio: 70 },
-    "Alta (100 a 0km/h)":        { lat: -23.392783, lng: -47.917209, raio: 70 },
+    "Alta (100 a 20km/h)":       { lat: -23.392783, lng: -47.917209, raio: 15 },
+    "Alta (100 a 0km/h)":        { lat: -23.392783, lng: -47.917209, raio: 15 },
     
     // ---- Testes Especiais e R389 ----
-    "Labirinto: 1ª volta + Mata-burro": { lat: -23.389897, lng: -47.903750, raio: 30 },
-    "Power Hop Hill":            { lat: -23.389408, lng: -47.920772, raio: 30 },
-    "Lombadas: 1ª passagem":     { lat: -23.395171, lng: -47.920321, raio: 30 },
-    "Pistas 1-2":                { lat: -23.397242, lng: -47.924486, raio: 40 },
-    "Pista 4-3":                 { lat: -23.395709, lng: -47.923097, raio: 40 },
-    "Slalom":                    { lat: -23.397480, lng: -47.924208, raio: 40 },
-    "Pistas 7-8":                { lat: -23.397314, lng: -47.924327, raio: 40 },
-    "Pistas 2-1":                { lat: -23.396490, lng: -47.923867, raio: 40 },
-    "Pista 5-8":                 { lat: -23.397269, lng: -47.924365, raio: 40 },
-    "Pistas 9-10":               { lat: -23.397469, lng: -47.924218, raio: 40 },
-    "Pista de Alta + bolacha":   { lat: -23.393033, lng: -47.915198, raio: 70 },
-    "Pista de Baixa + bolacha":  { lat: -23.396999, lng: -47.916469, raio: 40 },
-    "Enrola Camisa":             { lat: 0.000000, lng: 0.000000, raio: 40 } 
+    "Labirinto: 1ª volta + Mata-burro": { lat: -23.389897, lng: -47.903750, raio: 10 },
+    "Power Hop Hill":            { lat: -23.389408, lng: -47.920772, raio: 10 },
+    "Lombadas: 1ª passagem":     { lat: -23.395171, lng: -47.920321, raio: 15 },
+    "Pistas 1-2":                { lat: -23.397242, lng: -47.924486, raio: 15 },
+    "Pista 4-3":                 { lat: -23.395709, lng: -47.923097, raio: 15 },
+    "Slalom":                    { lat: -23.397480, lng: -47.924208, raio: 15 },
+    "Pistas 7-8":                { lat: -23.397314, lng: -47.924327, raio: 15 },
+    "Pistas 2-1":                { lat: -23.396490, lng: -47.923867, raio: 15 },
+    "Pista 5-8":                 { lat: -23.397269, lng: -47.924365, raio: 15 },
+    "Pistas 9-10":               { lat: -23.397469, lng: -47.924218, raio: 15 },
+    "Pista de Alta + bolacha":   { lat: -23.393033, lng: -47.915198, raio: 15 },
+    "Pista de Baixa + bolacha":  { lat: -23.396999, lng: -47.916469, raio: 15 },
+    "Enrola Camisa":             { lat: 0.000000, lng: 0.000000, raio: 15 } 
 };
 
 let rastreadorGpsID = null;
