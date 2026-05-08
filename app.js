@@ -46,10 +46,10 @@ const app = {
 
     // ROTEIRO: DESACELERAÇÃO 16 VOLTAS
     roteiroDesaceleracao: [
-        "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 0km/h)",
-        "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 0km/h)",
-        "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 0km/h)",
-        "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 20km/h)", "Alta (100 a 0km/h)",
+        "Alta ", "Alta", "Alta ", "Alta (100 a 20km/h)",
+        "Alta ", "Alta", "Alta ", "Alta (100 a 20km/h)",
+        "Alta ", "Alta", "Alta ", "Alta (100 a 0km/h)",
+        "Alta ", "Alta", "Alta ", "Alta (100 a 20km/h)",
         "Power Hop Hill", "Enrola Camisa", "Enrola Camisa", "Power Hop Hill"
     ],
 
@@ -518,7 +518,7 @@ window.onload = () => app.init();
 
 // VARIÁVEL MESTRE (PONTO ÚNICO DE PARÂMETRO)
 const COORD_ALTA = { lat: -23.392783132651925, lng: -47.91720937962347, raio: 85 };
-const COORD_BAIXA = { lat: -23.398088084486734, lng: -47.92362656463522, raio: 40 };
+const COORD_BAIXA = { lat: -23.398088084486734, lng: -47.92362656463522, raio: 20 };
 
 const MAPA_PISTAS = {
     // ---- Pistas Base ----
