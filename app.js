@@ -43,15 +43,15 @@ const app = {
     ],
 
     roteiroDesaceleracao: [
-     "Alta ", "Alta", "Alta ", "Alta (100 a 20km/h)",
-        "Alta ", "Alta", "Alta ", "Alta (100 a 20km/h)",
-        "Alta ", "Alta", "Alta ", "Alta (100 a 0km/h)",
-        "Alta ", "Alta", "Alta ", "Alta (100 a 20km/h)",
+        "Alta", "Alta", "Alta", "Alta (100 a 20km/h)",
+        "Alta", "Alta", "Alta", "Alta (100 a 20km/h)",
+        "Alta", "Alta", "Alta", "Alta (100 a 0km/h)",
+        "Alta", "Alta", "Alta", "Alta (100 a 20km/h)",
         "Power Hop Hill", "Enrola Camisa", "Enrola Camisa", "Power Hop Hill",
-       "Alta ", "Alta", "Alta ", "Alta ",
-        "Alta ", "Alta", "Alta ", "Alta ",
-        "Alta ", "Alta", "Alta ", "Alta ",
-        "Alta ", "Alta", "Alta ", "Alta",
+          "Alta", "Alta", "Alta", "Alta",
+        "Alta", "Alta", "Alta", "Alta",
+        "Alta", "Alta", "Alta", "Alta",
+        "Alta", "Alta", "Alta", "Alta",
         "Power Hop Hill", "Enrola Camisa", "Enrola Camisa", "Power Hop Hill"
     ],
 
@@ -59,14 +59,13 @@ const app = {
         this.verificarSessao();
     },
 
-    // A VIRADA DE TURNO INTELIGENTE (Corta às 03:00 da manhã, não às 23:59)
+    // A VIRADA DE TURNO INTELIGENTE (Corta às 03:00 da manhã)
     obterDataDoTurno() {
         let data = new Date();
         if (data.getHours() < 3) {
-            // Se for madrugada (antes das 3h), pertence ao turno do dia anterior
             data.setDate(data.getDate() - 1);
         }
-        return data.toISOString().split('T')[0]; // Retorna YYYY-MM-DD
+        return data.toISOString().split('T')[0]; 
     },
 
     salvarEstadoHibrido() {
@@ -80,7 +79,6 @@ const app = {
             ciclosFrenagem: this.ciclosFrenagem,
             ultimaAtualizacao: new Date().toLocaleTimeString('pt-BR')
         };
-        // A nuvem aceita texto infinito, não pesa nada.
         db.ref(`vev_turnos/${dataHoje}/${this.operadorAtual}`).set(estado).catch(err => console.log("Erro Firebase:", err));
         localStorage.setItem(`vev_estado_backup_${this.operadorAtual}`, JSON.stringify(estado));
     },
@@ -155,7 +153,9 @@ const app = {
         if (!usuarioExiste) return alert("❌ Operador não cadastrado no sistema.");
         if (senhaDigitada !== SENHA_CORRETA) return alert("❌ PIN Incorreto.");
 
-        localStorage.setItem("app_vev_operador", nomeParaSalvar = document.getElementById("login-nome").value.trim());
+        const nomeParaSalvar = document.getElementById("login-nome").value.trim();
+        localStorage.setItem("app_vev_operador", nomeParaSalvar);
+        
         this.verificarSessao();
         document.getElementById("login-nome").value = "";
         document.getElementById("login-senha").value = "";
@@ -174,50 +174,56 @@ const app = {
     },
 
     // ==========================================
-    // NOVO: HISTÓRICO DE 7 DIAS
+    // HISTÓRICO DE 7 DIAS (FILTRADO POR USUÁRIO)
     // ==========================================
     async abrirModalHistorico() {
         appUI.abrirModal('modal-historico');
         const container = document.getElementById('lista-historico-nuvem');
-        container.innerHTML = '<div style="text-align: center; padding: 2rem; color: #fff;">Buscando relatórios antigos...</div>';
+        container.innerHTML = '<div style="text-align: center; padding: 2rem; color: #fff;">Buscando seus relatórios antigos...</div>';
         
         try {
-            // Busca os últimos 7 dias registrados no banco de dados
             const snapshot = await db.ref('vev_turnos').orderByKey().limitToLast(7).once('value');
             const dias = snapshot.val();
             
             if (!dias) {
-                container.innerHTML = '<div style="text-align: center; padding: 2rem; color: #fff;">Nenhum histórico encontrado.</div>';
+                container.innerHTML = '<div style="text-align: center; padding: 2rem; color: #fff;">Nenhum histórico encontrado na nuvem.</div>';
                 return;
             }
 
             let html = '';
-            // Inverte para mostrar o mais recente primeiro
             const datasKeys = Object.keys(dias).reverse(); 
+            let encontrouAlgum = false;
 
             datasKeys.forEach(dataString => {
                 const turnosDoDia = dias[dataString];
+                const meunome = this.operadorAtual; // Puxa apenas o usuário logado
                 
-                html += `<div style="background: rgba(255,255,255,0.1); border-radius: 12px; margin-bottom: 15px; overflow: hidden;">
-                            <div style="background: rgba(255,255,255,0.2); padding: 10px 15px; font-weight: bold; color: #fff;">🗓️ Data: ${dataString.split('-').reverse().join('/')}</div>`;
-                
-                Object.keys(turnosDoDia).forEach(operador => {
-                    const dadosOp = turnosDoDia[operador];
+                // Verifica se o usuário logado possui testes naquele dia
+                if (turnosDoDia && turnosDoDia[meunome]) {
+                    encontrouAlgum = true;
+                    const dadosOp = turnosDoDia[meunome];
                     const tFren = (dadosOp.ciclosFrenagem || []).length;
                     const tR389 = (dadosOp.checkins || []).length;
+                    const tDesacel = (dadosOp.checkinsDesaceleracao || []).length;
                     
                     html += `
-                        <div style="padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <strong style="color: var(--neon-blue); font-size: 1.1rem;">👤 ${operador}</strong><br>
-                                <span style="font-size: 0.8rem; color: #ccc;">Frenagem: ${tFren} laps | R389: ${tR389} reg.</span>
+                        <div style="background: rgba(255,255,255,0.1); border-radius: 12px; margin-bottom: 15px; overflow: hidden;">
+                            <div style="background: rgba(255,255,255,0.2); padding: 10px 15px; font-weight: bold; color: #fff;">🗓️ Data: ${dataString.split('-').reverse().join('/')}</div>
+                            <div style="padding: 12px 15px; display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong style="color: var(--neon-blue); font-size: 1.1rem;">👤 Seus Testes</strong><br>
+                                    <span style="font-size: 0.8rem; color: #ccc;">Fren: ${tFren} | R389: ${tR389} | Desacel: ${tDesacel}</span>
+                                </div>
+                                <button onclick="app.baixarRelatorioAntigo('${dataString}', '${meunome}')" style="background: var(--neon-blue); color: #000; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer;">BAIXAR PDF</button>
                             </div>
-                            <button onclick="app.baixarRelatorioAntigo('${dataString}', '${operador}')" style="background: var(--neon-blue); color: #000; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer;">PDF</button>
                         </div>
                     `;
-                });
-                html += `</div>`;
+                }
             });
+            
+            if (!encontrouAlgum) {
+                html = '<div style="text-align: center; padding: 2rem; color: #fff;">Você não possui testes registrados nos últimos 7 dias.</div>';
+            }
             
             container.innerHTML = html;
         } catch (e) {
@@ -250,9 +256,17 @@ const app = {
                 doc.text("R389:", 14, currentY);
                 const tableData = dadosOp.checkins.map((c, i) => [i+1, c.atividade, c.hora]);
                 doc.autoTable({ startY: currentY + 5, head: [['#', 'ATIVIDADE', 'HORA']], body: tableData });
+                currentY = doc.lastAutoTable.finalY + 15;
             }
 
-            doc.save(`Historico_${operador}_${dataString}.pdf`);
+            // NOVO: Adicionado Desaceleração ao PDF Histórico
+            if (dadosOp.checkinsDesaceleracao && dadosOp.checkinsDesaceleracao.length > 0) {
+                doc.text("DESACELERAÇÃO 16 LAPS:", 14, currentY);
+                const tableData = dadosOp.checkinsDesaceleracao.map((c, i) => [i+1, c.atividade, c.hora]);
+                doc.autoTable({ startY: currentY + 5, head: [['LAP/ETAPA', 'ATIVIDADE', 'HORA']], body: tableData });
+            }
+
+            doc.save(`Historico_${operador.split(' ')[0]}_${dataString}.pdf`);
         } catch (e) {
             alert("Erro ao gerar PDF.");
         }
@@ -576,16 +590,12 @@ window.onload = () => app.init();
 // 3. COPILOTO KX - MÓDULO DE TELEMETRIA GPS & MAPA AO VIVO
 // ====================================================
 
-// VARIÁVEL MESTRE (PONTO ÚNICO DE PARÂMETRO)
 const COORD_ALTA = { lat: -23.392783132651925, lng: -47.91720937962347, raio: 85 };
 const COORD_BAIXA = { lat: -23.398088084486734, lng: -47.92362656463522, raio: 40 };
 
 const MAPA_PISTAS = {
-    // ---- Pistas Base ----
     "P. de Baixa":               COORD_BAIXA,
     "Pista de Alta":             COORD_ALTA,
-    
-    // ---- Nomes Dinâmicos: FRENAGEM ----
     "Pista Baixa - Volta 1":     COORD_BAIXA,
     "Pista Baixa - Volta 2":     COORD_BAIXA,
     "Pista Baixa - Volta 3":     COORD_BAIXA,
@@ -594,12 +604,8 @@ const MAPA_PISTAS = {
     "Pista Alta - Volta 2":      COORD_ALTA,
     "Pista Alta - Volta 3":      COORD_ALTA,
     "Pista Alta - Volta 4":      COORD_ALTA,
-
-    // ---- Nomes Dinâmicos: DESACELERAÇÃO ----
     "Alta (100 a 20km/h)":       COORD_ALTA,
     "Alta (100 a 0km/h)":        COORD_ALTA,
-    
-    // ---- Testes Especiais e R389 ----
     "Labirinto: 1ª volta + Mata-burro": { lat: -23.389897, lng: -47.903750, raio: 30 },
     "Power Hop Hill":            { lat: -23.389408, lng: -47.920772, raio: 30 },
     "Lombadas: 1ª passagem":     { lat: -23.395171, lng: -47.920321, raio: 30 },
