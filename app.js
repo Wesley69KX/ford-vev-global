@@ -24,7 +24,6 @@ const app = {
     fotos: [], videosFiles: [], etapaAtualIndex: 0, checkins: [],
     operadorAtual: null,
     
-    // VARIÁVEIS NOVO TESTE DE DESACELERAÇÃO
     etapaDesaceleracaoIndex: 0, 
     checkinsDesaceleracao: [],
     
@@ -34,7 +33,6 @@ const app = {
         "Pista Alta - Volta 1",  "Pista Alta - Volta 2",  "Pista Alta - Volta 3",  "Pista Alta - Volta 4"
     ],
     
-     // ROTEIRO R389
     sequenciaDiasPares: [
         "Labirinto: 1ª volta + Mata-burro",  "Power Hop Hill", "Lombadas: 1ª passagem",
         "Pistas 1-2", "Pista 4-3", "Slalom", "Pista 4-3", "Slalom" , "Pistas 4-3", "Pistas 7-8", "Pistas 2-1", "Pistas 7-8", "P. de Baixa",
@@ -44,23 +42,36 @@ const app = {
         "Pista de Alta + bolacha", "Pista de Baixa + bolacha",
     ],
 
-    // ROTEIRO: DESACELERAÇÃO 16 VOLTAS
     roteiroDesaceleracao: [
-        "Alta ", "Alta", "Alta ", "Alta (100 a 20km/h)",
+     "Alta ", "Alta", "Alta ", "Alta (100 a 20km/h)",
         "Alta ", "Alta", "Alta ", "Alta (100 a 20km/h)",
         "Alta ", "Alta", "Alta ", "Alta (100 a 0km/h)",
         "Alta ", "Alta", "Alta ", "Alta (100 a 20km/h)",
         "Power Hop Hill", "Enrola Camisa", "Enrola Camisa", "Power Hop Hill"
+       "Alta ", "Alta", "Alta ", "Alta ",
+        "Alta ", "Alta", "Alta ", "Alta ",
+        "Alta ", "Alta", "Alta ", "Alta ",
+        "Alta ", "Alta", "Alta ", "Alta",
+        "Power Hop Hill", "Enrola Camisa", "Enrola Camisa", "Power Hop Hill"
     ],
 
     init() {
-        document.getElementById('t-data').value = new Date().toISOString().split('T')[0];
         this.verificarSessao();
+    },
+
+    // A VIRADA DE TURNO INTELIGENTE (Corta às 03:00 da manhã, não às 23:59)
+    obterDataDoTurno() {
+        let data = new Date();
+        if (data.getHours() < 3) {
+            // Se for madrugada (antes das 3h), pertence ao turno do dia anterior
+            data.setDate(data.getDate() - 1);
+        }
+        return data.toISOString().split('T')[0]; // Retorna YYYY-MM-DD
     },
 
     salvarEstadoHibrido() {
         if (!this.operadorAtual) return;
-        const dataHoje = new Date().toISOString().split('T')[0];
+        const dataHoje = this.obterDataDoTurno();
         const estado = {
             etapaAtualIndex: this.etapaAtualIndex,
             checkins: this.checkins,
@@ -69,13 +80,14 @@ const app = {
             ciclosFrenagem: this.ciclosFrenagem,
             ultimaAtualizacao: new Date().toLocaleTimeString('pt-BR')
         };
+        // A nuvem aceita texto infinito, não pesa nada.
         db.ref(`vev_turnos/${dataHoje}/${this.operadorAtual}`).set(estado).catch(err => console.log("Erro Firebase:", err));
         localStorage.setItem(`vev_estado_backup_${this.operadorAtual}`, JSON.stringify(estado));
     },
 
     async carregarEstadoHibrido() {
         if (!this.operadorAtual) return;
-        const dataHoje = new Date().toISOString().split('T')[0];
+        const dataHoje = this.obterDataDoTurno();
         try {
             const snapshot = await db.ref(`vev_turnos/${dataHoje}/${this.operadorAtual}`).once('value');
             const estadoNuvem = snapshot.val();
@@ -143,9 +155,7 @@ const app = {
         if (!usuarioExiste) return alert("❌ Operador não cadastrado no sistema.");
         if (senhaDigitada !== SENHA_CORRETA) return alert("❌ PIN Incorreto.");
 
-        const nomeParaSalvar = document.getElementById("login-nome").value.trim();
-        localStorage.setItem("app_vev_operador", nomeParaSalvar);
-        
+        localStorage.setItem("app_vev_operador", nomeParaSalvar = document.getElementById("login-nome").value.trim());
         this.verificarSessao();
         document.getElementById("login-nome").value = "";
         document.getElementById("login-senha").value = "";
@@ -160,6 +170,91 @@ const app = {
             this.etapaDesaceleracaoIndex = 0; this.checkinsDesaceleracao = [];
             this.ciclosFrenagem = [];
             this.verificarSessao();
+        }
+    },
+
+    // ==========================================
+    // NOVO: HISTÓRICO DE 7 DIAS
+    // ==========================================
+    async abrirModalHistorico() {
+        appUI.abrirModal('modal-historico');
+        const container = document.getElementById('lista-historico-nuvem');
+        container.innerHTML = '<div style="text-align: center; padding: 2rem; color: #fff;">Buscando relatórios antigos...</div>';
+        
+        try {
+            // Busca os últimos 7 dias registrados no banco de dados
+            const snapshot = await db.ref('vev_turnos').orderByKey().limitToLast(7).once('value');
+            const dias = snapshot.val();
+            
+            if (!dias) {
+                container.innerHTML = '<div style="text-align: center; padding: 2rem; color: #fff;">Nenhum histórico encontrado.</div>';
+                return;
+            }
+
+            let html = '';
+            // Inverte para mostrar o mais recente primeiro
+            const datasKeys = Object.keys(dias).reverse(); 
+
+            datasKeys.forEach(dataString => {
+                const turnosDoDia = dias[dataString];
+                
+                html += `<div style="background: rgba(255,255,255,0.1); border-radius: 12px; margin-bottom: 15px; overflow: hidden;">
+                            <div style="background: rgba(255,255,255,0.2); padding: 10px 15px; font-weight: bold; color: #fff;">🗓️ Data: ${dataString.split('-').reverse().join('/')}</div>`;
+                
+                Object.keys(turnosDoDia).forEach(operador => {
+                    const dadosOp = turnosDoDia[operador];
+                    const tFren = (dadosOp.ciclosFrenagem || []).length;
+                    const tR389 = (dadosOp.checkins || []).length;
+                    
+                    html += `
+                        <div style="padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong style="color: var(--neon-blue); font-size: 1.1rem;">👤 ${operador}</strong><br>
+                                <span style="font-size: 0.8rem; color: #ccc;">Frenagem: ${tFren} laps | R389: ${tR389} reg.</span>
+                            </div>
+                            <button onclick="app.baixarRelatorioAntigo('${dataString}', '${operador}')" style="background: var(--neon-blue); color: #000; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer;">PDF</button>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            });
+            
+            container.innerHTML = html;
+        } catch (e) {
+            container.innerHTML = '<div style="text-align: center; padding: 2rem; color: red;">Erro ao buscar no banco de dados.</div>';
+        }
+    },
+
+    async baixarRelatorioAntigo(dataString, operador) {
+        try {
+            const snapshot = await db.ref(`vev_turnos/${dataString}/${operador}`).once('value');
+            const dadosOp = snapshot.val();
+            if(!dadosOp) return alert("Dados não encontrados.");
+
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 30, 'F');
+            doc.setTextColor(255, 255, 255); doc.setFontSize(14); 
+            doc.text(`RELATÓRIO HISTÓRICO - ${dataString.split('-').reverse().join('/')}`, 105, 15, { align: "center" });
+            doc.setFontSize(10); doc.text(`Operador: ${operador}`, 105, 22, { align: "center" });
+            
+            let currentY = 35; doc.setTextColor(0, 0, 0);
+
+            if (dadosOp.ciclosFrenagem && dadosOp.ciclosFrenagem.length > 0) {
+                doc.text("FRENAGEM:", 14, currentY);
+                const tableData = dadosOp.ciclosFrenagem.map(f => [`C${f.ciclo}`, f.etapa, f.hora, f.observacao || "OK"]);
+                doc.autoTable({ startY: currentY + 5, head: [['CICLO', 'ETAPA', 'HORA', 'STATUS']], body: tableData });
+                currentY = doc.lastAutoTable.finalY + 15;
+            }
+
+            if (dadosOp.checkins && dadosOp.checkins.length > 0) {
+                doc.text("R389:", 14, currentY);
+                const tableData = dadosOp.checkins.map((c, i) => [i+1, c.atividade, c.hora]);
+                doc.autoTable({ startY: currentY + 5, head: [['#', 'ATIVIDADE', 'HORA']], body: tableData });
+            }
+
+            doc.save(`Historico_${operador}_${dataString}.pdf`);
+        } catch (e) {
+            alert("Erro ao gerar PDF.");
         }
     },
 
@@ -182,9 +277,7 @@ const app = {
         botao.innerHTML = '<span class="material-icons" style="font-size: 1rem;">auto_awesome</span> PROCESSAR IA';
     },
 
-    // ==========================================
     // ROTEIRO R389
-    // ==========================================
     registrarPassagem(forcarVindoDoCopiloto = false) {
         if (this.etapaAtualIndex >= this.sequenciaDiasPares.length) return this.novaVolta(forcarVindoDoCopiloto); 
         const nomeEtapa = this.sequenciaDiasPares[this.etapaAtualIndex];
@@ -215,7 +308,7 @@ const app = {
         const lista = document.getElementById('lista-cola');
         lista.innerHTML = this.sequenciaDiasPares.map((e, i) => `
             <div class="log-item ${i < this.etapaAtualIndex ? 'concluido' : (i === this.etapaAtualIndex ? 'ativo' : '')}">
-                <span class="material-icons" style="font-size: 1rem; color: ${i === this.etapaAtualIndex ? 'var(--accent)' : 'inherit'};">${i < this.etapaAtualIndex ? 'check_circle' : 'radio_button_unchecked'}</span>
+                <span class="material-icons" style="color: ${i === this.etapaAtualIndex ? 'var(--accent)' : 'inherit'};">${i < this.etapaAtualIndex ? 'check_circle' : 'radio_button_unchecked'}</span>
                 ${e}
             </div>
         `).join('');
@@ -224,10 +317,7 @@ const app = {
 
     resetarRoteiro() {
         if(confirm("Tem certeza que deseja APAGAR os registros do R389 no Banco de Dados?")) { 
-            this.etapaAtualIndex = 0; 
-            this.checkins = []; 
-            this.salvarEstadoHibrido(); 
-            this.atualizarInterfaceCola(); 
+            this.etapaAtualIndex = 0; this.checkins = []; this.salvarEstadoHibrido(); this.atualizarInterfaceCola(); 
         }
     },
 
@@ -242,9 +332,7 @@ const app = {
         doc.save(`Log_R389_${this.operadorAtual.split(' ')[0]}.pdf`);
     },
 
-    // ==========================================
     // DESACELERAÇÃO 16 VOLTAS
-    // ==========================================
     registrarPassagemDesaceleracao(forcarVindoDoCopiloto = false) {
         if (this.etapaDesaceleracaoIndex >= this.roteiroDesaceleracao.length) return this.novaVoltaDesaceleracao(forcarVindoDoCopiloto); 
         const nomeEtapa = this.roteiroDesaceleracao[this.etapaDesaceleracaoIndex];
@@ -275,7 +363,7 @@ const app = {
         const lista = document.getElementById('lista-desaceleracao');
         lista.innerHTML = this.roteiroDesaceleracao.map((e, i) => `
             <div class="log-item ${i < this.etapaDesaceleracaoIndex ? 'concluido' : (i === this.etapaDesaceleracaoIndex ? 'ativo' : '')}">
-                <span class="material-icons" style="font-size: 1rem; color: ${i === this.etapaDesaceleracaoIndex ? 'var(--accent)' : 'inherit'};">${i < this.etapaDesaceleracaoIndex ? 'check_circle' : 'radio_button_unchecked'}</span>
+                <span class="material-icons" style="color: ${i === this.etapaDesaceleracaoIndex ? 'var(--accent)' : 'inherit'};">${i < this.etapaDesaceleracaoIndex ? 'check_circle' : 'radio_button_unchecked'}</span>
                 ${i + 1}. ${e}
             </div>
         `).join('');
@@ -284,10 +372,7 @@ const app = {
 
     resetarDesaceleracao() {
         if(confirm("Tem certeza que deseja APAGAR os registros deste teste de Desaceleração?")) { 
-            this.etapaDesaceleracaoIndex = 0; 
-            this.checkinsDesaceleracao = []; 
-            this.salvarEstadoHibrido(); 
-            this.atualizarInterfaceDesaceleracao(); 
+            this.etapaDesaceleracaoIndex = 0; this.checkinsDesaceleracao = []; this.salvarEstadoHibrido(); this.atualizarInterfaceDesaceleracao(); 
         }
     },
 
@@ -302,9 +387,7 @@ const app = {
         doc.save(`Log_Desaceleracao_${this.operadorAtual.split(' ')[0]}.pdf`);
     },
 
-    // ==========================================
     // FRENAGEM
-    // ==========================================
     registrarVoltaFrenagem() {
         const totalVoltas = this.ciclosFrenagem.length;
         const indexNoCiclo = totalVoltas % 8; 
@@ -339,13 +422,13 @@ const app = {
         
         listaReversa.forEach((f, i) => {
             if (f.ciclo !== cicloAnterior && cicloAnterior !== null) {
-                 htmlLista += `<div style="background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 8px; text-align: center; font-size: 0.75rem; font-weight: bold; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">✅ FIM DO CICLO ${cicloAnterior}</div>`;
+                 htmlLista += `<div style="background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 8px; text-align: center; font-size: 0.85rem; font-weight: bold; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">✅ FIM DO CICLO ${cicloAnterior}</div>`;
             }
             cicloAnterior = f.ciclo;
             htmlLista += `
                 <div class="log-item" style="justify-content: space-between;">
                     <div><strong style="color: var(--text-primary);">${f.etapa}</strong><br><span style="color: var(--text-secondary);">Obs: ${f.observacao}</span></div>
-                    <div style="text-align: right; opacity: 0.6;"><div style="font-size: 0.65rem;">${f.hora}</div><div style="font-size: 0.65rem; font-weight: bold; color: var(--accent);">C${f.ciclo}</div></div>
+                    <div style="text-align: right; opacity: 0.6;"><div style="font-size: 0.75rem;">${f.hora}</div><div style="font-size: 0.75rem; font-weight: bold; color: var(--accent);">C${f.ciclo}</div></div>
                 </div>
             `;
         });
@@ -354,9 +437,7 @@ const app = {
 
     resetarFrenagem() { 
         if(confirm("Deseja APAGAR os dados de Frenagem do Banco de Dados?")) { 
-            this.ciclosFrenagem = []; 
-            this.salvarEstadoHibrido();
-            this.renderListaFrenagem(); 
+            this.ciclosFrenagem = []; this.salvarEstadoHibrido(); this.renderListaFrenagem(); 
         } 
     },
     
@@ -371,25 +452,15 @@ const app = {
         doc.save(`Log_Fren_${this.operadorAtual.split(' ')[0]}.pdf`);
     },
 
-    // ==========================================
-    // PDF RESUMO GERAL CONSOLIDADO
-    // ==========================================
     gerarRelatorioResumo() {
         if (this.checkins.length === 0 && this.ciclosFrenagem.length === 0 && this.checkinsDesaceleracao.length === 0) return alert("Sem dados registrados no turno.");
         const vin = document.getElementById('c-vin')?.value || "VEV-TEST";
         
         const resumoR389 = {};
-        this.checkins.forEach(r => {
-            if(r.atividade.includes("---")) return;
-            let nome = r.atividade.split(':')[0].trim();
-            resumoR389[nome] = (resumoR389[nome] || 0) + 1;
-        });
+        this.checkins.forEach(r => { if(!r.atividade.includes("---")) { let nome = r.atividade.split(':')[0].trim(); resumoR389[nome] = (resumoR389[nome] || 0) + 1; } });
 
         const resumoDesaceleracao = {};
-        this.checkinsDesaceleracao.forEach(r => {
-            if(r.atividade.includes("---")) return;
-            resumoDesaceleracao[r.atividade] = (resumoDesaceleracao[r.atividade] || 0) + 1;
-        });
+        this.checkinsDesaceleracao.forEach(r => { if(!r.atividade.includes("---")) { resumoDesaceleracao[r.atividade] = (resumoDesaceleracao[r.atividade] || 0) + 1; } });
 
         const totalVoltasFrenagem = this.ciclosFrenagem.length;
         const ciclosCompletosFrenagem = Math.floor(totalVoltasFrenagem / 8);
@@ -404,24 +475,21 @@ const app = {
         let currentY = 45;
 
         if (totalVoltasFrenagem > 0) {
-            doc.setTextColor(0, 0, 0); doc.setFontSize(12); doc.setFont(undefined, 'bold');
-            doc.text("RESUMO: TESTE DE FRENAGEM", 14, currentY);
+            doc.setTextColor(0, 0, 0); doc.setFontSize(12); doc.setFont(undefined, 'bold'); doc.text("RESUMO: TESTE DE FRENAGEM", 14, currentY);
             const tabelaFrenagem = [ ['Ciclos Completos (8 Voltas)', `${ciclosCompletosFrenagem} Ciclo(s)`], ['Voltas Extra (Pista Baixa)', `${voltasRestantesBaixa} Volta(s)`], ['Voltas Extra (Pista Alta)', `${voltasRestantesAlta} Volta(s)`], ['TOTAL GERAL DE VOLTAS', `${totalVoltasFrenagem} Volta(s)`] ];
             doc.autoTable({ startY: currentY + 5, body: tabelaFrenagem, theme: 'grid', headStyles: { fillColor: [249, 115, 22] }, columnStyles: { 0: { fontStyle: 'bold', cellWidth: 100 } } });
             currentY = doc.lastAutoTable.finalY + 15;
         }
 
         if (Object.keys(resumoR389).length > 0) {
-            doc.setTextColor(0, 0, 0); doc.setFontSize(12); doc.setFont(undefined, 'bold');
-            doc.text("RESUMO: CICLOS R389", 14, currentY);
+            doc.setTextColor(0, 0, 0); doc.setFontSize(12); doc.setFont(undefined, 'bold'); doc.text("RESUMO: CICLOS R389", 14, currentY);
             const tabelaR389 = Object.keys(resumoR389).map(k => [k, `${resumoR389[k]} vezes`]);
             doc.autoTable({ startY: currentY + 5, head: [['PISTA / ATIVIDADE', 'TOTAL NO TURNO']], body: tabelaR389, headStyles: { fillColor: [168, 85, 247] } });
             currentY = doc.lastAutoTable.finalY + 15;
         }
 
         if (Object.keys(resumoDesaceleracao).length > 0) {
-            doc.setTextColor(0, 0, 0); doc.setFontSize(12); doc.setFont(undefined, 'bold');
-            doc.text("RESUMO: DESACELERAÇÃO 16 LAPS", 14, currentY);
+            doc.setTextColor(0, 0, 0); doc.setFontSize(12); doc.setFont(undefined, 'bold'); doc.text("RESUMO: DESACELERAÇÃO 16 LAPS", 14, currentY);
             const tabelaDesaceleracao = Object.keys(resumoDesaceleracao).map(k => [k, `${resumoDesaceleracao[k]} passagens`]);
             doc.autoTable({ startY: currentY + 5, head: [['PISTA / ATIVIDADE', 'TOTAL NO TURNO']], body: tabelaDesaceleracao, headStyles: { fillColor: [236, 72, 153] } });
         }
@@ -429,13 +497,9 @@ const app = {
         doc.save(`Resumo_${this.operadorAtual.split(' ')[0]}_${Date.now()}.pdf`);
     },
 
-    // ==========================================
-    // OUTROS MÉTODOS (Fotos, IA, Turno)
-    // ==========================================
     handleMedia(e) {
         Array.from(e.target.files).forEach(file => {
-            if (file.type.startsWith('video/')) {
-                this.videosFiles.push(file); this.renderGaleria();
+            if (file.type.startsWith('video/')) { this.videosFiles.push(file); this.renderGaleria();
             } else if (file.type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onload = (ev) => { this.comprimir(ev.target.result, 3840, 3840, (img) => { this.fotos.push({ src: img, legenda: '' }); this.renderGaleria(); }); };
@@ -469,14 +533,10 @@ const app = {
     resetarFormularioLaudo() { document.getElementById('i-id').value = ''; document.getElementById('i-obs').value = ''; this.fotos = []; this.videosFiles = []; this.renderGaleria(); },
 
     async gerarECompartilharLaudo() { 
-        const id = document.getElementById('i-id').value || "SN"; 
-        const motorista = document.getElementById('i-motorista').value || this.operadorAtual; 
-        const parecer = document.getElementById('i-obs').value || "Sem observações.";
-        
+        const id = document.getElementById('i-id').value || "SN"; const motorista = document.getElementById('i-motorista').value || this.operadorAtual; const parecer = document.getElementById('i-obs').value || "Sem observações.";
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
         doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 30, 'F'); doc.setTextColor(56, 189, 248); doc.setFontSize(18); doc.text("LAUDO TÉCNICO", 14, 20); doc.setFontSize(12); doc.text(`VIN: ${id}`, 196, 20, { align: "right" }); doc.setTextColor(0, 0, 0);
         doc.autoTable({ startY: 35, body: [['Veículo / VIN:', id, 'Data:', new Date().toLocaleString('pt-BR')], ['Analista de Produto:', motorista, 'Assinatura (Auto):', 'Autenticado no App']], theme: 'grid' });
-        
         let currentY = doc.lastAutoTable.finalY + 10; doc.setFont(undefined, 'bold'); doc.text("PARECER TÉCNICO:", 14, currentY); currentY += 6; doc.setFont(undefined, 'normal'); doc.text(doc.splitTextToSize(parecer, 178), 14, currentY);
         
         if (this.fotos.length > 0) {
@@ -518,14 +578,14 @@ window.onload = () => app.init();
 
 // VARIÁVEL MESTRE (PONTO ÚNICO DE PARÂMETRO)
 const COORD_ALTA = { lat: -23.392783132651925, lng: -47.91720937962347, raio: 85 };
-const COORD_BAIXA = { lat: -23.398088084486734, lng: -47.92362656463522, raio: 20 };
+const COORD_BAIXA = { lat: -23.398088084486734, lng: -47.92362656463522, raio: 40 };
 
 const MAPA_PISTAS = {
     // ---- Pistas Base ----
     "P. de Baixa":               COORD_BAIXA,
     "Pista de Alta":             COORD_ALTA,
     
-    // ---- Nomes Dinâmicos: FRENAGEM (Ligados ao Ponto Mestre) ----
+    // ---- Nomes Dinâmicos: FRENAGEM ----
     "Pista Baixa - Volta 1":     COORD_BAIXA,
     "Pista Baixa - Volta 2":     COORD_BAIXA,
     "Pista Baixa - Volta 3":     COORD_BAIXA,
@@ -535,7 +595,7 @@ const MAPA_PISTAS = {
     "Pista Alta - Volta 3":      COORD_ALTA,
     "Pista Alta - Volta 4":      COORD_ALTA,
 
-    // ---- Nomes Dinâmicos: DESACELERAÇÃO (Ligados ao Ponto Mestre) ----
+    // ---- Nomes Dinâmicos: DESACELERAÇÃO ----
     "Alta (100 a 20km/h)":       COORD_ALTA,
     "Alta (100 a 0km/h)":        COORD_ALTA,
     
@@ -550,8 +610,8 @@ const MAPA_PISTAS = {
     "Pistas 2-1":                { lat: -23.396490, lng: -47.923867, raio: 40 },
     "Pista 5-8":                 { lat: -23.397269, lng: -47.924365, raio: 40 },
     "Pistas 9-10":               { lat: -23.397469, lng: -47.924218, raio: 40 },
-    "Pista de Alta + bolacha":   COORD_ALTA, // Se quiser mudar para Ponto Mestre da Alta
-    "Pista de Baixa + bolacha":  COORD_BAIXA, // Se quiser mudar para Ponto Mestre da Baixa
+    "Pista de Alta + bolacha":   COORD_ALTA, 
+    "Pista de Baixa + bolacha":  COORD_BAIXA, 
     "Enrola Camisa":             { lat: 0.000000, lng: 0.000000, raio: 40 } 
 };
 
@@ -560,10 +620,6 @@ let bloqueioTempo = false;
 let mapaTelemetria = null;
 let markerCarro = null;
 let circulosPistas = [];
-
-// ====================================
-// WAKE LOCK API (TELA SEMPRE LIGADA)
-// ====================================
 let cadeadoTela = null;
 
 async function manterTelaLigada() {
@@ -572,33 +628,20 @@ async function manterTelaLigada() {
             if (cadeadoTela !== null) return;
             cadeadoTela = await navigator.wakeLock.request('screen');
             console.log('🔓 Tela forçada a ficar ligada.');
-            
-            cadeadoTela.addEventListener('release', () => {
-                console.log('🔒 Trava de tela caiu.');
-                cadeadoTela = null;
-            });
-        } catch (err) {
-            console.error('Erro ao travar tela:', err);
-        }
+            cadeadoTela.addEventListener('release', () => { cadeadoTela = null; });
+        } catch (err) { console.error('Erro ao travar tela:', err); }
     }
 }
 
 function liberarTela() {
     if (cadeadoTela !== null) {
-        cadeadoTela.release().then(() => {
-            cadeadoTela = null;
-            console.log('🔒 Tela liberada para apagar.');
-        });
+        cadeadoTela.release().then(() => { cadeadoTela = null; console.log('🔒 Tela liberada para apagar.'); });
     }
 }
 
-// "Espião" para religar a tela se o piloto minimizar e voltar pro app
 document.addEventListener('visibilitychange', async () => {
-    if (document.visibilityState === 'visible' && rastreadorGpsID !== null) {
-        await manterTelaLigada();
-    }
+    if (document.visibilityState === 'visible' && rastreadorGpsID !== null) { await manterTelaLigada(); }
 });
-// ====================================
 
 function falar(mensagem) {
     if ('speechSynthesis' in window) {
@@ -618,25 +661,20 @@ function calcularDistanciaMetros(lat1, lon1, lat2, lon2) {
     return R * c; 
 }
 
-// ==== INTEGRAÇÃO DO MAPA AO VIVO ====
 function abrirMapaAoVivo() {
     const container = document.getElementById('container-mapa');
     container.style.display = 'block';
 
     if (!mapaTelemetria) {
         mapaTelemetria = L.map('mapa-gps').setView([-23.395171, -47.920321], 15);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19, attribution: '© OpenStreetMap'
-        }).addTo(mapaTelemetria);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(mapaTelemetria);
 
         Object.keys(MAPA_PISTAS).forEach(nome => {
             const p = MAPA_PISTAS[nome];
             if (p.lat !== 0) {
                 let jaDesenhado = circulosPistas.some(c => c.getLatLng().lat === p.lat && c.getLatLng().lng === p.lng);
                 if(!jaDesenhado) {
-                    let circulo = L.circle([p.lat, p.lng], {
-                        color: '#38bdf8', fillColor: '#38bdf8', fillOpacity: 0.3, radius: p.raio
-                    }).addTo(mapaTelemetria).bindPopup(nome);
+                    let circulo = L.circle([p.lat, p.lng], { color: '#38bdf8', fillColor: '#38bdf8', fillOpacity: 0.3, radius: p.raio }).addTo(mapaTelemetria).bindPopup(nome);
                     circulosPistas.push(circulo);
                 }
             }
@@ -647,24 +685,18 @@ function abrirMapaAoVivo() {
 
 function atualizarPosicaoNoMapa(lat, lng, accuracy) {
     if (!mapaTelemetria) return;
-    
     if (!markerCarro) {
-        markerCarro = L.circleMarker([lat, lng], {
-            color: '#ef4444', fillColor: '#ef4444', fillOpacity: 1, radius: 6
-        }).addTo(mapaTelemetria);
+        markerCarro = L.circleMarker([lat, lng], { color: '#ef4444', fillColor: '#ef4444', fillOpacity: 1, radius: 6 }).addTo(mapaTelemetria);
         mapaTelemetria.setView([lat, lng], 16);
     } else {
         markerCarro.setLatLng([lat, lng]);
     }
 }
-// ====================================
 
 function iniciarCopilotoKX() {
     if (!navigator.geolocation) return alert("Dispositivo não suporta GPS.");
     
-    // ATIVA O CADEADO DE TELA
     manterTelaLigada();
-    
     const btnAtivar = document.getElementById('btn-ativar-kx');
     if (btnAtivar) btnAtivar.innerHTML = '<span class="material-icons">radar</span> KX ATIVO';
     document.getElementById('status-kx').innerHTML = "Buscando satélites... Aguarde.";
@@ -676,12 +708,10 @@ function iniciarCopilotoKX() {
         nomePistaAlvo = app.sequenciaDiasPares[app.etapaAtualIndex];
         if (!nomePistaAlvo) { document.getElementById('status-kx').innerHTML = "Erro: R389 já concluído."; return alert("O ciclo R389 já foi concluído."); }
         falar("Olá. Copiloto K X ativado. Vamos iniciar o teste de R 3 8 9. Siga para: " + nomePistaAlvo);
-    
     } else if (modoSelecionado === 'FRENAGEM') {
         const indexNoCiclo = app.ciclosFrenagem.length % 8;
         nomePistaAlvo = app.roteiroFrenagem[indexNoCiclo];
         falar("Olá. Copiloto K X ativado. Vamos iniciar a telemetria de Frenagem. Siga para: " + nomePistaAlvo);
-    
     } else if (modoSelecionado === 'DESACELERACAO') {
         nomePistaAlvo = app.roteiroDesaceleracao[app.etapaDesaceleracaoIndex];
         if (!nomePistaAlvo) { document.getElementById('status-kx').innerHTML = "Erro: Teste concluído."; return alert("O teste de Desaceleração já foi concluído."); }
@@ -724,7 +754,6 @@ function iniciarCopilotoKX() {
                 } else {
                     falar(`Check. Siga para: ${app.sequenciaDiasPares[app.etapaAtualIndex]}`);
                 }
-            
             } else if (modoSelecionado === 'FRENAGEM') {
                 app.registrarVoltaFrenagem();
                 const novoIndex = app.ciclosFrenagem.length % 8;
@@ -733,7 +762,6 @@ function iniciarCopilotoKX() {
                 } else {
                     falar(`Check. Siga para: ${app.roteiroFrenagem[novoIndex]}`);
                 }
-            
             } else if (modoSelecionado === 'DESACELERACAO') {
                 app.registrarPassagemDesaceleracao(true);
                 if (app.etapaDesaceleracaoIndex >= app.roteiroDesaceleracao.length) {
@@ -745,9 +773,7 @@ function iniciarCopilotoKX() {
             }
         }
     }, 
-    (erro) => { 
-        document.getElementById('status-kx').innerHTML = `<span style="color: #ef4444;">Buscando sinal do satélite...</span>`;
-    }, 
+    (erro) => { document.getElementById('status-kx').innerHTML = `<span style="color: #ef4444;">Buscando sinal do satélite...</span>`; }, 
     { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 });
 }
 
@@ -757,10 +783,7 @@ function pararCopilotoKX() {
         const btnAtivar = document.getElementById('btn-ativar-kx');
         if (btnAtivar) btnAtivar.innerHTML = '<span class="material-icons">play_arrow</span> ATIVAR KX';
         document.getElementById('status-kx').innerHTML = "";
-        
-        // DESLIGA A TRAVA DA TELA PARA ECONOMIZAR BATERIA
         liberarTela();
-        
         falar("Copiloto K X desativado. Bom descanso.");
     }
 }
