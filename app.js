@@ -59,7 +59,7 @@ const app = {
         this.verificarSessao();
     },
 
-    // A VIRADA DE TURNO INTELIGENTE (Corta às 03:00 da manhã)
+  // A VIRADA DE TURNO INTELIGENTE (Corta às 03:00 da manhã)
     obterDataDoTurno() {
         let data = new Date();
         if (data.getHours() < 3) {
@@ -72,6 +72,7 @@ const app = {
         if (!this.operadorAtual) return;
         const dataHoje = this.obterDataDoTurno();
         const estado = {
+            data: dataHoje, // <--- NOVO: Agora o backup do celular sabe de que dia ele é
             etapaAtualIndex: this.etapaAtualIndex,
             checkins: this.checkins,
             etapaDesaceleracaoIndex: this.etapaDesaceleracaoIndex,
@@ -108,18 +109,26 @@ const app = {
 
     restaurarBackupLocal() {
         const salvoLocal = localStorage.getItem(`vev_estado_backup_${this.operadorAtual}`);
+        const dataHoje = this.obterDataDoTurno(); // Descobre que dia é hoje
+        
         if (salvoLocal) {
             const estadoLocal = JSON.parse(salvoLocal);
-            this.etapaAtualIndex = estadoLocal.etapaAtualIndex || 0;
-            this.checkins = estadoLocal.checkins || [];
-            this.etapaDesaceleracaoIndex = estadoLocal.etapaDesaceleracaoIndex || 0;
-            this.checkinsDesaceleracao = estadoLocal.checkinsDesaceleracao || [];
-            this.ciclosFrenagem = estadoLocal.ciclosFrenagem || [];
-        } else {
-            this.etapaAtualIndex = 0; this.checkins = []; 
-            this.etapaDesaceleracaoIndex = 0; this.checkinsDesaceleracao = []; 
-            this.ciclosFrenagem = [];
+            
+            // NOVO: Só restaura o backup se a data bater com a de hoje!
+            if (estadoLocal.data === dataHoje) {
+                this.etapaAtualIndex = estadoLocal.etapaAtualIndex || 0;
+                this.checkins = estadoLocal.checkins || [];
+                this.etapaDesaceleracaoIndex = estadoLocal.etapaDesaceleracaoIndex || 0;
+                this.checkinsDesaceleracao = estadoLocal.checkinsDesaceleracao || [];
+                this.ciclosFrenagem = estadoLocal.ciclosFrenagem || [];
+                return; // Para a função aqui
+            }
         }
+        
+        // Se o backup for de ontem (ou não existir), ZERA TUDO para o novo turno
+        this.etapaAtualIndex = 0; this.checkins = []; 
+        this.etapaDesaceleracaoIndex = 0; this.checkinsDesaceleracao = []; 
+        this.ciclosFrenagem = [];
     },
 
     verificarSessao() {
