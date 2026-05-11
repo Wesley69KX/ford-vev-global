@@ -47,7 +47,7 @@ const app = {
         "Alta ", "Alta", "Alta ", "Alta (100 a 20km/h)",
         "Alta ", "Alta", "Alta ", "Alta (100 a 0km/h)",
         "Alta ", "Alta", "Alta ", "Alta (100 a 20km/h)",
-        "Power Hop Hill", "Enrola Camisa", "Enrola Camisa", "Power Hop Hill"
+        "Power Hop Hill", "Enrola Camisa", "Enrola Camisa", "Power Hop Hill",
        "Alta ", "Alta", "Alta ", "Alta ",
         "Alta ", "Alta", "Alta ", "Alta ",
         "Alta ", "Alta", "Alta ", "Alta ",
