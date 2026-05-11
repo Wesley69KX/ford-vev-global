@@ -132,7 +132,7 @@ const app = {
         const senhaDigitada = document.getElementById("login-senha").value.trim();
         if (nomeDigitado.length < 3) return alert("Digite seu nome completo.");
         
-        const USUARIOS_PERMITIDOS = ["WESLEY", "JOAO OLIVEIRA" , "HEBER PAES" , "TESTE"]; 
+        const USUARIOS_PERMITIDOS = ["WESLEY SILVA", "JOAO OLIVEIRA" , "HEBER PAES" , "TESTE" , "GILSOM OLIVEIRA" , "PAULA BARBOSA " , "RENATA MUNAKATA", "CARLA CERPE" , "RAFAEL TORRES"]; 
         const SENHA_CORRETA = "1234";
 
         let usuarioExiste = false;
