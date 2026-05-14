@@ -693,18 +693,18 @@ const MAPA_PISTAS = {
     "Pista Alta - Volta 4":      COORD_ALTA,
     
     "Labirinto: 1ª volta + Mata-burro": { lat: -23.389897, lng: -47.903750, raio: 30 },
-    "Power Hop Hill":            { lat: -23.389408, lng: -47.920772, raio: 30 },
-    "Lombadas: 1ª passagem":     { lat: -23.395171, lng: -47.920321, raio: 30 },
-    "Pistas 1-2":                { lat: -23.397242, lng: -47.924486, raio: 40 },
-    "Pista 4-3":                 { lat: -23.395709, lng: -47.923097, raio: 40 },
-    "Slalom":                    { lat: -23.397480, lng: -47.924208, raio: 40 },
-    "Pistas 7-8":                { lat: -23.397314, lng: -47.924327, raio: 40 },
-    "Pistas 2-1":                { lat: -23.396490, lng: -47.923867, raio: 40 },
-    "Pista 5-8":                 { lat: -23.397269, lng: -47.924365, raio: 40 },
-    "Pistas 9-10":               { lat: -23.397469, lng: -47.924218, raio: 40 },
+    "Power Hop Hill":            { lat: -23.389408, lng: -47.920772, raio: 10 },
+    "Lombadas: 1ª passagem":     { lat: -23.395171, lng: -47.920321, raio: 10 },
+    "Pistas 1-2":                { lat: -23.397242, lng: -47.924486, raio: 5 },
+    "Pista 4-3":                 { lat: -23.395709, lng: -47.923097, raio: 5 },
+    "Slalom":                    { lat: -23.397480, lng: -47.924208, raio: 5 },
+    "Pistas 7-8":                { lat: -23.397314, lng: -47.924327, raio: 5 },
+    "Pistas 2-1":                { lat: -23.396490, lng: -47.923867, raio: 5 },
+    "Pista 5-8":                 { lat: -23.397269, lng: -47.924365, raio: 5 },
+    "Pistas 9-10":               { lat: -23.397469, lng: -47.924218, raio: 5 },
     "Pista de Alta + bolacha":   COORD_ALTA, 
     "Pista de Baixa + bolacha":  COORD_BAIXA, 
-    "Enrola Camisa":             { lat: 0.000000, lng: 0.000000, raio: 40 } 
+    "Enrola Camisa":             { lat: 0.000000, lng: 0.000000, raio: 15 } 
 };
 
 let rastreadorGpsID = null;
