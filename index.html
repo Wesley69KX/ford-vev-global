@@ -83,69 +83,60 @@
         .log-item.ativo { background: rgba(var(--accent-rgb), 0.15); border-radius: 12px; border-left: 4px solid var(--accent); color: var(--text-primary); font-weight: 800; font-size: 1.05rem; }
         .log-item.concluido { opacity: 0.4; text-decoration: line-through; }
         .camera-trigger { background: rgba(var(--accent-rgb), 0.05); border: 2px dashed rgba(var(--accent-rgb), 0.4); padding: 1.5rem; border-radius: 16px; text-align: center; cursor: pointer; color: var(--accent); font-weight: 800; margin: 1rem 0; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; }
+        
+        /* O GRID DA GALERIA */
         .gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .photo-wrapper { position: relative; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
-        .photo-wrapper img { width: 100%; height: 120px; object-fit: cover; display: block; }
-        .photo-wrapper input { width: 100%; font-size: 0.7rem; padding: 0.5rem; background: rgba(0,0,0,0.8); border: none; border-radius: 0; color: white; }
-        .btn-delete-photo { position: absolute; top: 5px; right: 5px; background: rgba(239, 68, 68, 0.9); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; backdrop-filter: blur(4px); }
         .leaflet-container { border-radius: 12px; filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
     </style>
 </head>
 <body>
 
+    <!-- MODAL DE LOGIN -->
     <div id="modal-login" class="modal-overlay modal-login-wrapper color-blue" style="display: flex;">
         <div class="modal-login-box">
             <span class="material-icons" style="font-size: 3.5rem; color: var(--accent); margin-bottom: 10px; text-shadow: 0 0 25px rgba(56, 189, 248, 0.5);">fingerprint</span>
             <h3 style="color: var(--text-primary); font-weight: 900; margin-bottom: 5px; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px;">Acesso Operacional</h3>
-            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 2.5rem;">Autentique-se para iniciar o turno (Cloud)</p>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 2.5rem;">Autentique-se para iniciar o turno</p>
             <div class="input-group"><input type="text" id="login-nome" placeholder="NOME DO OPERADOR" style="text-align: center; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;"></div>
             <div class="input-group" style="margin-bottom: 2.5rem;"><input type="password" id="login-senha" placeholder="PIN" style="text-align: center; font-weight: 900; letter-spacing: 5px; font-size: 1.5rem;" inputmode="numeric"></div>
             <button class="btn-main btn-solid" onclick="app.efetuarLogin()"><span class="material-icons">cloud_sync</span> AUTENTICAR</button>
         </div>
     </div>
 
+    <!-- CABEÇALHO -->
     <header>
         <img src="logo.png" alt="VEV" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<span style=\'font-weight:900; font-size:1.3rem; letter-spacing:1px;\'>FORD <span style=\'color:var(--neon-blue)\'>VEV</span></span>');">
         <div class="header-info">
-            <div>
-                <div class="user-name" id="ui-nome-usuario">NÃO LOGADO</div>
-            </div>
+            <div class="user-name" id="ui-nome-usuario">NÃO LOGADO</div>
             <button class="btn-logout" onclick="app.efetuarLogout()" title="Encerrar Turno"><span class="material-icons" style="font-size: 1.5rem;">power_settings_new</span></button>
         </div>
     </header>
 
     <div class="container">
         
-        <!-- BANNER DE INSTALAÇÃO DO APP -->
+        <!-- BANNER DE INSTALAÇÃO DO APP (PWA) -->
         <div id="banner-instalacao" class="bento-card bento-full" style="background: rgba(16, 185, 129, 0.1); border-color: var(--neon-green); display: none; flex-direction: row; align-items: center; justify-content: space-between; padding: 1.2rem 1.5rem; margin-bottom: 1.5rem;">
             <div style="flex: 1;">
                 <h3 style="color: var(--neon-green); margin-bottom: 4px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;"><span class="material-icons">install_mobile</span> Instalar App VEV</h3>
-                <p style="font-size: 0.75rem; margin-bottom: 0; color: var(--text-primary); opacity: 0.9;">Adicione à tela inicial para acesso rápido e offline.</p>
+                <p style="font-size: 0.75rem; margin-bottom: 0; color: var(--text-primary); opacity: 0.9;">Adicione à tela inicial para acesso offline.</p>
             </div>
-            <button onclick="instalarPWA()" style="background: var(--neon-green); color: #000; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; cursor: pointer; text-transform: uppercase; font-size: 0.85rem; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);">INSTALAR</button>
+            <button onclick="instalarPWA()" style="background: var(--neon-green); color: #000; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; cursor: pointer; text-transform: uppercase; font-size: 0.85rem;">INSTALAR</button>
         </div>
 
         <h2>Links Externos</h2>
         <div class="bento-grid">
-            <!-- 1. Check List -->
             <a href="https://forms.office.com/r/LGrPxcte1T" target="_blank" class="bento-card color-gray">
                 <div class="bento-glow"></div><div class="bento-icon"><span class="material-icons">fact_check</span></div>
                 <div class="bento-content"><h3>Check List</h3><p>Inspeção Diária</p></div>
             </a>
-            
-            <!-- 2. Abastecimento -->
             <a href="https://forms.office.com/r/FmGd5gJF5e" target="_blank" class="bento-card color-gray">
                 <div class="bento-glow"></div><div class="bento-icon"><span class="material-icons">local_gas_station</span></div>
                 <div class="bento-content"><h3>Abastecimento</h3><p>Litragem e KM</p></div>
             </a>
-
-            <!-- 3. KM Interno -->
             <a href="https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=eruQyfRRm0O9NpwH-xBBwP_dTP0IZDtLtTBWw5vI8tFUNFlUN1VMVEYzWUMxUDRGUFIzNkdGM1lLSiQlQCN0PWcu&origin=Invitation&channel=1" target="_blank" class="bento-card color-gray">
                 <div class="bento-glow"></div><div class="bento-icon"><span class="material-icons">edit_road</span></div>
                 <div class="bento-content"><h3>KM Interno</h3><p>Registro de Rota</p></div>
             </a>
-
-            <!-- 4. Drive Team Issues -->
             <a href="https://forms.office.com/r/KqBNKV9zjS" target="_blank" class="bento-card color-red">
                 <div class="bento-glow"></div>
                 <div style="display: flex; justify-content: space-between; align-items: flex-start;">
@@ -159,11 +150,11 @@
         <h2>Sistemas de Engenharia</h2>
         <div class="bento-grid">
             
-            <!-- MÁSTER VIN CARD -->
+            <!-- PAINEL MESTRE DO VEÍCULO (VIN GLOBAL) -->
             <div class="bento-card bento-full" style="background: rgba(56, 189, 248, 0.08); border-color: var(--neon-blue); min-height: auto; flex-direction: row; align-items: center; justify-content: space-between; padding: 1.2rem 1.5rem; cursor: default;">
                 <div style="flex: 1;">
                     <h3 style="color: var(--neon-blue); margin-bottom: 2px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;"><span class="material-icons">directions_car</span> Veículo Atual</h3>
-                    <p style="font-size: 0.75rem; margin-bottom: 0; opacity: 0.8;">Aplicado automaticamente aos laudos e relatórios</p>
+                    <p style="font-size: 0.75rem; margin-bottom: 0; opacity: 0.8;">Aplicado automaticamente a todos os relatórios</p>
                 </div>
                 <input type="text" id="global-vin" oninput="app.setVin(this.value)" placeholder="VIN..." style="width: 130px; margin-bottom: 0; font-size: 1.1rem; font-weight: 900; text-align: center; text-transform: uppercase; border-color: var(--neon-blue); padding: 0.8rem; background: rgba(0,0,0,0.7);">
             </div>
@@ -208,6 +199,7 @@
         </div>
     </div>
 
+    <!-- MODAL HISTÓRICO -->
     <div id="modal-historico" class="modal-overlay color-white">
         <div class="modal-content">
             <div class="close-btn" onclick="appUI.fecharModal('modal-historico')"><span class="material-icons">close</span></div>
@@ -219,11 +211,11 @@
         </div>
     </div>
 
+    <!-- MODAL COPILOTO KX -->
     <div id="modal-gps" class="modal-overlay color-cyan">
         <div class="modal-content">
             <div class="close-btn" onclick="appUI.fecharModal('modal-gps')"><span class="material-icons">close</span></div>
             <h3 class="modal-title">Copiloto KX</h3>
-            
             <div class="dashboard-panel">
                 <div class="input-group">
                     <label>Selecione o Protocolo de Teste</label>
@@ -238,7 +230,6 @@
                     <button class="btn-main color-red" style="--accent: var(--neon-red);" onclick="pararCopilotoKX()"><span class="material-icons">stop</span> PARAR</button>
                 </div>
                 <div id="status-kx" style="margin-top: 15px; font-size: 0.95rem; font-weight: bold; color: var(--neon-cyan); text-align: center; height: 20px;"></div>
-                
                 <div style="margin-top: 20px;">
                     <button class="btn-main" style="--accent: var(--text-primary); border-style: dashed;" onclick="abrirMapaAoVivo()">
                         <span class="material-icons">map</span> ABRIR MAPA DE RADAR
@@ -252,6 +243,7 @@
         </div>
     </div>
 
+    <!-- MODAL DESACELERAÇÃO -->
     <div id="modal-desaceleracao" class="modal-overlay color-pink">
         <div class="modal-content">
             <div class="close-btn" onclick="appUI.fecharModal('modal-desaceleracao')"><span class="material-icons">close</span></div>
@@ -270,6 +262,7 @@
         </div>
     </div>
 
+    <!-- MODAL ROTEIRO R389 -->
     <div id="modal-roteiro" class="modal-overlay color-purple">
         <div class="modal-content">
             <div class="close-btn" onclick="appUI.fecharModal('modal-roteiro')"><span class="material-icons">close</span></div>
@@ -288,6 +281,7 @@
         </div>
     </div>
 
+    <!-- MODAL FRENAGEM -->
     <div id="modal-frenagem" class="modal-overlay color-orange">
         <div class="modal-content">
             <div class="close-btn" onclick="appUI.fecharModal('modal-frenagem')"><span class="material-icons">close</span></div>
@@ -308,31 +302,39 @@
         </div>
     </div>
 
+    <!-- MODAL LAUDO IA -->
     <div id="modal-laudo" class="modal-overlay color-blue">
         <div class="modal-content">
             <div class="close-btn" onclick="appUI.fecharModal('modal-laudo')"><span class="material-icons">close</span></div>
             <h3 class="modal-title">Smart Laudo</h3>
-            <div class="input-group">
-                <label>Analista Logado</label>
-                <input type="text" id="i-motorista" readonly style="opacity: 0.5;">
-            </div>
+            
             <div class="input-group">
                 <label style="display: flex; justify-content: space-between; align-items: center;">
-                    <span>Parecer Bruto</span>
+                    <span>Parecer Bruto (Analista: <span id="ui-analista-laudo" style="color:var(--neon-blue);"></span>)</span>
+                    
+                    <select id="seletor-ia" style="width: auto; padding: 4px 8px; font-size: 0.7rem; margin-right: 10px; border-radius: 6px;">
+                        <option value="FORD">🧠 IA Corporativa Ford</option>
+                        <option value="PESSOAL">🌐 Gemini Pessoal</option>
+                    </select>
+                    
                     <button type="button" onclick="app.melhorarTextoComIA(this)" style="background: rgba(56, 189, 248, 0.15); color: var(--accent); border: 1px solid var(--accent); padding: 8px 12px; border-radius: 8px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 4px; font-size: 0.8rem; text-transform: uppercase;"><span class="material-icons">auto_awesome</span> Melhorar</button>
                 </label>
                 <textarea id="i-obs" rows="4" placeholder="Descreva o problema..."></textarea>
             </div>
             <div class="input-group">
-                <label>Fotos e Vídeos</label>
+                <label>Fotos e Vídeos (O VIN será puxado do Painel Mestre)</label>
                 <div class="camera-trigger" onclick="document.getElementById('media-input').click()"><span class="material-icons" style="font-size: 2.5rem; margin-bottom: 5px;">camera_alt</span><br>Adicionar Mídia</div>
                 <input type="file" id="media-input" accept="image/*,video/*" multiple style="display:none" onchange="app.handleMedia(event)">
                 <div id="galeria-avaria" class="gallery"></div>
             </div>
-            <button class="btn-main btn-solid" style="margin-top: 1.5rem;" onclick="app.gerarECompartilharLaudo()"><span class="material-icons">send</span> EMITIR RELATÓRIO</button>
+            
+            <button class="btn-main btn-solid" style="margin-top: 1.5rem;" onclick="app.gerarECompartilharLaudo()">
+                <span class="material-icons">send</span> EMITIR RELATÓRIO
+            </button>
         </div>
     </div>
 
+    <!-- MODAL ENCERRAR TURNO -->
     <div id="modal-turno" class="modal-overlay color-green">
         <div class="modal-content">
             <div class="close-btn" onclick="appUI.fecharModal('modal-turno')"><span class="material-icons">close</span></div>
@@ -343,27 +345,40 @@
                 <div class="input-group"><label>Veículo / Modelo</label><input type="text" id="t-veiculo" placeholder="Ex: Ranger"></div>
             </div>
             <div class="grid-2">
+                <div class="input-group"><label>Posto Base</label><input type="text" id="t-posto" placeholder="Ex: P2"></div>
                 <div class="input-group"><label>KM Final</label><input type="number" id="t-km" inputmode="decimal"></div>
-                <div class="input-group"><label>Trip</label><input type="number" id="t-trip" inputmode="decimal"></div>
             </div>
             <div class="grid-2">
+                <div class="input-group"><label>Trip</label><input type="number" id="t-trip" inputmode="decimal"></div>
                 <div class="input-group"><label>Litragem</label><input type="number" id="t-litros" inputmode="decimal"></div>
-                <div class="input-group"><label>Saldo R$</label><input type="number" id="t-saldo" inputmode="decimal"></div>
             </div>
-            <button class="btn-main btn-solid" style="margin-top: 1.5rem;" onclick="app.finalizarTurnoIntegrado()"><span class="material-icons">flight_takeoff</span> ENVIAR RESUMO</button>
+            <div class="input-group"><label>Saldo R$</label><input type="number" id="t-saldo" inputmode="decimal"></div>
             
-            <!-- AQUI ESTÁ O BOTÃO DE BAIXAR RESUMO PDF QUE VOCÊ PEDIU -->
-            <button class="btn-main" style="--accent: var(--neon-blue); margin-top: 10px;" onclick="app.gerarRelatorioResumo()">
+            <button class="btn-main btn-solid" style="margin-top: 1.5rem;" onclick="app.finalizarTurnoIntegrado()">
+                <span class="material-icons">flight_takeoff</span> ENVIAR RESUMO WPP
+            </button>
+            
+            <button class="btn-main" style="--accent: var(--neon-blue); margin-top: 15px;" onclick="app.gerarRelatorioResumo()">
                 <span class="material-icons">picture_as_pdf</span> BAIXAR RESUMO PDF
             </button>
         </div>
     </div>
 
-    <script src="app.js?v=10.00"></script>
+    <script src="app.js?v=11.00"></script>
     <script>
         const appUI = { 
-            abrirModal: (id) => { document.getElementById(id).style.display = 'flex'; document.body.style.overflow = 'hidden'; }, 
-            fecharModal: (id) => { document.getElementById(id).style.display = 'none'; document.body.style.overflow = 'auto'; } 
+            abrirModal: (id) => { 
+                document.getElementById(id).style.display = 'flex'; 
+                document.body.style.overflow = 'hidden'; 
+                // Atualiza o nome no modal de laudo
+                if(id === 'modal-laudo' && app.operadorAtual) {
+                    document.getElementById('ui-analista-laudo').innerText = app.operadorAtual;
+                }
+            }, 
+            fecharModal: (id) => { 
+                document.getElementById(id).style.display = 'none'; 
+                document.body.style.overflow = 'auto'; 
+            } 
         };
         window.appUI = appUI;
         function abrirModalCopiloto() { appUI.abrirModal('modal-gps'); setTimeout(() => { if(window.mapaTelemetria) window.mapaTelemetria.invalidateSize(); }, 300); }
