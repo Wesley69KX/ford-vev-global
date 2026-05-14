@@ -42,16 +42,12 @@ const app = {
         "Pista de Alta + bolacha", "Pista de Baixa + bolacha",
     ],
 
+    // CORRIGIDO: Exatamente 20 passos.
     roteiroDesaceleracao: [
         "Alta", "Alta", "Alta", "Alta (100 a 20km/h)",
         "Alta", "Alta", "Alta", "Alta (100 a 20km/h)",
         "Alta", "Alta", "Alta", "Alta (100 a 0km/h)",
         "Alta", "Alta", "Alta", "Alta (100 a 20km/h)",
-        "Power Hop Hill", "Enrola Camisa", "Enrola Camisa", "Power Hop Hill",
-          "Alta", "Alta", "Alta", "Alta",
-        "Alta", "Alta", "Alta", "Alta",
-        "Alta", "Alta", "Alta", "Alta",
-        "Alta", "Alta", "Alta", "Alta",
         "Power Hop Hill", "Enrola Camisa", "Enrola Camisa", "Power Hop Hill"
     ],
 
@@ -59,7 +55,7 @@ const app = {
         this.verificarSessao();
     },
 
-  // A VIRADA DE TURNO INTELIGENTE (Corta às 03:00 da manhã)
+    // A VIRADA DE TURNO INTELIGENTE (Corta às 03:00 da manhã)
     obterDataDoTurno() {
         let data = new Date();
         if (data.getHours() < 3) {
@@ -72,7 +68,7 @@ const app = {
         if (!this.operadorAtual) return;
         const dataHoje = this.obterDataDoTurno();
         const estado = {
-            data: dataHoje, // <--- NOVO: Agora o backup do celular sabe de que dia ele é
+            data: dataHoje, // Backup do celular sabe a data correta
             etapaAtualIndex: this.etapaAtualIndex,
             checkins: this.checkins,
             etapaDesaceleracaoIndex: this.etapaDesaceleracaoIndex,
@@ -109,23 +105,22 @@ const app = {
 
     restaurarBackupLocal() {
         const salvoLocal = localStorage.getItem(`vev_estado_backup_${this.operadorAtual}`);
-        const dataHoje = this.obterDataDoTurno(); // Descobre que dia é hoje
+        const dataHoje = this.obterDataDoTurno(); 
         
         if (salvoLocal) {
             const estadoLocal = JSON.parse(salvoLocal);
-            
-            // NOVO: Só restaura o backup se a data bater com a de hoje!
+            // Só restaura o backup se a data bater com a de hoje
             if (estadoLocal.data === dataHoje) {
                 this.etapaAtualIndex = estadoLocal.etapaAtualIndex || 0;
                 this.checkins = estadoLocal.checkins || [];
                 this.etapaDesaceleracaoIndex = estadoLocal.etapaDesaceleracaoIndex || 0;
                 this.checkinsDesaceleracao = estadoLocal.checkinsDesaceleracao || [];
                 this.ciclosFrenagem = estadoLocal.ciclosFrenagem || [];
-                return; // Para a função aqui
+                return; 
             }
         }
         
-        // Se o backup for de ontem (ou não existir), ZERA TUDO para o novo turno
+        // Zera tudo se for dia novo
         this.etapaAtualIndex = 0; this.checkins = []; 
         this.etapaDesaceleracaoIndex = 0; this.checkinsDesaceleracao = []; 
         this.ciclosFrenagem = [];
@@ -182,9 +177,7 @@ const app = {
         }
     },
 
-    // ==========================================
     // HISTÓRICO DE 7 DIAS (FILTRADO POR USUÁRIO)
-    // ==========================================
     async abrirModalHistorico() {
         appUI.abrirModal('modal-historico');
         const container = document.getElementById('lista-historico-nuvem');
@@ -205,9 +198,8 @@ const app = {
 
             datasKeys.forEach(dataString => {
                 const turnosDoDia = dias[dataString];
-                const meunome = this.operadorAtual; // Puxa apenas o usuário logado
+                const meunome = this.operadorAtual; 
                 
-                // Verifica se o usuário logado possui testes naquele dia
                 if (turnosDoDia && turnosDoDia[meunome]) {
                     encontrouAlgum = true;
                     const dadosOp = turnosDoDia[meunome];
@@ -268,7 +260,6 @@ const app = {
                 currentY = doc.lastAutoTable.finalY + 15;
             }
 
-            // NOVO: Adicionado Desaceleração ao PDF Histórico
             if (dadosOp.checkinsDesaceleracao && dadosOp.checkinsDesaceleracao.length > 0) {
                 doc.text("DESACELERAÇÃO 16 LAPS:", 14, currentY);
                 const tableData = dadosOp.checkinsDesaceleracao.map((c, i) => [i+1, c.atividade, c.hora]);
@@ -546,10 +537,25 @@ const app = {
     removerFoto(index) { this.fotos.splice(index, 1); this.renderGaleria(); },
     removerVideo(index) { this.videosFiles.splice(index, 1); this.renderGaleria(); },
 
+    // CORRIGIDO: CSS INLINE NA GALERIA PARA TRAVAR O TAMANHO DA IMAGEM
     renderGaleria() {
         const g = document.getElementById('galeria-avaria'); let html = '';
-        this.fotos.forEach((f, i) => { html += `<div class="photo-wrapper"><button class="btn-delete-photo" onclick="app.removerFoto(${i})">×</button><img src="${f.src}"><input type="text" placeholder="Legenda..." value="${f.legenda}" oninput="app.fotos[${i}].legenda=this.value"></div>`; });
-        this.videosFiles.forEach((v, i) => { html += `<div class="photo-wrapper" style="background: rgba(56, 189, 248, 0.1); border-color: #38bdf8; display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 1rem;"><button class="btn-delete-photo" style="background: #0284c7;" onclick="app.removerVideo(${i})">×</button><span class="material-icons" style="font-size: 3rem; color: #38bdf8;">movie</span><p style="font-size: 0.7rem; color: #38bdf8; font-weight: bold; margin-top: 10px; text-align: center;">${v.name}</p></div>`; });
+        this.fotos.forEach((f, i) => { 
+            html += `
+            <div class="photo-wrapper" style="position: relative; margin-bottom: 10px;">
+                <button class="btn-delete-photo" onclick="app.removerFoto(${i})" style="position: absolute; top: 5px; right: 5px; background: rgba(239, 68, 68, 0.9); color: white; width: 28px; height: 28px; border-radius: 50%; border: none; cursor: pointer;">×</button>
+                <img src="${f.src}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 12px; display: block; border: 1px solid rgba(255,255,255,0.1);">
+                <input type="text" placeholder="Legenda..." value="${f.legenda}" oninput="app.fotos[${i}].legenda=this.value" style="width: 100%; font-size: 0.75rem; padding: 8px; background: rgba(0,0,0,0.8); border: none; color: white; margin-top: 5px; border-radius: 6px;">
+            </div>`; 
+        });
+        this.videosFiles.forEach((v, i) => { 
+            html += `
+            <div class="photo-wrapper" style="position: relative; margin-bottom: 10px; background: rgba(56, 189, 248, 0.1); border: 1px solid #38bdf8; border-radius: 12px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 1rem;">
+                <button class="btn-delete-photo" onclick="app.removerVideo(${i})" style="position: absolute; top: 5px; right: 5px; background: #0284c7; color: white; width: 28px; height: 28px; border-radius: 50%; border: none; cursor: pointer;">×</button>
+                <span class="material-icons" style="font-size: 3rem; color: #38bdf8;">movie</span>
+                <p style="font-size: 0.7rem; color: #38bdf8; font-weight: bold; margin-top: 10px; text-align: center;">${v.name}</p>
+            </div>`; 
+        });
         g.innerHTML = html;
     },
 
@@ -603,6 +609,11 @@ const COORD_ALTA = { lat: -23.392783132651925, lng: -47.91720937962347, raio: 85
 const COORD_BAIXA = { lat: -23.398088084486734, lng: -47.92362656463522, raio: 40 };
 
 const MAPA_PISTAS = {
+    // CORRIGIDO: Adicionado a palavra "Alta" para o radar não ficar cego
+    "Alta":                      COORD_ALTA,
+    "Alta (100 a 20km/h)":       COORD_ALTA,
+    "Alta (100 a 0km/h)":        COORD_ALTA,
+
     "P. de Baixa":               COORD_BAIXA,
     "Pista de Alta":             COORD_ALTA,
     "Pista Baixa - Volta 1":     COORD_BAIXA,
@@ -613,8 +624,7 @@ const MAPA_PISTAS = {
     "Pista Alta - Volta 2":      COORD_ALTA,
     "Pista Alta - Volta 3":      COORD_ALTA,
     "Pista Alta - Volta 4":      COORD_ALTA,
-    "Alta (100 a 20km/h)":       COORD_ALTA,
-    "Alta (100 a 0km/h)":        COORD_ALTA,
+    
     "Labirinto: 1ª volta + Mata-burro": { lat: -23.389897, lng: -47.903750, raio: 30 },
     "Power Hop Hill":            { lat: -23.389408, lng: -47.920772, raio: 30 },
     "Lombadas: 1ª passagem":     { lat: -23.395171, lng: -47.920321, raio: 30 },
