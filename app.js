@@ -23,6 +23,7 @@ const db = firebase.database();
 const app = {
     fotos: [], videosFiles: [], etapaAtualIndex: 0, checkins: [],
     operadorAtual: null,
+    vinGlobal: "",
     
     etapaDesaceleracaoIndex: 0, 
     checkinsDesaceleracao: [],
@@ -42,7 +43,6 @@ const app = {
         "Pista de Alta + bolacha", "Pista de Baixa + bolacha",
     ],
 
-    // CORRIGIDO: Exatamente 20 passos.
     roteiroDesaceleracao: [
         "Alta", "Alta", "Alta", "Alta (100 a 20km/h)",
         "Alta", "Alta", "Alta", "Alta (100 a 20km/h)",
@@ -64,11 +64,17 @@ const app = {
         return data.toISOString().split('T')[0]; 
     },
 
+    setVin(valor) {
+        this.vinGlobal = valor.toUpperCase();
+        this.salvarEstadoHibrido();
+    },
+
     salvarEstadoHibrido() {
         if (!this.operadorAtual) return;
         const dataHoje = this.obterDataDoTurno();
         const estado = {
-            data: dataHoje, // Backup do celular sabe a data correta
+            data: dataHoje, 
+            vinGlobal: this.vinGlobal,
             etapaAtualIndex: this.etapaAtualIndex,
             checkins: this.checkins,
             etapaDesaceleracaoIndex: this.etapaDesaceleracaoIndex,
@@ -87,6 +93,8 @@ const app = {
             const snapshot = await db.ref(`vev_turnos/${dataHoje}/${this.operadorAtual}`).once('value');
             const estadoNuvem = snapshot.val();
             if (estadoNuvem) {
+                this.vinGlobal = estadoNuvem.vinGlobal || "";
+                if(document.getElementById('global-vin')) document.getElementById('global-vin').value = this.vinGlobal;
                 this.etapaAtualIndex = estadoNuvem.etapaAtualIndex || 0;
                 this.checkins = estadoNuvem.checkins || [];
                 this.etapaDesaceleracaoIndex = estadoNuvem.etapaDesaceleracaoIndex || 0;
@@ -109,8 +117,9 @@ const app = {
         
         if (salvoLocal) {
             const estadoLocal = JSON.parse(salvoLocal);
-            // Só restaura o backup se a data bater com a de hoje
             if (estadoLocal.data === dataHoje) {
+                this.vinGlobal = estadoLocal.vinGlobal || "";
+                if(document.getElementById('global-vin')) document.getElementById('global-vin').value = this.vinGlobal;
                 this.etapaAtualIndex = estadoLocal.etapaAtualIndex || 0;
                 this.checkins = estadoLocal.checkins || [];
                 this.etapaDesaceleracaoIndex = estadoLocal.etapaDesaceleracaoIndex || 0;
@@ -120,7 +129,8 @@ const app = {
             }
         }
         
-        // Zera tudo se for dia novo
+        this.vinGlobal = ""; 
+        if(document.getElementById('global-vin')) document.getElementById('global-vin').value = "";
         this.etapaAtualIndex = 0; this.checkins = []; 
         this.etapaDesaceleracaoIndex = 0; this.checkinsDesaceleracao = []; 
         this.ciclosFrenagem = [];
@@ -131,7 +141,6 @@ const app = {
         if (usuarioSalvo) {
             this.operadorAtual = usuarioSalvo;
             document.getElementById("ui-nome-usuario").innerText = usuarioSalvo;
-            document.getElementById("i-motorista").value = usuarioSalvo; 
             document.getElementById("modal-login").style.display = "none";
             document.body.style.overflow = "auto";
             this.carregarEstadoHibrido();
@@ -157,9 +166,7 @@ const app = {
         if (!usuarioExiste) return alert("❌ Operador não cadastrado no sistema.");
         if (senhaDigitada !== SENHA_CORRETA) return alert("❌ PIN Incorreto.");
 
-        const nomeParaSalvar = document.getElementById("login-nome").value.trim();
-        localStorage.setItem("app_vev_operador", nomeParaSalvar);
-        
+        localStorage.setItem("app_vev_operador", document.getElementById("login-nome").value.trim());
         this.verificarSessao();
         document.getElementById("login-nome").value = "";
         document.getElementById("login-senha").value = "";
@@ -170,6 +177,8 @@ const app = {
             localStorage.removeItem("app_vev_operador");
             this.operadorAtual = null;
             document.getElementById("ui-nome-usuario").innerText = "NÃO LOGADO";
+            this.vinGlobal = ""; 
+            if(document.getElementById('global-vin')) document.getElementById('global-vin').value = "";
             this.etapaAtualIndex = 0; this.checkins = []; 
             this.etapaDesaceleracaoIndex = 0; this.checkinsDesaceleracao = [];
             this.ciclosFrenagem = [];
@@ -177,7 +186,7 @@ const app = {
         }
     },
 
-    // HISTÓRICO DE 7 DIAS (FILTRADO POR USUÁRIO)
+    // HISTÓRICO DE 7 DIAS 
     async abrirModalHistorico() {
         appUI.abrirModal('modal-historico');
         const container = document.getElementById('lista-historico-nuvem');
@@ -275,27 +284,52 @@ const app = {
     async melhorarTextoComIA(botao) {
         const textarea = document.getElementById('i-obs');
         const textoOriginal = textarea.value.trim();
-        if (textoOriginal.toUpperCase() === "RESETAR") { localStorage.removeItem("cofre_chave_gemini"); textarea.value = ""; return alert("Chave apagada!"); }
+        const modeloEscolhido = document.getElementById('seletor-ia').value;
         
-        let API_KEY = localStorage.getItem("cofre_chave_gemini");
-        if (!API_KEY) { API_KEY = prompt("Cole sua Chave API do Google:"); if (!API_KEY) return; localStorage.setItem("cofre_chave_gemini", API_KEY.trim()); }
+        if (textoOriginal === "") return alert("Digite algo antes de usar a IA.");
+        if (textoOriginal.toUpperCase() === "RESETAR") { 
+            localStorage.removeItem("cofre_chave_gemini"); 
+            textarea.value = ""; 
+            return alert("Chave apagada!"); 
+        }
         
         botao.innerHTML = '...';
+        const promptComando = "Você é um algoritmo de conversão de texto. Atue como Analista de Produto Automotivo. Melhore tecnicamente e formalize o texto a seguir para um laudo de avaria de pista. REGRAS ESTRITAS DE SAÍDA: 1. NÃO altere os fatos. 2. NÃO adicione informações que não estão no original. 3. NÃO use nenhuma formatação Markdown. 4. RETORNE EXCLUSIVAMENTE O TEXTO REESCRITO. Texto original: " + textoOriginal;
+
         try {
-            const promptComando = "Você é um algoritmo de conversão de texto. Atue como Analista de Produto Automotivo. Melhore tecnicamente e formalize o texto a seguir para um laudo de avaria de pista. REGRAS ESTRITAS DE SAÍDA: 1. NÃO altere os fatos. 2. NÃO adicione informações que não estão no original. 3. NÃO use nenhuma formatação Markdown (sem asteriscos, sem negrito, sem listas). 4. RETORNE EXCLUSIVAMENTE O TEXTO REESCRITO em texto puro, sem NENHUMA saudação, introdução (como 'Aqui está') ou conclusão. Apenas cuspa o texto final. Texto original: " + textoOriginal;
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
-            const resposta = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: promptComando }] }] }) });
-            const dados = await resposta.json();
-            if (dados.candidates) { textarea.value = dados.candidates[0].content.parts[0].text.trim(); }
+            if (modeloEscolhido === "FORD") {
+                alert("Para usar a IA Corporativa, solicite o 'Endpoint URL' e o 'API Token' para a TI.");
+                botao.innerHTML = '<span class="material-icons" style="font-size: 1rem;">auto_awesome</span> Melhorar';
+                return;
+            } else if (modeloEscolhido === "PESSOAL") {
+                let API_KEY = localStorage.getItem("cofre_chave_gemini");
+                if (!API_KEY) { 
+                    API_KEY = prompt("Cole sua Chave API do Google:"); 
+                    if (!API_KEY) {
+                        botao.innerHTML = '<span class="material-icons" style="font-size: 1rem;">auto_awesome</span> Melhorar';
+                        return; 
+                    }
+                    localStorage.setItem("cofre_chave_gemini", API_KEY.trim()); 
+                }
+                
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+                const resposta = await fetch(url, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ contents: [{ parts: [{ text: promptComando }] }] }) 
+                });
+                const dados = await resposta.json();
+                if (dados.candidates) { textarea.value = dados.candidates[0].content.parts[0].text.trim(); }
+            }
         } catch (e) { alert("Erro na comunicação com a IA."); }
-        botao.innerHTML = '<span class="material-icons" style="font-size: 1rem;">auto_awesome</span> PROCESSAR IA';
+        botao.innerHTML = '<span class="material-icons" style="font-size: 1rem;">auto_awesome</span> Melhorar';
     },
 
     // ROTEIRO R389
     registrarPassagem(forcarVindoDoCopiloto = false) {
         if (this.etapaAtualIndex >= this.sequenciaDiasPares.length) return this.novaVolta(forcarVindoDoCopiloto); 
         const nomeEtapa = this.sequenciaDiasPares[this.etapaAtualIndex];
-        const vin = document.getElementById('c-vin')?.value || "---";
+        const vin = this.vinGlobal || "NÃO INFORMADO";
         this.checkins.push({ atividade: nomeEtapa, hora: new Date().toLocaleTimeString('pt-BR'), vin: vin, operador: this.operadorAtual });
         if ('vibrate' in navigator) navigator.vibrate(50);
         this.etapaAtualIndex++;
@@ -307,7 +341,8 @@ const app = {
     novaVolta(forcarVindoDoCopiloto = false) {
         if(forcarVindoDoCopiloto || confirm("Iniciar nova volta na R389?")) {
             this.etapaAtualIndex = 0;
-            this.checkins.push({ atividade: "--- NOVA SÉRIE R389 ---", hora: new Date().toLocaleTimeString('pt-BR'), vin: document.getElementById('c-vin')?.value || "---", operador: this.operadorAtual });
+            const vin = this.vinGlobal || "NÃO INFORMADO";
+            this.checkins.push({ atividade: "--- NOVA SÉRIE R389 ---", hora: new Date().toLocaleTimeString('pt-BR'), vin: vin, operador: this.operadorAtual });
             this.salvarEstadoHibrido();
             this.atualizarInterfaceCola();
         }
@@ -337,10 +372,11 @@ const app = {
 
     async gerarRelatorioRoteiro() {
         if (this.checkins.length === 0) return alert("Nenhuma passagem registrada.");
+        const vin = this.vinGlobal || "N/A";
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
         doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 40, 'F');
         doc.setTextColor(168, 85, 247); doc.setFontSize(16); doc.text("LOG DE CICLOS (R389)", 105, 20, { align: "center" });
-        doc.setFontSize(10); doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')} | Analista: ${this.operadorAtual}`, 105, 28, { align: "center" });
+        doc.setFontSize(10); doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')} | Analista: ${this.operadorAtual} | VIN: ${vin}`, 105, 28, { align: "center" });
         const dadosTabela = this.checkins.map((c, i) => [i + 1, c.atividade, c.hora]);
         doc.autoTable({ startY: 45, head: [['#', 'CICLO / ETAPA', 'HORA']], body: dadosTabela, headStyles: { fillColor: [168, 85, 247], textColor: [255,255,255] }, didParseCell: function(data) { if(data.row.raw[1].includes("--- INÍCIO") || data.row.raw[1].includes("--- NOVA")) { data.cell.styles.fillColor = [241, 245, 249]; data.cell.styles.fontStyle = 'bold'; } } });
         doc.save(`Log_R389_${this.operadorAtual.split(' ')[0]}.pdf`);
@@ -350,7 +386,7 @@ const app = {
     registrarPassagemDesaceleracao(forcarVindoDoCopiloto = false) {
         if (this.etapaDesaceleracaoIndex >= this.roteiroDesaceleracao.length) return this.novaVoltaDesaceleracao(forcarVindoDoCopiloto); 
         const nomeEtapa = this.roteiroDesaceleracao[this.etapaDesaceleracaoIndex];
-        const vin = document.getElementById('d-vin')?.value || "---";
+        const vin = this.vinGlobal || "NÃO INFORMADO";
         this.checkinsDesaceleracao.push({ atividade: nomeEtapa, hora: new Date().toLocaleTimeString('pt-BR'), vin: vin, operador: this.operadorAtual });
         if ('vibrate' in navigator) navigator.vibrate(50);
         this.etapaDesaceleracaoIndex++;
@@ -362,7 +398,8 @@ const app = {
     novaVoltaDesaceleracao(forcarVindoDoCopiloto = false) {
         if(forcarVindoDoCopiloto || confirm("Iniciar novo ciclo completo de Desaceleração?")) {
             this.etapaDesaceleracaoIndex = 0;
-            this.checkinsDesaceleracao.push({ atividade: "--- NOVO CICLO DE DESACELERAÇÃO ---", hora: new Date().toLocaleTimeString('pt-BR'), vin: document.getElementById('d-vin')?.value || "---", operador: this.operadorAtual });
+            const vin = this.vinGlobal || "NÃO INFORMADO";
+            this.checkinsDesaceleracao.push({ atividade: "--- NOVO CICLO DE DESACELERAÇÃO ---", hora: new Date().toLocaleTimeString('pt-BR'), vin: vin, operador: this.operadorAtual });
             this.salvarEstadoHibrido();
             this.atualizarInterfaceDesaceleracao();
         }
@@ -392,10 +429,11 @@ const app = {
 
     async gerarRelatorioDesaceleracao() {
         if (this.checkinsDesaceleracao.length === 0) return alert("Nenhuma passagem registrada.");
+        const vin = this.vinGlobal || "N/A";
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
         doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 40, 'F');
         doc.setTextColor(236, 72, 153); doc.setFontSize(16); doc.text("LOG DE DESACELERAÇÃO (16 LAPS)", 105, 20, { align: "center" });
-        doc.setFontSize(10); doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')} | Analista: ${this.operadorAtual}`, 105, 28, { align: "center" });
+        doc.setFontSize(10); doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')} | Analista: ${this.operadorAtual} | VIN: ${vin}`, 105, 28, { align: "center" });
         const dadosTabela = this.checkinsDesaceleracao.map((c, i) => [i + 1, c.atividade, c.hora]);
         doc.autoTable({ startY: 45, head: [['LAP / ETAPA', 'ATIVIDADE', 'HORA']], body: dadosTabela, headStyles: { fillColor: [236, 72, 153], textColor: [255,255,255] }, didParseCell: function(data) { if(data.row.raw[1].includes("--- NOVO")) { data.cell.styles.fillColor = [253, 232, 243]; data.cell.styles.fontStyle = 'bold'; } } });
         doc.save(`Log_Desaceleracao_${this.operadorAtual.split(' ')[0]}.pdf`);
@@ -408,8 +446,9 @@ const app = {
         const numeroCicloAtual = Math.floor(totalVoltas / 8) + 1;
         const nomeEtapa = this.roteiroFrenagem[indexNoCiclo];
         const obs = document.getElementById('f-obs').value || "OK";
+        const vin = this.vinGlobal || "NÃO INFORMADO";
         
-        this.ciclosFrenagem.push({ ciclo: numeroCicloAtual, etapa: nomeEtapa, observacao: obs, hora: new Date().toLocaleTimeString('pt-BR'), operador: this.operadorAtual });
+        this.ciclosFrenagem.push({ ciclo: numeroCicloAtual, etapa: nomeEtapa, observacao: obs, hora: new Date().toLocaleTimeString('pt-BR'), operador: this.operadorAtual, vin: vin });
         document.getElementById('f-obs').value = '';
         if ('vibrate' in navigator) navigator.vibrate(50);
         
@@ -457,10 +496,11 @@ const app = {
     
     async gerarRelatorioFrenagem() {
         if(this.ciclosFrenagem.length === 0) return alert("Nenhum dado.");
+        const vin = this.vinGlobal || "N/A";
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
         doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 40, 'F');
         doc.setTextColor(249, 115, 22); doc.setFontSize(16); doc.text("LOG DETALHADO DE FRENAGEM", 105, 20, { align: "center" });
-        doc.setFontSize(10); doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')} | Analista: ${this.operadorAtual}`, 105, 28, { align: "center" });
+        doc.setFontSize(10); doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')} | Analista: ${this.operadorAtual} | VIN: ${vin}`, 105, 28, { align: "center" });
         const dados = this.ciclosFrenagem.map(f => [`Ciclo ${f.ciclo}`, f.etapa, f.hora, f.observacao]);
         doc.autoTable({ startY: 45, head: [['CICLO', 'VOLTA / ETAPA', 'HORA', 'STATUS']], body: dados, headStyles: { fillColor: [249, 115, 22] }, didParseCell: function(data) { if(data.row.index > 0 && data.row.raw[0] !== data.table.body[data.row.index - 1].raw[0]) { data.cell.styles.lineWidth = { top: 1 }; data.cell.styles.lineColor = [249, 115, 22]; } } });
         doc.save(`Log_Fren_${this.operadorAtual.split(' ')[0]}.pdf`);
@@ -468,7 +508,7 @@ const app = {
 
     gerarRelatorioResumo() {
         if (this.checkins.length === 0 && this.ciclosFrenagem.length === 0 && this.checkinsDesaceleracao.length === 0) return alert("Sem dados registrados no turno.");
-        const vin = document.getElementById('c-vin')?.value || "VEV-TEST";
+        const vin = this.vinGlobal || "NÃO INFORMADO";
         
         const resumoR389 = {};
         this.checkins.forEach(r => { if(!r.atividade.includes("---")) { let nome = r.atividade.split(':')[0].trim(); resumoR389[nome] = (resumoR389[nome] || 0) + 1; } });
@@ -559,11 +599,14 @@ const app = {
         g.innerHTML = html;
     },
 
-    resetarFormularioLaudo() { document.getElementById('i-id').value = ''; document.getElementById('i-obs').value = ''; this.fotos = []; this.videosFiles = []; this.renderGaleria(); },
+    resetarFormularioLaudo() { document.getElementById('i-obs').value = ''; this.fotos = []; this.videosFiles = []; this.renderGaleria(); },
 
     async gerarECompartilharLaudo() { 
-        const id = document.getElementById('i-id').value || "SN"; const motorista = document.getElementById('i-motorista').value || this.operadorAtual; const parecer = document.getElementById('i-obs').value || "Sem observações.";
+        const id = this.vinGlobal || "NÃO INFORMADO";
+        const motorista = this.operadorAtual || "N/A";
+        const parecer = document.getElementById('i-obs').value || "Sem observações.";
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        
         doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 30, 'F'); doc.setTextColor(56, 189, 248); doc.setFontSize(18); doc.text("LAUDO TÉCNICO", 14, 20); doc.setFontSize(12); doc.text(`VIN: ${id}`, 196, 20, { align: "right" }); doc.setTextColor(0, 0, 0);
         doc.autoTable({ startY: 35, body: [['Veículo / VIN:', id, 'Data:', new Date().toLocaleString('pt-BR')], ['Analista de Produto:', motorista, 'Assinatura (Auto):', 'Autenticado no App']], theme: 'grid' });
         let currentY = doc.lastAutoTable.finalY + 10; doc.setFont(undefined, 'bold'); doc.text("PARECER TÉCNICO:", 14, currentY); currentY += 6; doc.setFont(undefined, 'normal'); doc.text(doc.splitTextToSize(parecer, 178), 14, currentY);
@@ -591,10 +634,34 @@ const app = {
     },
 
     async finalizarTurnoIntegrado() {
-        const v = document.getElementById('t-veiculo').value; const dataBruta = document.getElementById('t-data').value;
-        let dataFormatada = dataBruta ? `${dataBruta.split('-')[2]}/${dataBruta.split('-')[1]}` : "";
-        const texto = `*Fechamento: ${this.operadorAtual}*\n*Abastecimento ${v}*\n${document.getElementById('t-turno').value} ${dataFormatada}\nVIN: ${document.getElementById('t-vin').value}\nTrip: ${document.getElementById('t-trip').value}\nKm: ${document.getElementById('t-km').value}\nLitros: ${document.getElementById('t-litros').value}\nSaldo: R$ ${document.getElementById('t-saldo').value}`;
-        try { await navigator.clipboard.writeText(texto); alert("Copiado para o WhatsApp!"); } catch (e) {}
+        const v = document.getElementById('t-veiculo').value || "Não informado"; 
+        const dataHoje = new Date().toLocaleDateString('pt-BR').substring(0, 5); // Ex: 14/05
+        const turno = document.getElementById('t-turno').value;
+        const vin = this.vinGlobal || "NÃO INFORMADO";
+        const posto = document.getElementById('t-posto').value || "N/A";
+        const trip = document.getElementById('t-trip').value || "0";
+        const km = document.getElementById('t-km').value || "0";
+        const litros = document.getElementById('t-litros').value || "0";
+        const saldo = document.getElementById('t-saldo').value || "0";
+
+        const texto = 
+`*FECHAMENTO DE TURNO - VEV*
+*Operador:* ${this.operadorAtual}
+*Data:* ${dataHoje} (${turno})
+
+*🚗 Dados do Veículo:*
+*Modelo:* ${v}
+*VIN:* ${vin}
+
+*⛽ Abastecimento:*
+*Posto Base:* ${posto}
+*Odômetro:* ${km} km
+*Trip:* ${trip} km
+*Litragem:* ${litros} L
+*Saldo Atual:* R$ ${saldo}`;
+
+        try { await navigator.clipboard.writeText(texto); alert("✅ Texto copiado! Cole no grupo do WhatsApp."); } 
+        catch (e) { alert("Erro ao copiar o texto. Tente novamente."); }
     }
 };
 
@@ -609,7 +676,7 @@ const COORD_ALTA = { lat: -23.392783132651925, lng: -47.91720937962347, raio: 85
 const COORD_BAIXA = { lat: -23.398088084486734, lng: -47.92362656463522, raio: 40 };
 
 const MAPA_PISTAS = {
-    // CORRIGIDO: Adicionado a palavra "Alta" para o radar não ficar cego
+    // CORRIGIDO: Adicionado a palavra "Alta" para o radar da Desaceleração
     "Alta":                      COORD_ALTA,
     "Alta (100 a 20km/h)":       COORD_ALTA,
     "Alta (100 a 0km/h)":        COORD_ALTA,
@@ -813,21 +880,38 @@ function pararCopilotoKX() {
     }
 }
 
-function mapearPontoAtual() {
-    const painelResultado = document.getElementById('resultado-gps');
-    const nomePonto = document.getElementById('nome-ponto').value;
-    if (!nomePonto) return alert("Digite o nome do ponto antes.");
+// ====================================================
+// 4. MÓDULO DE INSTALAÇÃO (PWA)
+// ====================================================
+let promptDeInstalacao;
+const bannerInstalacao = document.getElementById('banner-instalacao');
 
-    painelResultado.innerHTML = "Buscando satélites... 🛰️";
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (posicao) => {
-                const lat = posicao.coords.latitude; const lng = posicao.coords.longitude; const precisao = posicao.coords.accuracy;
-                const linhaCodigo = `"${nomePonto}": { lat: ${lat}, lng: ${lng}, raio: 40 }, // Erro GPS: ${precisao.toFixed(1)}m`;
-                painelResultado.innerHTML = `<span style="color: #10b981;">Capturado!</span><br><br>${linhaCodigo}`;
-            },
-            (erro) => { painelResultado.innerHTML = `<span style="color: #ef4444;">Erro: ${erro.message}</span>`; },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    promptDeInstalacao = e;
+    if (bannerInstalacao) bannerInstalacao.style.display = 'flex';
+});
+
+function instalarPWA() {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (isIOS) {
+        alert("🍎 No iPhone: Toque no ícone de Compartilhar (quadrado com setinha para cima) na barra do Safari e depois em 'Adicionar à Tela de Início'.");
+        return;
+    }
+    if (promptDeInstalacao) {
+        promptDeInstalacao.prompt();
+        promptDeInstalacao.userChoice.then((resultado) => {
+            if (resultado.outcome === 'accepted') {
+                console.log('✅ O operador instalou o aplicativo!');
+                bannerInstalacao.style.display = 'none'; 
+            }
+            promptDeInstalacao = null;
+        });
+    } else {
+        alert("Parece que o aplicativo já está instalado ou seu navegador bloqueou a ação. Verifique sua tela inicial!");
     }
 }
+
+window.addEventListener('appinstalled', () => {
+    if (bannerInstalacao) bannerInstalacao.style.display = 'none';
+});
