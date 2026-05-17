@@ -396,10 +396,48 @@ const app = {
         if (navigator.canShare && navigator.canShare({ files: arquivosParaCompartilhar })) { try { await navigator.share({ files: arquivosParaCompartilhar, title: `Laudo - ${id}`, text: `Laudo Técnico por ${motorista}.` }); setTimeout(() => { this.resetarFormularioLaudo(); }, 1000); } catch (err) { doc.save(pdfNome); this.resetarFormularioLaudo(); } } else { alert("Seu aparelho bloqueou o envio nativo dos vídeos via app. O PDF será baixado."); doc.save(pdfNome); this.resetarFormularioLaudo(); }
     },
 
-    async finalizarTurnoIntegrado() {
-        const v = document.getElementById('t-veiculo').value || "Não informado"; const dataHoje = new Date().toLocaleDateString('pt-BR').substring(0, 5); const turno = document.getElementById('t-turno').value; const vin = this.vinGlobal || "NÃO INFORMADO"; const posto = document.getElementById('t-posto').value || "N/A"; const trip = document.getElementById('t-trip').value || "0"; const km = document.getElementById('t-km').value || "0"; const litros = document.getElementById('t-litros').value || "0"; const saldo = document.getElementById('t-saldo').value || "0";
+   async finalizarTurnoIntegrado() {
+        const v = document.getElementById('t-veiculo').value || "Não informado"; 
+        const dataHoje = new Date().toLocaleDateString('pt-BR').substring(0, 5); 
+        const turno = document.getElementById('t-turno').value; 
+        const vin = this.vinGlobal || "NÃO INFORMADO"; 
+        const posto = document.getElementById('t-posto').value || "N/A"; 
+        const trip = document.getElementById('t-trip').value || "0"; 
+        const km = document.getElementById('t-km').value || "0"; 
+        const litros = document.getElementById('t-litros').value || "0"; 
+        const saldo = document.getElementById('t-saldo').value || "0";
+
+        // ==========================================
+        // NOVO: SALVANDO O ABASTECIMENTO NO FIREBASE
+        // ==========================================
+        const dataBanco = this.obterDataDoTurno();
+        const pacoteAbastecimento = {
+            operador: this.operadorAtual,
+            dataFormato: dataHoje,
+            turno: turno,
+            veiculo: v,
+            vin: vin,
+            posto: posto,
+            km: km,
+            trip: trip,
+            litros: litros,
+            saldo: saldo,
+            horaRegistro: new Date().toLocaleTimeString('pt-BR')
+        };
+        
+        // Cria uma nova árvore no Firebase só para Abastecimentos
+        db.ref(`vev_abastecimentos/${dataBanco}/${this.operadorAtual}`).set(pacoteAbastecimento)
+            .catch(err => console.log("Erro ao salvar abastecimento:", err));
+        // ==========================================
+
         const texto = `*FECHAMENTO DE TURNO - VEV*\n*Operador:* ${this.operadorAtual}\n*Data:* ${dataHoje} (${turno})\n\n*🚗 Dados do Veículo:*\n*Modelo:* ${v}\n*VIN:* ${vin}\n\n*⛽ Abastecimento:*\n*Posto Base:* ${posto}\n*Odômetro:* ${km} km\n*Trip:* ${trip} km\n*Litragem:* ${litros} L\n*Saldo Atual:* R$ ${saldo}`;
-        try { await navigator.clipboard.writeText(texto); alert("✅ Texto copiado! Cole no grupo do WhatsApp."); } catch (e) { alert("Erro ao copiar o texto. Tente novamente."); }
+        
+        try { 
+            await navigator.clipboard.writeText(texto); 
+            alert("✅ Salvo no Servidor e copiado para o WhatsApp!"); 
+        } catch (e) { 
+            alert("Salvo no Servidor! (Erro ao copiar pro WhatsApp, copie manualmente)."); 
+        }
     }
 };
 
