@@ -148,31 +148,31 @@ const AnalyticsEngine = {
         );
 
         // ── Tipos de Teste mais executados ──────────────────
-const testesExecutados = {};
+        const testesExecutados = {};
 
-dados.forEach(d => {
-    // IMPORTANTE: buscar tipoTeste, não projeto
-    const teste = d.tipoTeste
-        || d.tipoteste
-        || d.tipoTestePista
-        || null;
+        dados.forEach(d => {
+            // IMPORTANTE: buscar tipoTeste, não projeto
+            const teste = d.tipoTeste
+                || d.tipoteste
+                || d.tipoTestePista
+                || null;
 
-    // IGNORA se for nome de projeto (proteção extra)
-    const projetosConhecidos = dados
-        .map(x => x.projeto)
-        .filter(Boolean);
+            // IGNORA se for nome de projeto (proteção extra)
+            const projetosConhecidos = dados
+                .map(x => x.projeto)
+                .filter(Boolean);
 
-    if (!teste || projetosConhecidos.includes(teste)) return;
+            if (!teste || projetosConhecidos.includes(teste)) return;
 
-    testesExecutados[teste] = (testesExecutados[teste] || 0) + 1;
-});
+            testesExecutados[teste] = (testesExecutados[teste] || 0) + 1;
+        });
 
-this._renderBarras(
-    'anl-grafico-testes',
-    testesExecutados,
-    'turnos',
-    'var(--neon-cyan)'
-);
+        this._renderBarras(
+            'anl-grafico-testes',
+            testesExecutados,
+            'turnos',
+            'var(--neon-cyan)'
+        );
 
 
         // ── Km por Veículo ──────────────────────────────────
@@ -229,49 +229,49 @@ this._renderBarras(
         });
 
         this._renderTabelaOperadores('anl-tabela-operadores', opStats);
-        
+
         // ── KPIs exclusivos do Gerente ──────────────────────────
-    if (cargo === 'Gerente') {
-        this._renderKPIsGerente(dados, opStats);
-    } else {
-        this._ocultarKPIsGerente();
-    }
+        if (cargo === 'Gerente') {
+            this._renderKPIsGerente(dados, opStats);
+        } else {
+            this._ocultarKPIsGerente();
+        }
 
-    // ── Buscar Issues reais do Firestore ────────────────────
-    try {
-        const db = firebase.firestore();
-        const dataLimite = new Date();
-        dataLimite.setDate(dataLimite.getDate() - this._periodo);
+        // ── Buscar Issues reais do Firestore ────────────────────
+        try {
+            const db = firebase.firestore();
+            const dataLimite = new Date();
+            dataLimite.setDate(dataLimite.getDate() - this._periodo);
 
-        const snapIssues = await db.collection('vev_issues')
-            .where('criadoEm', '>=', dataLimite)
-            .get();
+            const snapIssues = await db.collection('vev_issues')
+                .where('criadoEm', '>=', dataLimite)
+                .get();
 
-        const issues = snapIssues.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
+            const issues = snapIssues.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
 
-        // Atualiza card com total real
-        this._setCard('anl-total-issues', `${issues.length}`);
+            // Atualiza card com total real
+            this._setCard('anl-total-issues', `${issues.length}`);
 
-        // Issues por Projeto
-        const issuesPorProjeto = {};
-        issues.forEach(issue => {
-            const projeto = issue.projeto || 'Sem Projeto';
-            issuesPorProjeto[projeto] = (issuesPorProjeto[projeto] || 0) + 1;
-        });
+            // Issues por Projeto
+            const issuesPorProjeto = {};
+            issues.forEach(issue => {
+                const projeto = issue.projeto || 'Sem Projeto';
+                issuesPorProjeto[projeto] = (issuesPorProjeto[projeto] || 0) + 1;
+            });
 
-        this._renderBarras(
-            'anl-grafico-issues',
-            issuesPorProjeto,
-            'issues',
-            '#ef4444'
-        );
+            this._renderBarras(
+                'anl-grafico-issues',
+                issuesPorProjeto,
+                'issues',
+                '#ef4444'
+            );
 
-    } catch (e) {
-        console.warn('[Analytics] Issues não carregados:', e);
-    }
+        } catch (e) {
+            console.warn('[Analytics] Issues não carregados:', e);
+        }
 
     },
 
@@ -375,9 +375,9 @@ this._renderBarras(
 
                 <tbody>
                     ${sorted.map(([nome, s], idx) => {
-                        const especialidade = this._obterEspecialidade(s.testes);
+            const especialidade = this._obterEspecialidade(s.testes);
 
-                        return `
+            return `
                             <tr>
                                 <td>
                                     ${idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : ''}
@@ -395,7 +395,7 @@ this._renderBarras(
                                 <td>${s.issues}</td>
                             </tr>
                         `;
-                    }).join('')}
+        }).join('')}
                 </tbody>
             </table>
         `;
@@ -677,8 +677,20 @@ this._renderBarras(
             const turnoRef = await db.collection('vev_turnos_encerrados')
                 .add(payloadTurno);
 
-            // Sessão de teste — estrutura preparada para dashboards futuros
-            await db.collection('vev_sessoes_teste').add({
+            // Salvar também no Realtime Database (RTDB)
+            try {
+                const rtdbPayload = {
+                    ...payloadTurno,
+                    dataEncerramento: firebase.database.ServerValue.TIMESTAMP,
+                    criadoEm: firebase.database.ServerValue.TIMESTAMP
+                };
+                await firebase.database().ref('vev_turnos_encerrados').child(turnoRef.id).set(rtdbPayload);
+                console.log('[RTDB] Turno salvo com sucesso no Realtime Database.');
+            } catch (rtdbErr) {
+                console.error('[RTDB] Erro ao salvar turno no Realtime Database:', rtdbErr);
+            }
+
+            const sessaoData = {
                 turnoId: turnoRef.id,
 
                 uid: payloadTurno.uid,
@@ -712,7 +724,33 @@ this._renderBarras(
                 status: enc.statusOperacional || 'concluido',
 
                 criadoEm: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            };
+
+            // Sessão de teste — estrutura preparada para dashboards futuros
+            const sessaoRef = await db.collection('vev_sessoes_teste').add(sessaoData);
+
+            // Salvar também a sessão de teste no RTDB
+            try {
+                const rtdbSessao = {
+                    ...sessaoData,
+                    criadoEm: firebase.database.ServerValue.TIMESTAMP
+                };
+                await firebase.database().ref('vev_sessoes_teste').child(sessaoRef.id).set(rtdbSessao);
+                console.log('[RTDB] Sessão de teste salva com sucesso no Realtime Database.');
+            } catch (rtdbSessaoErr) {
+                console.error('[RTDB] Erro ao salvar sessão de teste no Realtime Database:', rtdbSessaoErr);
+            }
+
+            // Remover o registro de turno ativo no Realtime Database ao encerrar
+            try {
+                const uid = payloadTurno.uid || firebase.auth().currentUser?.uid;
+                if (uid) {
+                    await firebase.database().ref('vev_turnos_ativos').child(uid).remove();
+                    console.log('[RTDB] Turno ativo removido do Realtime Database.');
+                }
+            } catch (rtdbRemoveErr) {
+                console.warn('[RTDB] Erro ao remover turno ativo no Realtime Database:', rtdbRemoveErr);
+            }
 
             console.log('[Analytics] Turno e sessão de teste salvos com sucesso.');
 

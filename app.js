@@ -15,6 +15,15 @@ const firebaseConfig = {
 if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const db = firebase.database();
 
+// Ativar persistência offline do Firestore para evitar travamentos em rede lenta ou offline
+try {
+    firebase.firestore().enablePersistence({ synchronizeTabs: true }).catch((err) => {
+        console.warn('[Firestore] Falha ao habilitar persistência offline:', err.code);
+    });
+} catch (e) {
+    console.warn('[Firestore] Erro ao configurar persistência offline:', e);
+}
+
 // ====================================================
 // 2. O CORAÇÃO DO APLICATIVO
 // ====================================================
@@ -327,8 +336,15 @@ const app = {
                 const tableData = dadosOp.checkinsDesaceleracao.map((c, i) => [i + 1, c.atividade, c.hora]);
                 doc.autoTable({ startY: currentY + 5, head: [['LAP/ETAPA', 'ATIVIDADE', 'HORA']], body: tableData });
             }
-            doc.save(`Historico_${operador.split(' ')[0]}_${dataString}.pdf`);
-        } catch (e) { alert("Erro ao gerar PDF."); }
+            const vin = dadosOp.vin || "N/A";
+            const nomeOp = operador.split(' ')[0];
+            const fileName = `Historico_${vin}_${nomeOp}_${dataString}.pdf`;
+            const textShare = `Relatório Técnico gerado por ${operador} - VIN: ${vin}`;
+            await this.salvarECompartilharPDF(doc, fileName, textShare, 'Relatório Histórico');
+        } catch (e) {
+            console.error(e);
+            alert("Erro ao gerar PDF.");
+        }
     },
 
     async melhorarTextoComIA(botao) {
@@ -458,9 +474,9 @@ const app = {
         const dadosTabela = this.checkins.map((c, i) => [i + 1, c.atividade, c.hora]);
         doc.autoTable({ startY: 45, head: [['#', 'CICLO / ETAPA', 'HORA']], body: dadosTabela, headStyles: { fillColor: [168, 85, 247], textColor: [255, 255, 255] } });
         const nomeOp = (this.operadorAtual || 'Analista').split(' ')[0];
-        doc.save(`Log_R389_${nomeOp}.pdf`);
-        const blobUrl = doc.output('bloburl');
-        window.open(blobUrl, '_blank');
+        const fileName = `Log_R389_${vin}_${nomeOp}.pdf`;
+        const textShare = `Relatório Técnico gerado por ${this.operadorAtual || 'Analista'} - VIN: ${vin}`;
+        await this.salvarECompartilharPDF(doc, fileName, textShare, 'Controle R389');
     },
 
     registrarPassagemDesaceleracao(forcarVindoDoCopiloto = false) {
@@ -530,9 +546,9 @@ const app = {
         const dadosTabela = this.checkinsDesaceleracao.map((c, i) => [i + 1, c.atividade, c.hora]);
         doc.autoTable({ startY: 45, head: [['LAP / ETAPA', 'ATIVIDADE', 'HORA']], body: dadosTabela, headStyles: { fillColor: [236, 72, 153], textColor: [255, 255, 255] } });
         const nomeOp = (this.operadorAtual || 'Analista').split(' ')[0];
-        doc.save(`Log_Desaceleracao_${nomeOp}.pdf`);
-        const blobUrl = doc.output('bloburl');
-        window.open(blobUrl, '_blank');
+        const fileName = `Log_Desaceleracao_${vin}_${nomeOp}.pdf`;
+        const textShare = `Relatório Técnico gerado por ${this.operadorAtual || 'Analista'} - VIN: ${vin}`;
+        await this.salvarECompartilharPDF(doc, fileName, textShare, 'Log de Desaceleração');
     },
 
     registrarVoltaFrenagem() {
@@ -629,9 +645,9 @@ const app = {
         const dados = this.ciclosFrenagem.map(f => [`Ciclo ${f.ciclo}`, f.etapa, f.hora, f.observacao]);
         doc.autoTable({ startY: 45, head: [['CICLO', 'VOLTA / ETAPA', 'HORA', 'STATUS']], body: dados, headStyles: { fillColor: [249, 115, 22] } });
         const nomeOp = (this.operadorAtual || 'Analista').split(' ')[0];
-        doc.save(`Log_Fren_${nomeOp}.pdf`);
-        const blobUrl = doc.output('bloburl');
-        window.open(blobUrl, '_blank');
+        const fileName = `Log_Fren_${vin}_${nomeOp}.pdf`;
+        const textShare = `Relatório Técnico gerado por ${this.operadorAtual || 'Analista'} - VIN: ${vin}`;
+        await this.salvarECompartilharPDF(doc, fileName, textShare, 'Log Detalhado de Frenagem');
     },
 
     renderLogRodagem() {
@@ -726,9 +742,9 @@ const app = {
         });
 
         const nomeOp = (this.operadorAtual || 'Analista').split(' ')[0];
-        doc.save(`FRA_GPS_${nomeOp}_${Date.now()}.pdf`);
-        const blobUrl = doc.output('bloburl');
-        window.open(blobUrl, '_blank');
+        const fileName = `FRA_GPS_${vin}_${nomeOp}_${Date.now()}.pdf`;
+        const textShare = `Relatório Técnico gerado por ${this.operadorAtual || 'Analista'} - VIN: ${vin}`;
+        await this.salvarECompartilharPDF(doc, fileName, textShare, 'Ford Free-Rolling GPS');
     },
 
     gerarRelatorioResumo() {
@@ -835,9 +851,9 @@ const app = {
         }
 
         const nomeOp = (this.operadorAtual || 'Analista').split(' ')[0];
-        doc.save(`Resumo_${nomeOp}_${Date.now()}.pdf`);
-        const blobUrl = doc.output('bloburl');
-        window.open(blobUrl, '_blank');
+        const fileName = `Resumo_${vin}_${nomeOp}_${Date.now()}.pdf`;
+        const textShare = `Relatório Técnico gerado por ${this.operadorAtual || 'Analista'} - VIN: ${vin}`;
+        await this.salvarECompartilharPDF(doc, fileName, textShare, 'Resumo Geral do Turno');
     },
 
     handleMedia(e) {
@@ -1053,10 +1069,10 @@ const app = {
     }
 
     // — Salva —
-    const fileName = `Laudo_Ford_${id}_${new Date().toISOString().slice(0, 10)}.pdf`;
-    doc.save(fileName);
-    const blobUrl = doc.output('bloburl');
-    window.open(blobUrl, '_blank');
+    // — Salva e Compartilha —
+    const fileName = `Laudo_Ford_${vin}_${new Date().toISOString().slice(0, 10)}.pdf`;
+    const textShare = `Relatório Técnico gerado por ${analista} - VIN: ${vin}`;
+    await this.salvarECompartilharPDF(doc, fileName, textShare, 'Laudo Técnico de Ocorrência');
 },
 
 // Helper — carrega imagem como base64
@@ -1074,6 +1090,40 @@ _loadImage(src) {
         img.onerror = reject;
         img.src = src;
     });
+},
+
+async salvarECompartilharPDF(doc, fileName, textShare, titleShare = 'Relatório Ford') {
+    try {
+        doc.save(fileName);
+    } catch (saveErr) {
+        console.error('Erro ao salvar PDF localmente:', saveErr);
+    }
+
+    if (navigator.share && navigator.canShare) {
+        try {
+            const blob = doc.output('blob');
+            const file = new File([blob], fileName, { type: 'application/pdf' });
+            if (navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    files: [file],
+                    title: titleShare,
+                    text: textShare
+                });
+                console.log('[Compartilhar] Compartilhado via Web Share API.');
+                return;
+            }
+        } catch (shareErr) {
+            console.warn('[Compartilhar] Falha no compartilhamento nativo:', shareErr);
+        }
+    }
+
+    try {
+        const blobUrl = doc.output('bloburl');
+        window.open(blobUrl, '_blank');
+    } catch (openErr) {
+        console.error('[Compartilhar] Erro ao abrir PDF em nova aba:', openErr);
+        alert('PDF gerado com sucesso. Verifique seus downloads.');
+    }
 },
 
     // ── FORD FREE-ROLLING ANALYTICS — PDF Executivo GPS ────────────
@@ -1225,9 +1275,9 @@ _loadImage(src) {
         }
 
         const tsFile = new Date(v.timestamp).toISOString().slice(0, 10);
-        doc.save(`FRA_Performance_${v.operador.split(' ')[0]}_${tsFile}.pdf`);
-        const blobUrl = doc.output('bloburl');
-        window.open(blobUrl, '_blank');
+        const fileName = `FRA_Performance_${v.veiculo}_${v.operador.split(' ')[0]}_${tsFile}.pdf`;
+        const textShare = `Relatório Técnico gerado por ${v.operador} - VIN: ${v.veiculo}`;
+        await this.salvarECompartilharPDF(doc, fileName, textShare, 'Performance GPS');
     },
 
     // ── ALTERADO: lê campos enc- + salva no Firestore ──────────
@@ -1324,8 +1374,20 @@ _loadImage(src) {
                 })),
             };
 
-            await firebase.firestore().collection('vev_turnos_encerrados').add(docData);
+            const docRef = await firebase.firestore().collection('vev_turnos_encerrados').add(docData);
             console.log('[Firestore] Turno salvo no dashboard');
+
+            // Salvar também no Realtime Database (RTDB)
+            try {
+                const rtdbPayload = {
+                    ...docData,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                };
+                await firebase.database().ref('vev_turnos_encerrados').child(docRef.id).set(rtdbPayload);
+                console.log('[RTDB] Turno salvo com sucesso no Realtime Database.');
+            } catch (rtdbErr) {
+                console.error('[RTDB] Erro ao salvar turno no Realtime Database:', rtdbErr);
+            }
 
         } catch (e) {
             console.error('[Firestore] Erro ao salvar turno:', e);

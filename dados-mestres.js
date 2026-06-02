@@ -248,6 +248,17 @@ async getVeiculos() {
         .sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
 },
 
+async getPostos() {
+    const snap = await firebase.firestore()
+        .collection('vev_postos')
+        .where('ativo', '==', true)
+        .get();
+
+    return snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
+},
+
     // ─────────────────────────────────────────────────────────
     // BUSCAR TESTES DO FIRESTORE (definição principal — usa sort)
     // ─────────────────────────────────────────────────────────

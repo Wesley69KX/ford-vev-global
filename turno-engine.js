@@ -66,10 +66,31 @@ const TurnoEngine = {
         dados.uid = firebase.auth().currentUser?.uid || 'anonimo';
         this._cache = dados;
         localStorage.setItem(this._chave(), JSON.stringify(dados));
+
+        // Salvar turno ativo no Realtime Database para monitoramento em tempo real
+        try {
+            firebase.database().ref('vev_turnos_ativos').child(dados.uid).set({
+                ...dados,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+            console.log('[RTDB] Turno ativo registrado no Realtime Database.');
+        } catch (e) {
+            console.warn('[RTDB] Erro ao registrar turno ativo no Realtime Database:', e);
+        }
+
         this.sincronizarComApp();
     },
 
     encerrar() {
+        // Remover do Realtime Database também
+        try {
+            const uid = firebase.auth().currentUser?.uid || 'anonimo';
+            firebase.database().ref('vev_turnos_ativos').child(uid).remove();
+            console.log('[RTDB] Turno ativo removido do Realtime Database.');
+        } catch (e) {
+            console.warn('[RTDB] Erro ao remover turno ativo no Realtime Database:', e);
+        }
+
         const chave = this._chave();
         this._cache = null;
         localStorage.removeItem(chave);
@@ -1718,15 +1739,23 @@ const TurnoUI = {
         set('enc-show-km-ini',      d?.kmInicial ? `${d.kmInicial} km` : null);
         set('enc-show-hora',        d?.horaInicio);
 
-        const postos   = PreCadastroEngine.getAll('postos');
+        let postos = [];
+        try {
+            postos = await DadosMestres.getPostos();
+        } catch (e) {
+            console.warn('[TurnoUI] Erro ao carregar postos do Firestore:', e);
+            postos = PreCadastroEngine.getAll('postos');
+        }
+
         const postoSel = document.getElementById('enc-posto');
 
         if (postoSel) {
             postoSel.innerHTML = '<option value="">Não abasteci hoje</option>';
             postos.forEach(p => {
                 const o = document.createElement('option');
-                o.value = p.nome;
-                o.textContent = p.nome;
+                const nomePosto = p.nome || '';
+                o.value = nomePosto;
+                o.textContent = nomePosto;
                 postoSel.appendChild(o);
             });
         }
@@ -1878,17 +1907,24 @@ const TurnoUI = {
             `;
         }
 
+        const comTimeout = (promise, ms = 7000) => {
+            return Promise.race([
+                promise,
+                new Promise((_, reject) => setTimeout(() => reject(new Error("Tempo limite de salvamento excedido (conexão instável).")), ms))
+            ]);
+        };
+
         try {
             this._syncWesleyHidden(enc);
 
             if (typeof AnalyticsEngine !== 'undefined') {
-                await AnalyticsEngine._salvarTurnoEncerrado(enc);
+                await comTimeout(AnalyticsEngine._salvarTurnoEncerrado(enc), 7000);
                 console.log('[Turno] Dados salvos no Firestore.');
             }
 
             TurnoEngine.encerrar();
             // Notifica coordenador
-            await NotificacoesEngine.turnoEncerrado(d, enc);
+            await comTimeout(NotificacoesEngine.turnoEncerrado(d, enc), 7000);
 
             this._dadosEncerramento          = enc;
             this._turnoEncerradoNestaSessao  = true;
