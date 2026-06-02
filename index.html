@@ -1,0 +1,2706 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ford VEV - Central Operacional</title>
+    <meta name="description" content="Sistema de telemetria e gestao de turnos para Campo de Provas Ford Tatui.">
+    <meta name="theme-color" content="#003399">
+
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="ford_logo_icon_145825.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- Bibliotecas Essenciais -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+    <link rel="stylesheet" href="style.css?v=20260601_v3">
+
+    <style>
+        /* ============================================================
+           DESIGN SYSTEM - FORD PERFORMANCE + MD3
+           ============================================================ */
+        :root {
+            --bg:           #0d0d10;
+            --bg-card:      #16161a;
+            --bg-card2:     #1e1e24;
+            --bg-hover:     #26262e;
+            --border:       rgba(255,255,255,0.06);
+            --border-hi:    rgba(255,255,255,0.12);
+            --blue:         #003399;
+            --blue-lt:      #1a52cc;
+            --blue-glow:    rgba(0,51,153,0.35);
+            --red:          #E31837;
+            --red-glow:     rgba(227,24,55,0.25);
+            --cyan:         #00d4aa;
+            --cyan-glow:    rgba(0,212,170,0.25);
+            --amber:        #f59e0b;
+            --purple:       #8b5cf6;
+            --pink:         #ec4899;
+            --text:         #ffffff;
+            --text-2:       #8E8E93;
+            --text-3:       rgba(255,255,255,0.35);
+            --radius:       16px;
+            --radius-sm:    10px;
+            --shadow:       0 8px 32px rgba(0,0,0,0.55);
+            --transition:   all 0.22s cubic-bezier(0.4,0,0.2,1);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body {
+            height: 100%;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', 'Roboto', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        body { padding-bottom: 80px; }
+
+        /* -- Scrollbar fina -- */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+        /* ============================================================
+           TELA DE LOGIN
+           ============================================================ */
+        #modal-login {
+            position: fixed; inset: 0; z-index: 9999;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+        #modal-login .login-bg {
+            position: absolute; inset: 0;
+            background-image: url('entrada-ford.jpg');
+            background-size: cover; background-position: center 40%;
+        }
+        #modal-login .login-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(180deg, rgba(0,15,50,.5) 0%, rgba(3,6,18,.97) 100%);
+        }
+        #modal-login .login-grid {
+            position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(0,51,153,.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,51,153,.04) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+        }
+        .login-box {
+            position: relative; z-index: 1;
+            width: calc(100% - 40px); max-width: 390px;
+            background: rgba(8,8,16,.9);
+            border: 1px solid rgba(0,51,153,.3);
+            border-radius: 24px;
+            padding: 36px 32px 28px;
+            backdrop-filter: blur(32px);
+            box-shadow: 0 0 0 1px rgba(255,255,255,.04), 0 32px 80px rgba(0,0,0,.8), 0 0 60px rgba(0,51,153,.15);
+            animation: loginIn .6s cubic-bezier(.16,1,.3,1) forwards;
+        }
+        @keyframes loginIn { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+
+        .login-logo {
+            width: 72px; height: 72px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(0,51,153,.5), rgba(0,15,50,.6));
+            border: 2px solid rgba(0,51,153,.5);
+            box-shadow: 0 0 40px rgba(0,51,153,.3), 0 0 80px rgba(0,51,153,.1);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 18px;
+        }
+        .login-logo img { width: 48px; }
+        .login-title {
+            font-size: 1.6rem; font-weight: 900; text-align: center;
+            background: linear-gradient(135deg,#fff 0%,#a8c4f0 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; margin-bottom: 4px;
+        }
+        .login-sub { text-align: center; font-size: .72rem; color: rgba(168,196,240,.5); letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 28px; }
+        .login-tab-bar {
+            display: flex; background: rgba(255,255,255,.04);
+            border: 1px solid rgba(255,255,255,.07); border-radius: 10px;
+            padding: 3px; gap: 3px; margin-bottom: 22px;
+        }
+        .login-tab {
+            flex: 1; padding: 9px; border: none; border-radius: 8px;
+            background: transparent; color: var(--text-2);
+            font-size: .82rem; font-weight: 700; cursor: pointer; transition: var(--transition);
+        }
+        .login-tab.active {
+            background: rgba(0,51,153,.3); color: #fff;
+            box-shadow: 0 2px 8px rgba(0,51,153,.25);
+        }
+        .login-input {
+            width: 100%; padding: 13px 14px 13px 42px;
+            background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08);
+            border-radius: 12px; color: #fff; font-size: .9rem; font-family: inherit;
+            outline: none; transition: border-color .2s;
+        }
+        .login-input:focus { border-color: rgba(0,51,153,.6); box-shadow: 0 0 0 3px rgba(0,51,153,.12); }
+        .login-field { position: relative; margin-bottom: 14px; }
+        .login-field-label {
+            display: block; font-size: .65rem; font-weight: 700; color: rgba(168,196,240,.6);
+            text-transform: uppercase; letter-spacing: .6px; margin-bottom: 7px;
+        }
+        .login-field .field-icon {
+            position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+            font-size: 18px; color: rgba(108,172,228,.35); pointer-events: none;
+        }
+        #lockout-banner {
+            display: none; text-align: center;
+            background: rgba(227,24,55,.08); border: 1px solid rgba(227,24,55,.3);
+            border-radius: 12px; padding: 14px; margin-bottom: 16px;
+        }
+        #login-email-feedback {
+            font-size: .7rem; margin-top: 4px; padding-left: 2px;
+            color: rgba(255,255,255,.2); display: flex; align-items: center; gap: 4px;
+        }
+        #signup-extra-fields { display: none; }
+        .login-btn {
+            width: 100%; padding: 15px; border: none; border-radius: 12px;
+            background: linear-gradient(135deg,#1668CB,#003478);
+            color: #fff; font-size: .95rem; font-weight: 700; font-family: inherit;
+            cursor: pointer; position: relative; overflow: hidden;
+            box-shadow: 0 4px 20px rgba(22,104,203,.4), inset 0 1px 0 rgba(255,255,255,.12);
+            transition: all .2s ease;
+        }
+        .login-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(22,104,203,.55), inset 0 1px 0 rgba(255,255,255,.12); }
+        .login-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+        .login-btn .btn-shine {
+            position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,.1) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .login-btn-inner { position: relative; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        #btn-auth-loading { display: none; align-items: center; justify-content: center; gap: 10px; }
+        .spin { width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;display:inline-block;animation:spin .8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #tentativas-info { font-size:.75rem;color:rgba(251,191,36,.8);text-align:center;margin-top:10px;min-height:18px; }
+        #strength-container { display:none; margin-top:8px; }
+        .str-bar { display:flex;gap:4px;margin-top:5px; }
+        .str-seg { flex:1;height:3px;border-radius:3px;background:rgba(255,255,255,.08);transition:background .3s; }
+
+        /* Login Partículas */
+        .login-particle {
+            position: absolute; border-radius: 50%;
+            background: rgba(0,51,153,.8); animation: floatParticle 4s ease-in-out infinite;
+        }
+        @keyframes floatParticle {
+            0%,100% { transform:translateY(0) scale(1); opacity:.6; }
+            50% { transform:translateY(-12px) scale(1.2); opacity:1; }
+        }
+
+        /* ============================================================
+           BOAS-VINDAS / PENDENTE
+           ============================================================ */
+        #tela-boas-vindas, #tela-pendente {
+            display: none; position: fixed; inset: 0; z-index: 9998;
+            background: var(--bg); align-items: center; justify-content: center;
+            flex-direction: column; gap: 16px; text-align: center; padding: 2rem;
+        }
+        .welcome-checkmark {
+            width: 80px; height: 80px; border-radius: 50%;
+            background: rgba(0,212,170,.12); border: 2px solid var(--cyan);
+            display: flex; align-items: center; justify-content: center;
+            animation: pulseCheck 1s ease-in-out;
+        }
+        .welcome-checkmark .material-icons { font-size: 2.5rem; color: var(--cyan); }
+        @keyframes pulseCheck { 0% {transform:scale(.5);opacity:0;} 100%{transform:scale(1);opacity:1;} }
+        .welcome-greeting { font-size: .9rem; color: var(--text-2); font-weight: 500; }
+        .welcome-name { font-size: 1.6rem; font-weight: 900; color: var(--text); }
+        .welcome-role { font-size: .75rem; color: var(--cyan); font-weight: 700; text-transform: uppercase; letter-spacing: .8px; }
+        .welcome-bar-container { width: 200px; height: 3px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+        .welcome-bar { height: 100%; background: linear-gradient(90deg,var(--blue),var(--cyan)); border-radius: 3px; animation: loadBar 2.5s ease forwards; }
+        @keyframes loadBar { from{width:0%} to{width:100%} }
+        .pend-icon { width:72px;height:72px;border-radius:50%;background:rgba(245,158,11,.1);border:2px solid var(--amber);display:flex;align-items:center;justify-content:center; }
+        .pend-title { font-size:1.3rem;font-weight:900;color:var(--text); }
+        .pend-nome { font-size:1rem;color:var(--amber);font-weight:700; }
+        .pend-cargo { font-size:.72rem;color:var(--text-2);text-transform:uppercase;letter-spacing:.6px; }
+        .pend-msg { font-size:.82rem;color:var(--text-2);line-height:1.6;max-width:320px; }
+        .btn-pend-sair {
+            display:flex;align-items:center;gap:8px;padding:12px 24px;
+            background:rgba(227,24,55,.12);border:1px solid rgba(227,24,55,.35);
+            border-radius:12px;color:#fff;font-weight:700;cursor:pointer;font-family:inherit;font-size:.85rem;
+        }
+
+        /* ============================================================
+           MODAL RECUPERAÃ‡ÃƒO DE SENHA
+           ============================================================ */
+        #modal-recuperacao {
+            display: none; position: fixed; inset: 0; z-index: 10000;
+            background: rgba(0,0,0,.7); align-items: center; justify-content: center;
+        }
+        #modal-recuperacao .rec-box {
+            background: var(--bg-card); border: 1px solid var(--border-hi);
+            border-radius: 20px; padding: 2rem; max-width: 360px; width: calc(100% - 40px);
+        }
+        #modal-recuperacao h3 { color: var(--text); margin-bottom: 8px; font-size: 1.1rem; }
+        #modal-recuperacao p { font-size: .84rem; color: var(--text-2); margin-bottom: 16px; }
+
+        /* ============================================================
+           APP SHELL - HEADER
+           ============================================================ */
+        .app-shell { display: none; }
+        .app-shell.visible { display: block; }
+
+        #app-header {
+            position: sticky; top: 0; z-index: 90;
+            background: rgba(13,13,16,.85);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 20px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 24px rgba(0,0,0,.5);
+        }
+        .header-brand {
+            display: flex; align-items: center; gap: 12px;
+        }
+        .header-brand-logo {
+            width: 36px; height: 36px; border-radius: 10px;
+            background: rgba(0,51,153,.2); border: 1px solid rgba(0,51,153,.4);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .header-brand-logo img { width: 24px; height: auto; }
+        .header-brand-text h1 { font-size: .9rem; font-weight: 800; color: var(--text); line-height: 1.2; }
+        .header-brand-text span { font-size: .62rem; color: var(--text-2); text-transform: uppercase; letter-spacing: .8px; }
+        .header-actions { display: flex; align-items: center; gap: 8px; }
+        .header-avatar {
+            width: 34px; height: 34px; border-radius: 50%;
+            background: linear-gradient(135deg,var(--blue),var(--blue-lt));
+            display: flex; align-items: center; justify-content: center;
+            font-size: .82rem; font-weight: 800; color: #fff; cursor: pointer;
+            border: 2px solid rgba(0,51,153,.4);
+        }
+        .header-icon-btn {
+            width: 34px; height: 34px; border-radius: 10px; border: none;
+            background: rgba(255,255,255,.05); color: var(--text-2);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: var(--transition);
+        }
+        .header-icon-btn:hover { background: rgba(255,255,255,.1); color: var(--text); }
+        .header-icon-btn .material-icons { font-size: 1.2rem; }
+
+        /* ============================================================
+           LAYOUT CONTAINER
+           ============================================================ */
+        .app-container {
+            max-width: 640px; margin: 0 auto;
+            padding: 20px 16px;
+        }
+
+        /* ============================================================
+           BOTTOM NAVIGATION
+           ============================================================ */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 72px;
+            background: rgba(22,22,26,.95);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-top: 1px solid var(--border);
+            display: grid; grid-template-columns: repeat(3,1fr);
+            z-index: 100; box-shadow: 0 -8px 32px rgba(0,0,0,.5);
+            padding: 0 4px;
+        }
+        .nav-item {
+            background: transparent; border: none;
+            color: var(--text-2); display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 4px;
+            cursor: pointer; transition: var(--transition);
+            padding: 8px 4px;
+        }
+        .nav-pill {
+            padding: 4px 22px; border-radius: 14px;
+            transition: var(--transition);
+        }
+        .nav-item .material-icons { font-size: 1.35rem; }
+        .nav-label { font-size: .68rem; font-weight: 700; letter-spacing: .4px; }
+        .nav-item.active { color: #fff; }
+        .nav-item.active .nav-pill {
+            background: rgba(0,51,153,.3);
+        }
+        .nav-item.active .material-icons { color: var(--cyan); }
+
+        /* ============================================================
+           SCREENS
+           ============================================================ */
+        .app-screen { display: none; }
+        .app-screen.active {
+            display: block;
+            animation: screenIn .25s cubic-bezier(0.4,0,0.2,1);
+        }
+        @keyframes screenIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+        /* ============================================================
+           CARDS GENÉRICOS
+           ============================================================ */
+        .card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 20px;
+            margin-bottom: 16px; transition: var(--transition);
+        }
+        .card:hover { border-color: var(--border-hi); }
+        .card-title {
+            font-size: .78rem; font-weight: 800; color: var(--text-2);
+            text-transform: uppercase; letter-spacing: .8px;
+            display: flex; align-items: center; gap: 6px; margin-bottom: 16px;
+        }
+        .card-title .material-icons { font-size: 1rem; }
+        .section-label {
+            font-size: .72rem; font-weight: 800; color: var(--text-2);
+            text-transform: uppercase; letter-spacing: .8px;
+            display: flex; align-items: center; gap: 6px;
+            margin: 24px 0 12px;
+            padding-left: 10px; border-left: 3px solid var(--blue);
+        }
+
+        /* ============================================================
+           TURNO STATUS CARD
+           ============================================================ */
+        #turno-status-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius); margin-bottom: 16px; overflow: hidden;
+        }
+        #turno-active-bar {
+            display: none;
+            background: linear-gradient(90deg,rgba(0,212,170,.08) 0%,rgba(0,51,153,.06) 100%);
+            border-bottom: 1px solid rgba(0,212,170,.15);
+            padding: 12px 20px;
+            align-items: center; justify-content: space-between;
+        }
+        .turno-active-left { display: flex; align-items: center; gap: 10px; }
+        .pulse-dot {
+            width: 10px; height: 10px; border-radius: 50%; background: var(--cyan);
+            box-shadow: 0 0 8px var(--cyan); flex-shrink: 0;
+            animation: pulseDot 2s ease-in-out infinite;
+        }
+        @keyframes pulseDot { 0%,100%{box-shadow:0 0 8px var(--cyan);} 50%{box-shadow:0 0 16px var(--cyan), 0 0 32px rgba(0,212,170,.4);} }
+        .turno-active-label { font-size: .7rem; font-weight: 900; color: var(--cyan); letter-spacing: 1.2px; text-transform: uppercase; }
+        .turno-active-timer {
+            font-family: 'Roboto Mono', monospace;
+            font-size: .9rem; font-weight: 700; color: #fff;
+            background: rgba(0,212,170,.08); border: 1px solid rgba(0,212,170,.2);
+            border-radius: 8px; padding: 4px 12px;
+        }
+        .turno-info-strip {
+            display: none; padding: 10px 20px; gap: 0;
+            grid-template-columns: repeat(3,1fr);
+            border-bottom: 1px solid var(--border);
+        }
+        .turno-chip {
+            flex: 1; text-align: center; padding: 8px 4px;
+            border-right: 1px solid var(--border);
+        }
+        .turno-chip:last-child { border-right: none; }
+        .turno-chip-label { font-size: .6rem; color: var(--text-2); font-weight: 700; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 2px; }
+        .turno-chip-val { font-size: .82rem; color: var(--text); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px; margin: 0 auto; }
+        #turno-inactive-section { padding: 20px; }
+        .turno-idle-title { font-size: .9rem; font-weight: 800; color: var(--text); display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+        .turno-idle-sub { font-size: .75rem; color: var(--text-2); margin-bottom: 16px; }
+        .turno-btn-row { display: flex; gap: 10px; }
+        .btn-turno-start {
+            flex: 1; padding: 12px; border: none; border-radius: 12px;
+            background: var(--blue); color: #fff;
+            font-size: .8rem; font-weight: 800; cursor: pointer; font-family: inherit;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            transition: var(--transition); box-shadow: 0 4px 16px var(--blue-glow);
+        }
+        .btn-turno-start:hover { background: var(--blue-lt); transform: translateY(-2px); }
+        .btn-turno-end {
+            flex: 1; padding: 12px; border-radius: 12px;
+            background: rgba(227,24,55,.12); border: 1px solid rgba(227,24,55,.3); color: #fff;
+            font-size: .8rem; font-weight: 800; cursor: pointer; font-family: inherit;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            transition: var(--transition);
+        }
+        .btn-turno-end:hover { background: rgba(227,24,55,.22); }
+
+        /* ============================================================
+           BENTO GRID - ACESSO RÃPIDO
+           ============================================================ */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .bento-btn {
+            background: var(--bg-card2); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 16px 8px;
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+            cursor: pointer; transition: var(--transition); border: none;
+            color: var(--text); font-family: inherit; text-decoration: none;
+        }
+        .bento-btn:hover {
+            background: var(--bg-hover);
+            transform: translateY(-3px);
+        }
+        .bento-btn:active { transform: scale(.96); }
+        .bento-icon {
+            width: 46px; height: 46px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .bento-icon .material-icons { font-size: 1.5rem; }
+        .bento-label {
+            font-size: .72rem; font-weight: 700; text-align: center;
+            line-height: 1.3; color: var(--text);
+        }
+        /* Cores dos ícones Bento */
+        .bi-purple { background: rgba(139,92,246,.15); color: #a78bfa; }
+        .bi-pink   { background: rgba(236,72,153,.15); color: #f472b6; }
+        .bi-orange { background: rgba(234,88,12,.15);  color: #fb923c; }
+        .bi-blue   { background: rgba(0,51,153,.2);    color: #60a5fa; }
+        .bi-cyan   { background: rgba(0,212,170,.15);  color: var(--cyan); }
+        .bi-amber  { background: rgba(245,158,11,.15); color: #fbbf24; }
+        .bi-red    { background: rgba(227,24,55,.15);  color: #f87171; }
+        .bi-green  { background: rgba(34,197,94,.15);  color: #4ade80; }
+        .bi-violet { background: rgba(109,40,217,.15); color: #c4b5fd; }
+
+        /* Links externos - estilo diferenciado */
+        .bento-link-row {
+            display: flex; flex-direction: column; gap: 8px;
+            margin-bottom: 16px;
+        }
+        .ext-link-btn {
+            background: var(--bg-card2); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 12px 16px;
+            display: flex; align-items: center; gap: 12px;
+            cursor: pointer; transition: var(--transition);
+            text-decoration: none; color: var(--text);
+        }
+        .ext-link-btn:hover { background: var(--bg-hover); border-color: var(--border-hi); }
+        .ext-link-icon { font-size: 1.2rem; flex-shrink: 0; }
+        .ext-link-body { flex: 1; }
+        .ext-link-title { font-size: .84rem; font-weight: 700; color: var(--text); }
+        .ext-link-desc { font-size: .7rem; color: var(--text-2); margin-top: 1px; }
+        .ext-link-arrow { color: var(--text-3); }
+
+        /* PWA Banner */
+        #banner-instalacao {
+            display: none;
+            background: rgba(0,212,170,.07); border: 1px solid rgba(0,212,170,.25);
+            border-radius: var(--radius); padding: 16px 20px; margin-bottom: 16px;
+            align-items: center; justify-content: space-between; gap: 12px;
+        }
+        .pwa-text h3 { font-size: 1rem; font-weight: 800; color: var(--cyan); display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+        .pwa-text p { font-size: .75rem; color: var(--text-2); }
+        .btn-pwa-install {
+            background: var(--cyan); color: #000; border: none; padding: 10px 20px;
+            border-radius: 10px; font-weight: 900; cursor: pointer; font-size: .82rem;
+            white-space: nowrap; font-family: inherit;
+        }
+
+        /* ============================================================
+           TELA TELEMETRIA
+           ============================================================ */
+        .telemetry-hero {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius); margin-bottom: 16px; overflow: hidden;
+        }
+        .telemetry-hero-header {
+            padding: 16px 20px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .telemetry-brand { display: flex; align-items: center; gap: 10px; }
+        .telemetry-brand .radar-icon {
+            width: 40px; height: 40px; border-radius: 10px;
+            background: rgba(0,212,170,.1); border: 1px solid rgba(0,212,170,.25);
+            display: flex; align-items: center; justify-content: center; color: var(--cyan);
+        }
+        .telemetry-brand h3 { font-size: .9rem; font-weight: 800; color: var(--text); }
+        .telemetry-brand p { font-size: .72rem; color: var(--text-2); margin-top: 2px; }
+        .btn-activate {
+            padding: 8px 18px; border: none; border-radius: 20px;
+            font-size: .78rem; font-weight: 700; cursor: pointer; font-family: inherit;
+            display: flex; align-items: center; gap: 6px; transition: var(--transition);
+        }
+        .btn-activate.idle { background: var(--blue); color: #fff; box-shadow: 0 4px 12px var(--blue-glow); }
+        .btn-activate.active-state { background: rgba(227,24,55,.15); border: 1px solid var(--red); color: var(--red); }
+
+        /* Stats Grid 2Ã—2 */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(2,1fr);
+            gap: 1px; background: var(--border);
+        }
+        .stat-cell {
+            background: var(--bg-card); padding: 16px 20px;
+            text-align: center; transition: var(--transition);
+        }
+        .stat-cell:hover { background: var(--bg-card2); }
+        .stat-icon { font-size: 1.2rem; display: block; margin-bottom: 6px; }
+        .stat-val {
+            font-size: 1.35rem; font-weight: 900;
+            font-family: 'Roboto Mono', monospace; color: var(--text);
+            line-height: 1;
+        }
+        .stat-val span { font-size: .72rem; color: var(--text-2); font-weight: 600; margin-left: 2px; }
+        .stat-label { font-size: .6rem; color: var(--text-2); font-weight: 700; text-transform: uppercase; letter-spacing: .4px; margin-top: 5px; }
+
+        /* Action Row */
+        .telemetry-actions {
+            padding: 14px 20px; border-top: 1px solid var(--border);
+            display: flex; gap: 10px;
+        }
+        .btn-tel-action {
+            flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--border);
+            background: transparent; color: var(--text-2);
+            font-size: .75rem; font-weight: 700; font-family: inherit; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            transition: var(--transition);
+        }
+        .btn-tel-action:hover { background: var(--bg-hover); color: var(--text); border-color: var(--border-hi); }
+        .btn-tel-primary {
+            background: var(--blue); border-color: var(--blue); color: #fff;
+            box-shadow: 0 4px 14px var(--blue-glow);
+        }
+        .btn-tel-primary:hover { background: var(--blue-lt); border-color: var(--blue-lt); }
+
+        /* Chart Card */
+        .chart-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 20px; margin-bottom: 16px;
+        }
+        .chart-header { display: flex; align-items: center; gap: 6px; margin-bottom: 14px; }
+        .chart-header .material-icons { font-size: 1.1rem; }
+        .chart-header h4 { font-size: .78rem; font-weight: 800; color: var(--text); text-transform: uppercase; letter-spacing: .5px; }
+
+        /* Speed Distribution */
+        .speed-band { margin-bottom: 14px; }
+        .speed-band-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .speed-band-label { font-size: .72rem; color: var(--text-2); }
+        .speed-band-pct { font-size: .72rem; font-weight: 800; }
+        .speed-band-bar { width: 100%; height: 7px; background: rgba(255,255,255,.04); border-radius: 4px; overflow: hidden; }
+        .speed-band-fill { height: 100%; border-radius: 4px; transition: width .4s cubic-bezier(0.4,0,0.2,1); width: 0%; }
+
+        /* ============================================================
+           TELA HISTÓRICO
+           ============================================================ */
+        .history-search {
+            display: flex; gap: 8px; margin-bottom: 14px;
+        }
+        .history-search input {
+            flex: 1; padding: 10px 16px;
+            background: var(--bg-card2); border: 1px solid var(--border);
+            border-radius: 12px; color: var(--text); font-family: inherit; font-size: .85rem;
+            outline: none;
+        }
+        .history-search input:focus { border-color: rgba(0,51,153,.5); }
+        .filter-chip {
+            padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border);
+            background: var(--bg-card2); color: var(--text-2);
+            font-size: .72rem; font-weight: 700; cursor: pointer; white-space: nowrap;
+            transition: var(--transition); font-family: inherit;
+        }
+        .filter-chip.active { background: rgba(0,51,153,.2); border-color: rgba(0,51,153,.5); color: var(--text); }
+
+        /* Gmail-style feed */
+        .feed-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 14px 18px;
+            cursor: pointer; display: flex; align-items: center; gap: 14px;
+            transition: var(--transition); margin-bottom: 8px;
+        }
+        .feed-card:hover { background: var(--bg-card2); border-color: rgba(0,51,153,.3); }
+        .feed-icon-wrap {
+            width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .feed-icon-wrap .material-icons { font-size: 1.3rem; }
+        .feed-body { flex: 1; min-width: 0; }
+        .feed-title { font-size: .85rem; font-weight: 800; color: var(--text); margin-bottom: 2px; }
+        .feed-desc { font-size: .72rem; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .feed-right { text-align: right; flex-shrink: 0; }
+        .feed-date { font-size: .68rem; color: var(--text-2); font-weight: 600; }
+        .feed-badge {
+            display: inline-block; font-size: .58rem; font-weight: 800; padding: 2px 8px;
+            border-radius: 10px; text-transform: uppercase; margin-top: 4px;
+        }
+        .badge-laudo { background: rgba(139,92,246,.12); color: #c4b5fd; border: 1px solid rgba(139,92,246,.25); }
+        .badge-viagem { background: rgba(0,212,170,.12); color: var(--cyan); border: 1px solid rgba(0,212,170,.25); }
+        .badge-turno { background: rgba(0,51,153,.15); color: #60a5fa; border: 1px solid rgba(0,51,153,.3); }
+
+        /* PDF Viewer inline */
+        #integrated-pdf-viewer {
+            display: none;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 20px; margin-top: 16px;
+        }
+        .pdf-viewer-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .pdf-viewer-header h4 { font-size: .9rem; font-weight: 800; color: var(--text); }
+        .btn-close-viewer {
+            width: 30px; height: 30px; border-radius: 50%; border: none;
+            background: rgba(255,255,255,.06); color: var(--text-2);
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+        }
+        #pdf-viewer-frame { width:100%;height:420px;border-radius:12px;border:1px solid var(--border);background:#fff; }
+
+        /* ============================================================
+           MODAIS GERAIS
+           ============================================================ */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; z-index: 1000;
+            background: rgba(0,0,0,.75); align-items: flex-end; justify-content: center;
+            padding: 0;
+        }
+        .modal-overlay.flex-center { align-items: center; padding: 20px; }
+        .modal-content {
+            background: var(--bg-card); border-radius: 24px 24px 0 0;
+            padding: 28px 24px 40px; width: 100%; max-width: 640px;
+            max-height: 92vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+            border: 1px solid var(--border-hi); border-bottom: none;
+            position: relative;
+            animation: sheetUp .3s cubic-bezier(.32,0,.67,0);
+        }
+        .modal-overlay.flex-center .modal-content {
+            border-radius: 24px; border-bottom: 1px solid var(--border-hi);
+            animation: fadeScale .25s cubic-bezier(.4,0,.2,1);
+        }
+        @keyframes sheetUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+        @keyframes fadeScale { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }
+        .modal-drag { width:40px;height:4px;border-radius:2px;background:rgba(255,255,255,.12);margin:0 auto 20px; }
+        .modal-title {
+            font-size: 1.1rem; font-weight: 900; color: var(--text);
+            display: flex; align-items: center; gap: 8px; margin-bottom: 20px;
+        }
+        .modal-title .material-icons { font-size: 1.25rem; }
+        .close-btn {
+            position: absolute; top: 16px; right: 16px;
+            width: 32px; height: 32px; border-radius: 50%;
+            background: rgba(255,255,255,.06); border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; color: var(--text-2);
+            transition: var(--transition);
+        }
+        .close-btn:hover { background: rgba(255,255,255,.12); color: var(--text); }
+        .close-btn .material-icons { font-size: 1.1rem; }
+
+        /* Form controls */
+        .ford-group { margin-bottom: 16px; }
+        .ford-label {
+            display: block; font-size: .65rem; font-weight: 700; color: var(--text-2);
+            text-transform: uppercase; letter-spacing: .6px; margin-bottom: 7px;
+        }
+        .ford-input {
+            width: 100%; padding: 12px 14px;
+            background: rgba(255,255,255,.04); border: 1px solid var(--border-hi);
+            border-radius: 12px; color: var(--text); font-size: .9rem; font-family: inherit;
+            outline: none; transition: border-color .2s;
+        }
+        .ford-input:focus { border-color: rgba(0,51,153,.55); box-shadow: 0 0 0 3px rgba(0,51,153,.1); }
+        select.ford-input { cursor: pointer; }
+        textarea.ford-input { resize: vertical; line-height: 1.5; }
+        .ford-input[readonly] { opacity: .5; cursor: default; }
+
+        .btn-primary {
+            width: 100%; padding: 14px; border: none; border-radius: 12px;
+            background: var(--blue); color: #fff; font-size: .9rem; font-weight: 800;
+            font-family: inherit; cursor: pointer; display: flex; align-items: center;
+            justify-content: center; gap: 8px; transition: var(--transition);
+            box-shadow: 0 4px 16px var(--blue-glow);
+        }
+        .btn-primary:hover { background: var(--blue-lt); transform: translateY(-1px); }
+        .btn-secondary {
+            flex: 1; padding: 12px; border-radius: 12px;
+            background: rgba(255,255,255,.06); border: 1px solid var(--border-hi);
+            color: var(--text); font-size: .85rem; font-weight: 700; font-family: inherit;
+            cursor: pointer; transition: var(--transition);
+        }
+        .btn-secondary:hover { background: rgba(255,255,255,.1); }
+        .btn-danger {
+            width: 100%; padding: 14px; border: none; border-radius: 12px;
+            background: linear-gradient(135deg,#dc2626,#991b1b); color: #fff;
+            font-size: .9rem; font-weight: 800; font-family: inherit; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            transition: var(--transition);
+        }
+        .btn-danger:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-action {
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            padding: 12px; border-radius: 12px; font-size: .82rem; font-weight: 700;
+            font-family: inherit; cursor: pointer; transition: var(--transition);
+            border: 1px solid var(--border-hi);
+        }
+        .btn-row { display: flex; gap: 10px; margin-top: 16px; }
+
+        /* Log container */
+        .log-container {
+            background: rgba(255,255,255,.02); border: 1px solid var(--border);
+            border-radius: 12px; max-height: 220px; overflow-y: auto; padding: 10px;
+        }
+        .log-item { padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: .8rem; color: var(--text-2); }
+        .log-item:last-child { border-bottom: none; }
+        .big-value { font-size: 1.8rem; font-weight: 900; color: var(--text); font-family: 'Roboto Mono', monospace; }
+
+        /* Dashboard panel */
+        .dashboard-panel {
+            background: rgba(255,255,255,.025); border: 1px solid var(--border);
+            border-radius: 14px; padding: 16px; margin-bottom: 16px;
+        }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .input-group { margin-bottom: 14px; }
+
+        /* Mini Copiloto */
+        .mini-copiloto-card {
+            background: rgba(0,51,153,.05); border: 1px solid rgba(0,51,153,.2);
+            border-radius: 12px; padding: 12px 16px; margin-bottom: 14px;
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        }
+        .mini-copiloto-info { display: flex; align-items: center; gap: 10px; }
+        .mini-copiloto-info .material-icons { font-size: 1.5rem; color: var(--cyan); }
+        .mini-copiloto-text h4 { font-size: .85rem; font-weight: 800; color: var(--text); }
+        .mini-copiloto-text p { font-size: .72rem; color: var(--text-2); margin-top: 2px; }
+        .btn-mini-kx {
+            padding: 8px 16px; border: none; border-radius: 20px;
+            background: var(--blue); color: #fff; font-size: .75rem; font-weight: 800;
+            cursor: pointer; font-family: inherit; display: flex; align-items: center; gap: 5px;
+            transition: var(--transition); flex-shrink: 0;
+        }
+        .btn-mini-kx:hover { background: var(--blue-lt); }
+
+        /* Laudo */
+        .laudo-section { margin-bottom: 20px; }
+        .laudo-section-header {
+            display: flex; align-items: center; gap: 8px;
+            font-size: .78rem; font-weight: 800; color: var(--text-2);
+            text-transform: uppercase; letter-spacing: .5px;
+            margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border);
+        }
+        .laudo-step-number {
+            width: 22px; height: 22px; border-radius: 50%; background: var(--blue);
+            color: #fff; font-size: .7rem; font-weight: 900; display: inline-flex;
+            align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .camera-trigger {
+            border: 1.5px dashed var(--border-hi); border-radius: 14px;
+            padding: 28px; text-align: center; cursor: pointer;
+            color: var(--text-2); font-size: .82rem; font-weight: 600;
+            transition: var(--transition);
+        }
+        .camera-trigger:hover { border-color: var(--cyan); color: var(--cyan); }
+        .gallery { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .gallery img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; }
+
+        /* Encerrar Turno */
+        .enc-info-card {
+            background: rgba(255,255,255,.02); border: 1px solid var(--border);
+            border-radius: 14px; padding: 14px; margin-bottom: 16px;
+        }
+        .enc-info-header {
+            font-size: .7rem; font-weight: 800; color: var(--text-2);
+            text-transform: uppercase; letter-spacing: .5px; display: flex; align-items: center; gap: 6px; margin-bottom: 12px;
+        }
+        .enc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .enc-item { display: flex; flex-direction: column; gap: 2px; }
+        .enc-lbl { font-size: .6rem; color: var(--text-2); font-weight: 700; text-transform: uppercase; letter-spacing: .4px; }
+        .enc-val { font-size: .82rem; color: var(--text); font-weight: 700; }
+        .enc-section {
+            display: flex; align-items: center; gap: 6px;
+            font-size: .72rem; font-weight: 800; color: var(--text-2);
+            text-transform: uppercase; letter-spacing: .4px;
+            padding: 8px 0; border-top: 1px solid var(--border); margin-top: 4px; margin-bottom: 12px;
+        }
+        .trip-box {
+            background: rgba(34,197,94,.07); border: 1px solid rgba(34,197,94,.2);
+            border-radius: 10px; padding: 12px; text-align: center;
+            font-size: 1.5rem; font-weight: 900; color: #4ade80;
+            font-variant-numeric: tabular-nums;
+        }
+        .enc-opcional-btn {
+            width: 100%; padding: 12px 14px;
+            background: rgba(255,255,255,.025); border: 1px dashed var(--border-hi);
+            border-radius: 12px; color: var(--text-2); font-size: .8rem; font-weight: 600;
+            cursor: pointer; font-family: inherit; display: flex; align-items: center;
+            justify-content: space-between; margin-bottom: 12px; transition: var(--transition);
+        }
+        .enc-opcional-btn:hover { border-color: var(--border-hi); color: var(--text); }
+        .enc-opcional-body { display: none; }
+
+        /* Pré-cadastro */
+        .pc-box {
+            background: var(--bg-card); border: 1px solid var(--border-hi);
+            border-radius: 24px 24px 0 0; width: 100%; max-width: 640px;
+            max-height: 92vh; overflow-y: auto;
+        }
+        .pc-header {
+            padding: 20px 24px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .pc-header h3 { font-size: 1rem; font-weight: 900; color: var(--text); display: flex; align-items: center; gap: 8px; }
+        .pc-tabs {
+            display: flex; gap: 4px; padding: 12px 20px;
+            border-bottom: 1px solid var(--border); overflow-x: auto;
+        }
+        .pc-tab {
+            padding: 8px 16px; border-radius: 20px; border: none;
+            background: transparent; color: var(--text-2);
+            font-size: .78rem; font-weight: 700; cursor: pointer; font-family: inherit;
+            white-space: nowrap; transition: var(--transition);
+        }
+        .pc-tab.active { background: rgba(0,51,153,.2); color: var(--text); }
+        .pc-body { padding: 16px 20px; }
+        .pc-panel { display: none; }
+        .pc-panel.active { display: block; }
+        .pc-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        @media(max-width:500px) { .pc-columns { grid-template-columns: 1fr; } }
+        .pc-lista { display: flex; flex-direction: column; gap: 6px; min-height: 80px; }
+        .pc-empty { text-align: center; padding: 2rem; color: var(--text-2); font-size: .82rem; }
+        .pc-inp {
+            width: 100%; padding: 10px 12px; margin-bottom: 8px;
+            background: rgba(255,255,255,.04); border: 1px solid var(--border-hi);
+            border-radius: 10px; color: var(--text); font-size: .85rem; font-family: inherit; outline: none;
+        }
+        .pc-inp:focus { border-color: rgba(0,51,153,.5); }
+        .pc-add-form { background: rgba(255,255,255,.02); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+        .pc-add-form h4 { font-size: .88rem; font-weight: 800; color: var(--text-2); margin-bottom: 12px; }
+        .pc-add-row { display: flex; gap: 8px; }
+        .btn-pc-add {
+            display: flex; align-items: center; gap: 6px; padding: 10px 14px;
+            background: rgba(0,51,153,.15); border: 1px solid rgba(0,51,153,.3);
+            border-radius: 10px; color: #60a5fa; font-size: .8rem; font-weight: 700;
+            cursor: pointer; font-family: inherit; white-space: nowrap; transition: var(--transition);
+        }
+        .btn-pc-add:hover { background: rgba(0,51,153,.25); }
+
+        /* Tabela Operadores */
+        .pc-tabela-usuarios { width: 100%; border-collapse: collapse; font-size: .82rem; }
+        .pc-tabela-usuarios th { padding: 10px; font-size: .68rem; color: var(--text-2); font-weight: 700; text-transform: uppercase; letter-spacing: .4px; border-bottom: 2px solid var(--border); text-align: left; }
+        .pc-tabela-usuarios td { padding: 10px; border-bottom: 1px solid var(--border); vertical-align: middle; color: var(--text); }
+
+        /* Switch */
+        .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; inset: 0;
+            background: rgba(255,255,255,.1); border-radius: 34px;
+            border: 1px solid var(--border); transition: .3s;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 14px; width: 14px;
+            left: 3px; bottom: 3px; background: var(--text-2);
+            border-radius: 50%; transition: .3s;
+        }
+        .switch input:checked + .slider { background: var(--blue); border-color: var(--blue); }
+        .switch input:checked + .slider:before { transform: translateX(22px); background: #fff; }
+
+        /* Toast */
+        .vev-toast-container {
+            position: fixed; top: 20px; right: 20px; z-index: 20000;
+            display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+        }
+        .vev-toast {
+            background: rgba(26,26,26,.95); backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,.08); color: var(--text);
+            padding: 14px 20px; border-radius: 12px; box-shadow: var(--shadow);
+            display: flex; align-items: center; gap: 12px; min-width: 280px; max-width: 380px;
+            pointer-events: auto; position: relative; overflow: hidden;
+            animation: toastIn .35s cubic-bezier(.16,1,.3,1) forwards;
+        }
+        .vev-toast.closing { animation: toastOut .35s cubic-bezier(.16,1,.3,1) forwards; }
+        .vev-toast-progress {
+            position: absolute; bottom: 0; left: 0; height: 3px; width: 100%;
+            animation: toastProg 4s linear forwards;
+        }
+        @keyframes toastIn { from{transform:translateX(120%);opacity:0} to{transform:translateX(0);opacity:1} }
+        @keyframes toastOut { from{transform:translateX(0);opacity:1} to{transform:translateX(120%);opacity:0} }
+        @keyframes toastProg { from{width:100%} to{width:0%} }
+
+        /* Frenagem laps */
+        .frenagem-lap-selector { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
+        .btn-lap-sel {
+            width: 28px; height: 28px; border-radius: 6px; border: 1px solid rgba(255,255,255,.1);
+            background: rgba(255,255,255,.05); color: var(--text-2);
+            font-size: .75rem; font-weight: 700; cursor: pointer; transition: var(--transition);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .btn-lap-sel.active { background: var(--amber); border-color: var(--amber); color: #000; box-shadow: 0 2px 6px rgba(245,158,11,.4); }
+
+        /* Analytics */
+        .analytics-cards-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-bottom: 16px; }
+        .analytics-card {
+            background: var(--bg-card2); border: 1px solid var(--border);
+            border-radius: 14px; padding: 16px; text-align: center;
+        }
+        .analytics-card-valor { font-size: 1.4rem; font-weight: 900; font-variant-numeric: tabular-nums; margin: 6px 0 2px; }
+        .analytics-card-label { font-size: .65rem; color: var(--text-2); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+        .analytics-section { background: var(--bg-card2); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+        .analytics-section-title { font-size: .7rem; font-weight: 800; color: var(--text-2); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+        .analytics-periodo-btn {
+            padding: 6px 16px; border-radius: 20px; border: 1px solid var(--border);
+            background: rgba(255,255,255,.04); color: var(--text-2);
+            font-size: .75rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: var(--transition);
+        }
+        .analytics-periodo-btn.active, .analytics-periodo-btn:hover {
+            background: rgba(0,51,153,.15); border-color: rgba(0,51,153,.4); color: var(--text);
+        }
+
+        /* Histórico de Turnos */
+        .btn-filtro-hist {
+            padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border);
+            background: rgba(255,255,255,.04); color: var(--text-2);
+            font-size: .72rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: var(--transition);
+        }
+        .btn-filtro-hist.active { background: rgba(0,51,153,.15); border-color: rgba(0,51,153,.4); color: var(--text); }
+
+        /* Refinar IA */
+        .btn-refinar-ia {
+            display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px;
+            background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+            border-radius: 8px; color: var(--text-2); font-size: .78rem; font-weight: 700;
+            font-family: inherit; cursor: pointer; transition: var(--transition);
+        }
+        .btn-refinar-ia:hover { background: rgba(255,255,255,.1); color: var(--text); }
+        .btn-refinar-ia .material-icons { font-size: 1rem; }
+        .btn-refinar-ia:disabled { opacity: .5; cursor: not-allowed; }
+
+        /* Laudo contexto painel */
+        #laudo-ctx-painel {
+            background: rgba(0,51,153,.05); border: 1px solid rgba(0,51,153,.15);
+            border-radius: 12px; padding: 12px 14px; margin-bottom: 14px;
+        }
+        #laudo-ctx-sem-turno {
+            background: rgba(245,158,11,.07); border: 1px solid rgba(245,158,11,.25);
+            border-radius: 10px; padding: 10px 14px; margin-bottom: 12px;
+            font-size: .78rem; color: rgba(251,191,36,.85);
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        /* Aprovações */
+        .aprov-item {
+            padding: 12px; background: rgba(0,0,0,.3); border: 1px solid var(--border);
+            border-radius: 12px; margin-bottom: 8px; transition: var(--transition);
+        }
+        .aprov-item:hover { border-color: var(--border-hi); }
+        .aprov-nome { font-size: .88rem; font-weight: 700; color: var(--text); }
+        .aprov-sub { font-size: .7rem; color: var(--text-2); }
+
+        /* OPS / Admin */
+        .ops-cta {
+            display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+            border-radius: 12px; border: none; cursor: pointer; text-align: left; width: 100%;
+            transition: var(--transition); -webkit-tap-highlight-color: transparent;
+        }
+        .ops-cta:active { transform: scale(.97); }
+        .ops-cta-icon { width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+        .ops-cta-body { flex:1;display:flex;flex-direction:column;gap:2px; }
+        .ops-cta-title { font-size:.88rem;font-weight:800;color:#fff;letter-spacing:-.2px; }
+        .ops-cta-sub { font-size:.72rem;color:rgba(255,255,255,.55);font-weight:500; }
+        .ops-cta-arrow { font-size:.9rem!important;opacity:.4;color:#fff; }
+        .ops-cta-blue { background:linear-gradient(135deg,#1d4ed8,#1e40af);box-shadow:0 4px 14px rgba(29,78,216,.3); }
+        .ops-cta-green { background:linear-gradient(135deg,#059669,#065f46);box-shadow:0 4px 14px rgba(5,150,105,.3); }
+        .ops-cta-purple { background:linear-gradient(135deg,#7c3aed,#5b21b6);box-shadow:0 4px 14px rgba(124,58,237,.3); }
+        .ops-cta-gray { background:linear-gradient(135deg,#374151,#1f2937);box-shadow:0 4px 12px rgba(0,0,0,.25); }
+        .ops-cta:hover { transform:translateY(-2px); }
+        .ops-cta-blue:hover { box-shadow:0 8px 20px rgba(29,78,216,.45); }
+        .ops-cta-green:hover { box-shadow:0 8px 20px rgba(5,150,105,.45); }
+        .ops-cta-purple:hover { box-shadow:0 8px 20px rgba(124,58,237,.45); }
+        .ops-cta-icon { background:rgba(255,255,255,.12); }
+
+        /* Config */
+        .ops-config-card { display:flex;gap:14px;align-items:flex-start;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px; }
+        .ops-config-input { flex:1;padding:9px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card2);color:var(--text);font-size:.82rem;outline:none;transition:border-color .2s; }
+        .ops-config-input:focus { border-color:var(--blue); }
+        .ops-config-save-btn { display:flex;align-items:center;gap:5px;padding:9px 14px;border-radius:8px;border:none;background:var(--blue);color:#fff;font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap; }
+        .ops-config-save-btn:disabled { opacity:.35;cursor:not-allowed; }
+
+        /* Enc status */
+        #enc-status-encerramento { display:none;align-items:center;gap:8px;background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);border-radius:12px;padding:12px;margin-top:12px; }
+        #enc-aviso-forms { display:none;align-items:center;gap:8px;background:rgba(255,193,7,.07);border:1px solid rgba(255,193,7,.25);border-radius:12px;padding:10px 14px;margin-top:10px;font-size:.8rem;color:rgba(255,193,7,.9); }
+        #enc-botoes-resumo { display:none;flex-direction:column;gap:10px;margin-top:10px; }
+
+        /* Fra card viagem */
+        .fra-card-viagem { background:rgba(255,255,255,.03);border:1px solid rgba(0,212,170,.15);border-radius:16px;padding:16px;margin-bottom:12px;transition:border-color .2s; }
+        .fra-card-viagem:hover { border-color:rgba(0,212,170,.4); }
+        .fra-card-header { display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px; }
+        .fra-card-copiloto { display:flex;align-items:center;gap:6px;font-size:.85rem;font-weight:700;color:var(--cyan); }
+        .fra-card-data { font-size:.72rem;color:var(--text-2);margin-top:3px; }
+        .fra-badge { font-size:.65rem;font-weight:800;background:rgba(0,212,170,.1);color:var(--cyan);border:1px solid rgba(0,212,170,.25);padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.4px; }
+        .fra-card-metricas { display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;text-align:center; }
+        .fra-metrica-val { font-size:1.2rem;font-weight:900;color:var(--text);font-family:'Roboto Mono',monospace;line-height:1; }
+        .fra-metrica-lbl { font-size:.6rem;color:var(--text-2);margin-top:3px;font-weight:600;text-transform:uppercase;letter-spacing:.3px; }
+        .fra-card-actions { display:flex;gap:8px; }
+        .fra-btn-action { flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:8px 4px;border-radius:10px;border:1px solid;font-size:.72rem;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.3px;transition:background .15s,transform .1s; }
+        .fra-btn-action:active { transform:scale(.97); }
+        .fra-btn-action .material-icons { font-size:1rem; }
+        .fra-btn-json { background:rgba(59,130,246,.1);border-color:rgba(59,130,246,.35);color:#60a5fa; }
+        .fra-btn-csv { background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.35);color:#4ade80; }
+        .fra-btn-share { background:rgba(0,212,170,.1);border-color:rgba(0,212,170,.35);color:var(--cyan); }
+
+        /* Forms gerenciar */
+        #mgf-lista { display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;margin-bottom:12px; }
+
+        /* API Key */
+        #container-config-ia-key { display:none;align-items:center;gap:8px;margin-top:8px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;padding:6px 10px;width:100%; }
+
+        /* Responsive */
+        @media (min-width:640px) {
+            .app-container { padding: 24px 20px; }
+            .bento-grid { grid-template-columns: repeat(4,1fr); }
+        }
+        @media (max-width:420px) {
+            .bento-grid { grid-template-columns: repeat(3,1fr); }
+            .fra-card-metricas { grid-template-columns: repeat(2,1fr); }
+        }
+
+        /* Hidden legacy refs */
+        #tab-ui-tipo, #tab-ui-ambiente-badge, #tab-ui-km, #tab-ui-vin, #tab-ui-eja, #tab-ui-cc, #tab-ui-outras-info,
+        #ui-vel-atual, #ui-dist-total, #ui-rl-vel, #ui-rl-dist, #rl-pontos-cont, #status-kx,
+        #gps-rota-selecionada { display: none !important; }
+        .ops-team-table-wrap { overflow-x:auto;border-radius:10px;border:1px solid var(--border);margin-bottom:10px; }
+        .ops-team-table { width:100%;border-collapse:collapse;font-size:.78rem; }
+        .ops-team-table th { padding:10px 12px;text-align:left;font-size:.65rem;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;border-bottom:1px solid var(--border); }
+        .ops-team-table td { padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle; }
+        .ops-team-badge { display:inline-block;padding:2px 8px;border-radius:20px;font-size:.65rem;font-weight:700;text-transform:uppercase; }
+        .ops-team-badge.analista { background:rgba(0,51,153,.12);color:#60a5fa;border:1px solid rgba(0,51,153,.25); }
+        .ops-team-badge.ativo { background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.25); }
+        .ops-team-add-btn { display:flex;align-items:center;gap:6px;padding:9px 16px;border-radius:8px;border:1px dashed var(--border-hi);background:transparent;color:var(--text-2);font-size:.78rem;font-weight:700;cursor:pointer;width:100%;justify-content:center;transition:border-color .2s,color .2s; }
+        .ops-team-add-btn:hover { border-color:var(--blue);color:#60a5fa; }
+        .quick-admin-actions { display:grid;grid-template-columns:1fr 1fr;gap:8px; }
+        @media(max-width:600px) { .quick-admin-actions { grid-template-columns:1fr; } }
+
+        /* ============================================================
+           OVERRIDES CRÃTICOS - prevalece sobre style.css externo
+           ============================================================ */
+
+        /* Corpo base do novo layout */
+        html, body {
+            background: var(--bg) !important;
+            color: var(--text) !important;
+            font-family: 'Inter', 'Roboto', sans-serif !important;
+        }
+        body { padding-bottom: 80px; }
+
+        /* App Shell: oculto até login OK */
+        .app-shell { display: none; }
+        .app-shell.visible { display: block !important; }
+
+        /* Login - visível por padrão (inline CSS do #modal-login define display:flex) */
+        /* Quando o auth esconde, o JS faz style.display='none' que prevalece sobre flex */
+        #modal-login {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        /* Estado padrão = visível */
+        #modal-login:not([style*="none"]) { display: flex; }
+
+        /* Telas de estado */
+        #tela-boas-vindas { display: none; position: fixed; inset: 0; z-index: 9998; background: var(--bg); }
+        #tela-pendente    { display: none; position: fixed; inset: 0; z-index: 9998; background: var(--bg); }
+
+        /* Header do app não deve ser afetado pelo header{} do style.css */
+        #app-header {
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 90 !important;
+            background: rgba(13,13,16,.85) !important;
+            backdrop-filter: blur(24px) saturate(180%) !important;
+            border-bottom: 1px solid var(--border) !important;
+            padding: 14px 20px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+        }
+
+        /* Reset container antigo que tem max-width conflitante */
+        .container { all: unset; }
+    </style>
+</head>
+
+<body>
+
+    <!-- ============================================================
+         TELA DE LOGIN
+         ============================================================ -->
+    <div id="modal-login">
+        <div class="login-bg"></div>
+        <div class="login-overlay"></div>
+        <div class="login-grid"></div>
+        <div class="login-particle" style="top:12%;left:8%;width:3px;height:3px;"></div>
+        <div class="login-particle" style="top:22%;left:88%;width:2px;height:2px;animation-delay:1s;"></div>
+        <div class="login-particle" style="top:72%;left:15%;width:2px;height:2px;animation-delay:2s;"></div>
+        <div class="login-particle" style="top:82%;left:78%;width:3px;height:3px;animation-delay:.5s;"></div>
+
+        <div class="login-box">
+            <div class="login-logo">
+                <img src="ford_logo_icon_145825.png" alt="Ford" onerror="this.style.display='none'">
+            </div>
+            <div class="login-title">TPG Insight AI</div>
+            <div class="login-sub">Campo de Provas Tatui · Ford VEV</div>
+
+            <!-- Abas -->
+            <div class="login-tab-bar">
+                <button id="tab-login" class="login-tab active" onclick="mudarModoAuth('login')">Entrar</button>
+                <button id="tab-signup" class="login-tab" onclick="mudarModoAuth('signup')">Criar conta</button>
+            </div>
+
+            <!-- Lockout -->
+            <div id="lockout-banner">
+                <span class="material-icons" style="font-size:1.8rem;color:#F87171;display:block;margin-bottom:6px;">lock</span>
+                <p style="margin:0 0 6px;color:#fca5a5;font-size:.85rem;font-weight:600;">Acesso bloqueado por seguranca</p>
+                <span id="lockout-contador" style="font-size:1.5rem;font-weight:800;color:#ef4444;">5:00</span>
+            </div>
+
+            <!-- Email -->
+            <div class="login-field">
+                <label class="login-field-label">E-mail corporativo</label>
+                <span class="field-icon material-icons">mail_outline</span>
+                <input type="email" id="login-nome" class="login-input" placeholder="nome@ford.com"
+                    autocomplete="email" oninput="validarEmailTempoReal(this)">
+                <div id="login-email-feedback">Apenas e-mails @ford.com são permitidos</div>
+            </div>
+
+            <!-- Campos extras cadastro -->
+            <div id="signup-extra-fields">
+                <div class="login-field">
+                    <label class="login-field-label">Nome Completo</label>
+                    <span class="field-icon material-icons">person_outline</span>
+                    <input type="text" id="signup-nome" class="login-input" placeholder="Seu nome completo" autocomplete="name">
+                </div>
+                <div class="login-field">
+                    <label class="login-field-label">Cargo</label>
+                    <span class="field-icon material-icons">badge</span>
+                    <select id="signup-cargo" class="login-input" style="padding-left:42px;cursor:pointer;">
+                        <option value="">Selecione sua função...</option>
+                        <option value="Analista">Analista de Testes</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Senha -->
+            <div class="login-field" style="margin-bottom:6px;">
+                <label class="login-field-label">Senha</label>
+                <span class="field-icon material-icons">lock_outline</span>
+                <input type="password" id="login-senha" class="login-input" placeholder="••••••••"
+                    autocomplete="current-password" style="padding-right:44px;" oninput="avaliarForcaSenha(this)">
+                <button type="button" onclick="const i=document.getElementById('login-senha');i.type=i.type === 'password'?'text':'password';this.querySelector('.material-icons').textContent=i.type === 'text'?'visibility_off':'visibility';"
+                    style="position:absolute;right:10px;top:65%;transform:translateY(-50%);background:none;border:none;cursor:pointer;opacity:.4;padding:4px;display:flex;align-items:center;">
+                    <span class="material-icons" style="font-size:18px;color:rgba(108,172,228,.8);">visibility</span>
+                </button>
+                <div id="strength-container">
+                    <div style="display:flex;justify-content:space-between;font-size:.7rem;color:rgba(255,255,255,.3);margin-bottom:5px;">
+                        <span>Força da senha</span><span id="strength-label-text" style="font-weight:600;"></span>
+                    </div>
+                    <div class="str-bar">
+                        <div id="seg1" class="str-seg"></div>
+                        <div id="seg2" class="str-seg"></div>
+                        <div id="seg3" class="str-seg"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Esqueci -->
+            <div id="container-esqueci-senha" style="text-align:right;margin:8px 0 18px;">
+                <a href="#" onclick="abrirModalRecuperacao();return false;"
+                    style="font-size:.75rem;color:rgba(96,165,250,.75);text-decoration:none;">Esqueci minha senha</a>
+            </div>
+
+            <!-- Botão -->
+            <button id="btn-auth-principal" class="login-btn" onclick="processarAutenticacao()">
+                <div class="btn-shine"></div>
+                <span id="btn-auth-texto" class="login-btn-inner">
+                    <span class="material-icons" style="font-size:1rem;">login</span> Acessar Sistema
+                </span>
+                <span id="btn-auth-loading">
+                    <span class="spin"></span> Aguarde...
+                </span>
+            </button>
+
+            <div id="tentativas-info"></div>
+            <p style="text-align:center;font-size:.68rem;color:rgba(255,255,255,.15);margin-top:14px;">
+                Acesso restrito a colaboradores autorizados
+            </p>
+        </div>
+
+        <p style="position:relative;z-index:1;color:rgba(255,255,255,.28);font-size:.66rem;margin-top:14px;text-align:center;">
+            © 2026 Ford Motor Company · TPG Tatui · VEV Campo de Provas
+        </p>
+    </div>
+
+    <!-- Modal Recuperar Senha -->
+    <div id="modal-recuperacao" style="display:none;">
+        <div class="rec-box">
+            <h3>Recuperar senha</h3>
+            <p>Informe seu e-mail @ford.com para receber o link de redefinição.</p>
+            <div class="ford-group">
+                <label class="ford-label">E-mail corporativo</label>
+                <input type="email" id="email-recuperacao" class="ford-input" placeholder="nome@ford.com">
+            </div>
+            <button class="btn-primary" onclick="enviarLinkRecuperacao()">Enviar link</button>
+            <button class="btn-secondary" style="width:100%;margin-top:8px;" onclick="document.getElementById('modal-recuperacao').style.display='none'">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         BOAS-VINDAS
+         ============================================================ -->
+    <div id="tela-boas-vindas" style="display:none;position:fixed;inset:0;z-index:9998;background:var(--bg);display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;text-align:center;padding:2rem;">
+        <div class="welcome-checkmark"><span class="material-icons">verified_user</span></div>
+        <p class="welcome-greeting">Bem-vindo de volta</p>
+        <p class="welcome-name" id="welcome-nome-texto">ANALISTA</p>
+        <p class="welcome-role">Campo de Provas Tatui · Acesso Autorizado</p>
+        <div class="welcome-bar-container"><div class="welcome-bar"></div></div>
+    </div>
+
+    <!-- ============================================================
+         TELA PENDENTE
+         ============================================================ -->
+    <div id="tela-pendente" style="display:none;position:fixed;inset:0;z-index:9998;background:var(--bg);align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:2rem;">
+        <div class="pend-icon"><span class="material-icons" style="font-size:2rem;color:var(--amber);">schedule</span></div>
+        <p class="pend-title">Aguardando Aprovação</p>
+        <p class="pend-nome" id="pend-nome">Usuário</p>
+        <span class="pend-cargo" id="pend-cargo">Analista</span>
+        <p class="pend-msg">Seu cadastro foi recebido com sucesso.<br>Um gestor foi notificado e precisa aprovar seu acesso.<br>Você receberá um e-mail quando for aprovado.</p>
+        <button class="btn-pend-sair" onclick="firebase.auth().signOut()">
+            <span class="material-icons" style="font-size:1rem;">logout</span> Sair e aguardar aprovação
+        </button>
+    </div>
+
+    <!-- ============================================================
+         APP SHELL
+         ============================================================ -->
+    <div class="app-shell" id="app-shell">
+
+        <!-- HEADER -->
+        <header id="app-header">
+            <div class="header-brand">
+                <div class="header-brand-logo">
+                    <img src="ford_logo_icon_145825.png" alt="Ford" style="width:24px;" onerror="this.style.display='none'">
+                </div>
+                <div class="header-brand-text">
+                    <h1>Ford VEV</h1>
+                    <span>Central Operacional</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="header-icon-btn" onclick="TurnoUI.mostrarPreCadastro()" title="Gerenciar Cadastros">
+                    <span class="material-icons">manage_accounts</span>
+                </button>
+                <button class="header-icon-btn" onclick="appUI.abrirModal('modal-analytics')" title="Analytics">
+                    <span class="material-icons">bar_chart</span>
+                </button>
+                <div class="header-avatar" id="header-avatar" onclick="firebase.auth().signOut()" title="Sair">
+                    <span id="avatar-letra">?</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- CONTAINER PRINCIPAL -->
+        <div class="app-container">
+
+            <!-- ---------------------------------------
+                 TELA 1: HOME
+                 --------------------------------------- -->
+            <div id="screen-home" class="app-screen active">
+
+                <!-- PWA Install -->
+                <div id="banner-instalacao">
+                    <div class="pwa-text">
+                        <h3><span class="material-icons">install_mobile</span> Instalar App VEV</h3>
+                        <p>Adicione Ã  tela inicial para acesso offline e mais rápido.</p>
+                    </div>
+                    <button class="btn-pwa-install" onclick="instalarPWA()">INSTALAR</button>
+                </div>
+
+                <!-- TURNO STATUS -->
+                <div id="turno-status-card">
+                    <!-- Barra quando turno ativo -->
+                    <div id="turno-active-bar">
+                        <div class="turno-active-left">
+                            <div class="pulse-dot"></div>
+                            <span class="turno-active-label">Turno Ativo</span>
+                        </div>
+                        <span class="turno-active-timer" id="banner-cronometro">00:00:00</span>
+                    </div>
+
+                    <!-- Chips info turno -->
+                    <div class="turno-info-strip" id="turno-info-strip" style="display:none;">
+                        <div class="turno-chip">
+                            <div class="turno-chip-label">Projeto</div>
+                            <div class="turno-chip-val" id="tab-ui-projeto">-</div>
+                        </div>
+                        <div class="turno-chip">
+                            <div class="turno-chip-label">Operador</div>
+                            <div class="turno-chip-val" id="tab-ui-operador">-</div>
+                        </div>
+                        <div class="turno-chip">
+                            <div class="turno-chip-label">Veículo</div>
+                            <div class="turno-chip-val" id="tab-ui-veiculo">-</div>
+                        </div>
+                    </div>
+
+                    <!-- Botão Encerrar visível quando turno ativo -->
+                    <div id="turno-active-actions" style="display:none;padding:14px 16px;">
+                        <button class="btn-turno-end" style="width:100%;justify-content:center;font-size:.92rem;padding:14px;" onclick="appUI.abrirModal('modal-turno')">
+                            <span class="material-icons" style="font-size:1.1rem;">logout</span> ENCERRAR TURNO
+                        </button>
+                    </div>
+
+                    <!-- Botões turno -->
+                    <div id="turno-inactive-section" style="padding:20px;">
+                        <div class="turno-idle-title">
+                            <span class="material-icons" style="color:var(--blue);font-size:1.2rem;">verified_user</span>
+                            Controle de Atividades
+                        </div>
+                        <div class="turno-idle-sub">Registre início e encerramento de turno no banco de dados.</div>
+                        <div class="turno-btn-row">
+                            <button class="btn-turno-start" onclick="TurnoUI.mostrar()">
+                                <span class="material-icons" style="font-size:1.1rem;">play_circle_filled</span> INICIAR TURNO
+                            </button>
+                            <button class="btn-turno-end" id="btn-home-encerrar" onclick="appUI.abrirModal('modal-turno')">
+                                <span class="material-icons" style="font-size:1.1rem;">logout</span> ENCERRAR
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Referências de IDs ocultos (compatibilidade com scripts) -->
+                    <div style="display:none;">
+                        <span id="tab-ui-tipo"></span><span id="tab-ui-ambiente-badge"></span>
+                        <span id="tab-ui-km"></span><span id="tab-ui-vin"></span>
+                        <span id="tab-ui-eja"></span><span id="tab-ui-cc"></span>
+                        <span id="tab-ui-outras-info"></span>
+                        <span id="banner-tipo-teste-label"></span>
+                    </div>
+                </div>
+
+                <!-- ACESSO RÃPIDO - BENTO GRID -->
+                <div class="section-label">
+                    <span class="material-icons">grid_view</span> Testes de Pista
+                </div>
+                <div class="bento-grid" id="bento-testes">
+                    <button class="bento-btn" onclick="appUI.abrirModal('modal-roteiro')">
+                        <div class="bento-icon bi-purple"><span class="material-icons">alt_route</span></div>
+                        <span class="bento-label">Ciclos R389</span>
+                    </button>
+                    <button class="bento-btn" onclick="appUI.abrirModal('modal-desaceleracao')">
+                        <div class="bento-icon bi-pink"><span class="material-icons">sports_score</span></div>
+                        <span class="bento-label">Desaceleração</span>
+                    </button>
+                    <button class="bento-btn" onclick="switchScreen('telemetry')">
+                        <div class="bento-icon bi-blue"><span class="material-icons">route</span></div>
+                        <span class="bento-label">Free-Rolling</span>
+                    </button>
+                    <button class="bento-btn" onclick="appUI.abrirModal('modal-frenagem')">
+                        <div class="bento-icon bi-orange"><span class="material-icons">speed</span></div>
+                        <span class="bento-label">Frenagem</span>
+                    </button>
+                    <button class="bento-btn" onclick="appUI.abrirModal('modal-laudo')">
+                        <div class="bento-icon bi-violet"><span class="material-icons">rate_review</span></div>
+                        <span class="bento-label">Laudo Técnico</span>
+                    </button>
+                    <button class="bento-btn" onclick="switchScreen('telemetry')">
+                        <div class="bento-icon bi-cyan"><span class="material-icons">analytics</span></div>
+                        <span class="bento-label">Telemetria GPS</span>
+                    </button>
+                </div>
+
+                <!-- LINKS EXTERNOS FORD -->
+                <div class="section-label">
+                    <span class="material-icons">open_in_new</span> Links Corporativos
+                </div>
+                <div class="bento-link-row" id="links-externos">
+                    <!-- Links injetados dinamicamente pelo forms-engine ou estáticos abaixo -->
+                    <a href="https://www.ford.com" target="_blank" class="ext-link-btn">
+                        <span class="ext-link-icon material-icons" style="color:#60a5fa;">corporate_fare</span>
+                        <div class="ext-link-body">
+                            <div class="ext-link-title">Portal Ford</div>
+                            <div class="ext-link-desc">ford.com - Portal corporativo</div>
+                        </div>
+                        <span class="material-icons ext-link-arrow" style="font-size:1rem;">chevron_right</span>
+                    </a>
+                    <div onclick="appUI.abrirModal('modal-utilidades')" class="ext-link-btn" style="cursor:pointer;">
+                        <span class="ext-link-icon material-icons" style="color:#4ade80;">assignment</span>
+                        <div class="ext-link-body">
+                            <div class="ext-link-title">Microsoft Forms</div>
+                            <div class="ext-link-desc">Formulários, Senha Cartão e Guincho</div>
+                        </div>
+                        <span class="material-icons ext-link-arrow" style="font-size:1rem;">chevron_right</span>
+                    </div>
+                    <div id="forms-links-container"></div>
+                </div>
+
+            </div>
+
+            <!-- ---------------------------------------
+                 TELA 2: TELEMETRIA
+                 --------------------------------------- -->
+            <div id="screen-telemetry" class="app-screen">
+
+                <div class="section-label" style="margin-top:4px;">
+                    <span class="material-icons" style="color:var(--cyan);">radar</span> Painel TripRank
+                </div>
+
+                <!-- Hero Copiloto -->
+                <div class="telemetry-hero">
+                    <div class="telemetry-hero-header">
+                        <div class="telemetry-brand">
+                            <div class="radar-icon"><span class="material-icons">radar</span></div>
+                            <div>
+                                <h3>Copiloto Telemetria</h3>
+                                <p id="txt-kx-telemetry">Gravador Inativo</p>
+                            </div>
+                        </div>
+                        <select id="gps-rota-selecionada" style="display:none;"><option value="RODAGEM">RODAGEM</option></select>
+                        <button id="btn-kx-telemetry" class="btn-activate idle"
+                            onclick="toggleCopilotoModo('RODAGEM', 'telemetry')">
+                            <span class="material-icons" style="font-size:1rem;">play_arrow</span> ATIVAR
+                        </button>
+                    </div>
+
+                    <!-- 2Ã—2 stats -->
+                    <div class="stats-grid">
+                        <div class="stat-cell">
+                            <span class="stat-icon material-icons" style="color:var(--blue);">straighten</span>
+                            <div class="stat-val" id="ui-tel-dist">0.00<span>km</span></div>
+                            <div class="stat-label">Distância</div>
+                        </div>
+                        <div class="stat-cell">
+                            <span class="stat-icon material-icons" style="color:var(--cyan);">speed</span>
+                            <div class="stat-val" id="ui-tel-vel">0<span>km/h</span></div>
+                            <div class="stat-label">Vel. Atual</div>
+                        </div>
+                        <div class="stat-cell">
+                            <span class="stat-icon material-icons" style="color:var(--amber);">timeline</span>
+                            <div class="stat-val" id="ui-tel-velmedia">0.0<span>km/h</span></div>
+                            <div class="stat-label">Vel. Média</div>
+                        </div>
+                        <div class="stat-cell">
+                            <span class="stat-icon material-icons" style="color:var(--red);">bolt</span>
+                            <div class="stat-val" id="ui-tel-velmax">0.0<span>km/h</span></div>
+                            <div class="stat-label">Vel. Máxima</div>
+                        </div>
+                    </div>
+
+                    <!-- Ações -->
+                    <div class="telemetry-actions">
+                        <button class="btn-tel-action" onclick="limparRotaLivre()">
+                            <span class="material-icons" style="font-size:1rem;">delete_outline</span> LIMPAR
+                        </button>
+                        <button class="btn-tel-action btn-tel-primary" onclick="app.gerarRelatorioRodagem()">
+                            <span class="material-icons" style="font-size:1rem;">picture_as_pdf</span> GERAR PDF
+                        </button>
+                    </div>
+
+                    <!-- Compatibilidade IDs ocultos -->
+                    <div style="display:none;">
+                        <span id="ui-vel-atual"></span><span id="ui-dist-total"></span>
+                        <span id="ui-rl-vel"></span><span id="ui-rl-dist"></span>
+                        <span id="rl-pontos-cont"></span><span id="status-kx"></span>
+                        <div id="rl-container-mapa"><div id="rl-mapa"></div></div>
+                    </div>
+                </div>
+
+                <!-- Gráfico Speed Over Time -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <span class="material-icons" style="color:var(--blue);">show_chart</span>
+                        <h4>Velocidade pelo Tempo</h4>
+                    </div>
+                    <div style="position:relative;height:150px;width:100%;">
+                        <canvas id="chart-telemetria-tempo" style="max-height:150px;"></canvas>
+                    </div>
+                </div>
+
+                <!-- Speed Distribution -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <span class="material-icons" style="color:var(--cyan);">stacked_bar_chart</span>
+                        <h4>Distribuição de Faixas de Velocidade</h4>
+                    </div>
+                    <div class="speed-band">
+                        <div class="speed-band-header">
+                            <span class="speed-band-label">&#60; 80 km/h</span>
+                            <span class="speed-band-pct" id="tel-faixa1-lbl" style="color:#06b6d4;">0%</span>
+                        </div>
+                        <div class="speed-band-bar"><div class="speed-band-fill" id="tel-faixa1-bar" style="background:#06b6d4;"></div></div>
+                    </div>
+                    <div class="speed-band">
+                        <div class="speed-band-header">
+                            <span class="speed-band-label">80 â€“ 160 km/h</span>
+                            <span class="speed-band-pct" id="tel-faixa2-lbl" style="color:#22c55e;">0%</span>
+                        </div>
+                        <div class="speed-band-bar"><div class="speed-band-fill" id="tel-faixa2-bar" style="background:#22c55e;"></div></div>
+                    </div>
+                    <div class="speed-band">
+                        <div class="speed-band-header">
+                            <span class="speed-band-label">160 â€“ 230 km/h</span>
+                            <span class="speed-band-pct" id="tel-faixa3-lbl" style="color:#f59e0b;">0%</span>
+                        </div>
+                        <div class="speed-band-bar"><div class="speed-band-fill" id="tel-faixa3-bar" style="background:#f59e0b;"></div></div>
+                    </div>
+                    <div class="speed-band" style="margin-bottom:0;">
+                        <div class="speed-band-header">
+                            <span class="speed-band-label">&#62; 230 km/h</span>
+                            <span class="speed-band-pct" id="tel-faixa4-lbl" style="color:var(--red);">0%</span>
+                        </div>
+                        <div class="speed-band-bar"><div class="speed-band-fill" id="tel-faixa4-bar" style="background:var(--red);"></div></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ---------------------------------------
+                 TELA 3: HISTÓRICO
+                 --------------------------------------- -->
+            <div id="screen-history" class="app-screen">
+
+                <div class="section-label" style="margin-top:4px;">
+                    <span class="material-icons" style="color:var(--purple);">history</span> Feed de Envios e PDFs
+                </div>
+
+                <!-- Filtros -->
+                <div style="display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;">
+                    <button class="filter-chip active" onclick="filtrarHistorico('todos',this)">Todos</button>
+                    <button class="filter-chip" onclick="filtrarHistorico('laudo',this)">Laudos</button>
+                    <button class="filter-chip" onclick="filtrarHistorico('viagem',this)">Rodagens</button>
+                    <button class="filter-chip" onclick="filtrarHistorico('turno',this)">Turnos</button>
+                </div>
+
+                <!-- Feed -->
+                <div id="historico-gmail-feed" style="display:flex;flex-direction:column;">
+                    <div style="text-align:center;padding:3rem;color:var(--text-2);">
+                        <span class="material-icons" style="font-size:2.5rem;opacity:.25;display:block;margin-bottom:10px;">inbox</span>
+                        <div style="font-size:.84rem;">Carregando relatórios...</div>
+                    </div>
+                </div>
+
+                <!-- PDF Viewer integrado -->
+                <div id="integrated-pdf-viewer">
+                    <div class="pdf-viewer-header">
+                        <h4>Visualizador de Relatório</h4>
+                        <button class="btn-close-viewer" onclick="document.getElementById('integrated-pdf-viewer').style.display='none'">
+                            <span class="material-icons" style="font-size:1rem;">close</span>
+                        </button>
+                    </div>
+                    <iframe id="pdf-viewer-frame"></iframe>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- BOTTOM NAVIGATION -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" id="nav-home" onclick="switchScreen('home')">
+                <div class="nav-pill"><span class="material-icons">home</span></div>
+                <span class="nav-label">Central</span>
+            </button>
+            <button class="nav-item" id="nav-telemetry" onclick="switchScreen('telemetry')">
+                <div class="nav-pill"><span class="material-icons">radar</span></div>
+                <span class="nav-label">Telemetria</span>
+            </button>
+            <button class="nav-item" id="nav-history" onclick="switchScreen('history')">
+                <div class="nav-pill"><span class="material-icons">history</span></div>
+                <span class="nav-label">Histórico</span>
+            </button>
+        </nav>
+
+    </div><!-- /app-shell -->
+
+
+    <!-- ============================================================
+         MODAL: INÃCIO DE TURNO
+         ============================================================ -->
+    <div id="modal-inicio-turno" class="modal-overlay" style="display:none;--accent:var(--blue);">
+        <div class="modal-content">
+            <div class="modal-drag"></div>
+            <h3 class="modal-title" style="color:var(--cyan);">
+                <span class="material-icons">play_circle</span> Início de Turno
+            </h3>
+
+            <div class="ford-group">
+                <label class="ford-label"><span class="material-icons" style="font-size:.9rem;vertical-align:middle;">folder</span> Projeto <span style="color:var(--red);">*</span></label>
+                <select id="it-projeto" class="ford-input" onchange="TurnoUI.aoSelecionarProjeto(this)">
+                    <option value="">Selecione o projeto...</option>
+                </select>
+            </div>
+
+            <div class="ford-group">
+                <label class="ford-label"><span class="material-icons" style="font-size:.9rem;vertical-align:middle;">map</span> Ambiente de Teste <span style="color:var(--red);">*</span></label>
+                <select id="it-ambiente" class="ford-input" onchange="TurnoUI.aoSelecionarAmbiente(this)">
+                    <option value="">Selecione o ambiente...</option>
+                    <option value="Interna">Pistas Internas (Laboratório, Dinamômetro)</option>
+                    <option value="Externa">Pistas Externas (Asfalto, Terra, Alta Velocidade)</option>
+                    <option value="VOC">VOC (Validação de Campo / Ruas Públicas)</option>
+                </select>
+            </div>
+
+            <div class="ford-group">
+                <label class="ford-label"><span class="material-icons" style="font-size:.9rem;vertical-align:middle;">science</span> Tipo de Teste <span style="color:var(--red);">*</span></label>
+                <select id="it-tipo-teste" class="ford-input" disabled>
+                    <option value="">Selecione o ambiente primeiro...</option>
+                </select>
+            </div>
+
+            <div class="ford-group">
+                <label class="ford-label"><span class="material-icons" style="font-size:.9rem;vertical-align:middle;">person</span> Operador / Analista</label>
+                <div id="it-operador-display" class="ford-input" style="display:flex;align-items:center;gap:8px;cursor:default;"></div>
+                <input type="hidden" id="it-operador-value">
+            </div>
+
+            <div class="ford-group">
+                <label class="ford-label"><span class="material-icons" style="font-size:.9rem;vertical-align:middle;">directions_car</span> Veículo <span style="color:var(--red);">*</span></label>
+                <select id="it-veiculo" class="ford-input" onchange="TurnoUI.aoSelecionarVeiculo(this)">
+                    <option value="">Selecione o veículo...</option>
+                </select>
+            </div>
+
+            <div class="ford-group">
+                <label class="ford-label"><span class="material-icons" style="font-size:.9rem;vertical-align:middle;">speed</span> Km Inicial <span style="color:var(--red);">*</span></label>
+                <input type="number" id="it-km-inicial" class="ford-input" placeholder="Ex: 298855" inputmode="numeric">
+            </div>
+
+            <div class="ford-group">
+                <label class="ford-label" style="color:var(--text-2);font-size:.72rem;">DADOS AUTOMÃTICOS DO VEÃCULO</label>
+                <div class="grid-2" style="gap:10px;margin-bottom:10px;">
+                    <div>
+                        <label class="ford-label" style="font-size:.72rem;">VIN</label>
+                        <input type="text" id="it-vin" class="ford-input" placeholder="Automático" readonly>
+                    </div>
+                    <div>
+                        <label class="ford-label" style="font-size:.72rem;">EJA</label>
+                        <input type="text" id="it-eja" class="ford-input" placeholder="Automático" readonly>
+                    </div>
+                    <div>
+                        <label class="ford-label" style="font-size:.72rem;">CC</label>
+                        <input type="text" id="it-cc" class="ford-input" placeholder="Automático" readonly>
+                    </div>
+                </div>
+                <div>
+                    <label class="ford-label" style="font-size:.72rem;">Outras Informações</label>
+                    <textarea id="it-outras-info" class="ford-input" placeholder="Observações automáticas..." rows="2" readonly style="resize:none;"></textarea>
+                </div>
+            </div>
+
+            <div id="it-veiculo-nao-cadastrado-container" style="display:none;margin-top:12px;padding:12px;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:8px;">
+                <label class="ford-label" style="font-size:.72rem;color:var(--cyan);">Identificador do Veículo</label>
+                <input type="text" id="it-veiculo-nome-rapido" class="ford-input" placeholder="Nome, placa ou código do veículo...">
+                <button type="button" class="btn-primary" style="margin-top:10px;font-size:.8rem;padding:10px;" onclick="TurnoUI.salvarVeiculoRapido()">Salvar e Registrar Veículo</button>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn-secondary" style="flex:1;" onclick="TurnoUI.fecharSeTiver()">Cancelar</button>
+                <button class="btn-primary" style="flex:2;" onclick="TurnoUI.iniciarTurno()">
+                    <span class="material-icons" style="font-size:1rem;">play_circle</span> Iniciar Turno
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         MODAL: PRÉ-CADASTRO
+         ============================================================ -->
+    <div id="modal-precadastro" class="modal-overlay" style="display:none;">
+        <div class="pc-box">
+            <div class="pc-header">
+                <h3><span class="material-icons" style="font-size:1.1rem;">manage_accounts</span> Gerenciar Cadastros</h3>
+                <button class="close-btn" onclick="TurnoUI.fecharPC()" style="position:static;"><span class="material-icons">close</span></button>
+            </div>
+            <div class="pc-tabs">
+                <button class="pc-tab active" onclick="TurnoUI.abaPC('tiposTeste',this)">Projetos</button>
+                <button class="pc-tab" onclick="TurnoUI.abaPC('operadores',this)">Operadores</button>
+                <button class="pc-tab" onclick="TurnoUI.abaPC('veiculos',this)">Veículos</button>
+                <button class="pc-tab" onclick="TurnoUI.abaPC('postos',this)">Postos</button>
+            </div>
+            <div class="pc-body">
+
+                <!-- ABA PROJETOS -->
+                <div id="pc-panel-tiposTeste" class="pc-panel active">
+                    <div class="pc-columns">
+                        <div class="pc-col-left">
+                            <input type="search" class="pc-inp" placeholder="Pesquisar projeto..." oninput="TurnoUI.pesquisarPC('tiposTeste',this.value)" style="margin-bottom:.5rem;">
+                            <div id="pc-lista-tiposTeste" class="pc-lista"></div>
+                        </div>
+                        <div class="pc-col-right">
+                            <div class="pc-add-form">
+                                <h4>+ Adicionar Projeto</h4>
+                                <div class="pc-add-row">
+                                    <input type="text" id="pc-in-tiposTeste-nome" class="pc-inp" placeholder="Ex: EET Ranger 2024" style="margin-bottom:0;">
+                                    <button class="btn-pc-add" onclick="TurnoUI.addPC('tiposTeste')"><span class="material-icons" style="font-size:1rem;">add</span> Add</button>
+                                </div>
+                                <p style="font-size:.72rem;opacity:.5;margin-top:8px;line-height:1.4;">Após adicionar, clique no botão de edição para vincular formulários.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ABA OPERADORES -->
+                <div id="pc-panel-operadores" class="pc-panel">
+                    <div class="pc-columns">
+                        <div class="pc-col-left">
+                            <input type="search" class="pc-inp" placeholder="Pesquisar por nome, cargo ou e-mail..." oninput="TurnoUI.pesquisarPC('operadores',this.value)" style="margin-bottom:.75rem;">
+                            <div style="overflow-x:auto;">
+                                <table class="pc-tabela-usuarios">
+                                    <thead>
+                                        <tr>
+                                            <th>Nome</th><th>E-mail</th><th>Perfil</th><th style="text-align:right;">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="pc-tabela-corpo-operadores"></tbody>
+                                </table>
+                                <div id="pc-lista-operadores" style="display:none;"></div>
+                            </div>
+                        </div>
+                        <div class="pc-col-right">
+                            <div class="pc-add-form">
+                                <h4 style="display:flex;align-items:center;gap:6px;"><span class="material-icons" style="font-size:1.1rem;color:var(--cyan);">person_add</span> Novo Membro</h4>
+                                <input type="text" id="pc-in-operadores-nome" class="pc-inp" placeholder="Nome Completo" oninput="TurnoUI.validarFormOperador()">
+                                <div style="position:relative;">
+                                    <input type="email" id="pc-in-operadores-email" class="pc-inp" placeholder="usuario@ford.com" oninput="TurnoUI.validarFormOperador()" style="padding-right:35px;">
+                                    <span id="operador-val-email-icon" class="material-icons" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:1.1rem;display:none;"></span>
+                                </div>
+                                <span id="operador-val-email-msg" style="font-size:.65rem;font-weight:600;color:var(--red);"></span>
+                                <input type="text" id="pc-in-operadores-matricula" class="pc-inp" placeholder="Matrícula (opcional)">
+                                <select id="pc-in-operadores-cargo" class="pc-inp" onchange="TurnoUI.validarFormOperador()" style="cursor:pointer;">
+                                    <option value="Analista" selected>Analista</option>
+                                    <option value="Coordenador">Coordenador</option>
+                                    <option value="Gerente">Gerente</option>
+                                </select>
+                                <button id="btn-pc-add-operadores" class="btn-pc-add" style="width:100%;justify-content:center;padding:10px;font-weight:700;opacity:.6;cursor:not-allowed;" disabled onclick="TurnoUI.addPC('operadores')">
+                                    <span class="material-icons" style="font-size:1.1rem;">check_circle</span> Cadastrar Membro
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ABA VEÃCULOS -->
+                <div id="pc-panel-veiculos" class="pc-panel">
+                    <div class="pc-columns">
+                        <div class="pc-col-left">
+                            <input type="search" class="pc-inp" placeholder="Pesquisar veículo..." oninput="TurnoUI.pesquisarPC('veiculos',this.value)" style="margin-bottom:.5rem;">
+                            <div id="pc-lista-veiculos" class="pc-lista"></div>
+                        </div>
+                        <div class="pc-col-right">
+                            <div class="pc-add-form">
+                                <h4>+ Adicionar Veículo</h4>
+                                <input type="text" id="pc-in-veiculos-nome" class="pc-inp" placeholder="Ex: Ford Ranger 4x4">
+                                <input type="text" id="pc-in-veiculos-vin" class="pc-inp" placeholder="VIN (somente números)" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'')">
+                                <input type="text" id="pc-in-veiculos-eja" class="pc-inp" placeholder="EJA (Ex: EJA-2024-001)">
+                                <input type="text" id="pc-in-veiculos-cc" class="pc-inp" placeholder="CC (somente números)" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'')">
+                                <textarea id="pc-in-veiculos-outrasInfo" class="pc-inp" placeholder="Outras Informações (opcional)" rows="3" style="resize:vertical;"></textarea>
+                                <div style="margin-top:10px;">
+                                    <label class="ford-label" style="font-size:.67rem;">Projetos Vinculados</label>
+                                    <div id="pc-veiculo-projetos-lista" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px;max-height:140px;overflow-y:auto;margin-bottom:8px;">
+                                        <div style="color:var(--text-2);font-size:.78rem;text-align:center;">Carregando projetos...</div>
+                                    </div>
+                                </div>
+                                <button class="btn-pc-add" style="width:100%;justify-content:center;" onclick="TurnoUI.addPC('veiculos')">
+                                    <span class="material-icons" style="font-size:1rem;">add</span> Adicionar Veículo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ABA POSTOS -->
+                <div id="pc-panel-postos" class="pc-panel">
+                    <div class="pc-columns">
+                        <div class="pc-col-left">
+                            <input type="search" class="pc-inp" placeholder="Pesquisar posto..." oninput="TurnoUI.pesquisarPC('postos',this.value)" style="margin-bottom:.5rem;">
+                            <div id="pc-lista-postos" class="pc-lista"></div>
+                        </div>
+                        <div class="pc-col-right">
+                            <div class="pc-add-form">
+                                <h4>+ Adicionar Posto</h4>
+                                <div class="pc-add-row">
+                                    <input type="text" id="pc-in-postos-nome" class="pc-inp" placeholder="Ex: Posto Ipiranga" style="margin-bottom:0;">
+                                    <button class="btn-pc-add" onclick="TurnoUI.addPC('postos')"><span class="material-icons" style="font-size:1rem;">add</span> Add</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         MODAL: CONFIGURAÃ‡Ã•ES DO SISTEMA
+         ============================================================ -->
+    <div id="modal-configuracoes-sistema" class="modal-overlay" style="display:none;z-index:9998;">
+        <div class="modal-content">
+            <div class="modal-drag"></div>
+            <button class="close-btn" onclick="ConfiguracoesSistemaUI.fechar()"><span class="material-icons">close</span></button>
+            <h3 class="modal-title"><span class="material-icons" style="color:var(--cyan);">settings</span> Configurações do Sistema</h3>
+
+            <div class="ford-group">
+                <label class="ford-label"><span class="material-icons" style="font-size:.9rem;vertical-align:middle;">email</span> E-mail Master da Gerência</label>
+                <input type="email" id="config-master-email" class="ford-input" placeholder="gerencia@ford.com">
+            </div>
+
+            <div class="ford-group" style="border-top:1px solid var(--border);padding-top:1rem;">
+                <label class="ford-label"><span class="material-icons" style="font-size:.9rem;vertical-align:middle;">notifications_active</span> Alertas e Notificações</label>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;">
+                    <div>
+                        <div style="font-size:.85rem;font-weight:600;color:var(--text);">Alerta de Fluidos da IA</div>
+                        <div style="font-size:.7rem;color:var(--text-2);margin-top:2px;">Disparar e-mail para cada "Líquido no mínimo" detectado.</div>
+                    </div>
+                    <label class="switch"><input type="checkbox" id="config-notify-liquids"><span class="slider"></span></label>
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn-secondary" onclick="ConfiguracoesSistemaUI.fechar()">Cancelar</button>
+                <button class="btn-primary" style="flex:2;" onclick="ConfiguracoesSistemaUI.salvar()">
+                    <span class="material-icons" style="font-size:1rem;">save</span> Salvar
+                </button>
+            </div>
+
+            <div style="border-top:1px solid var(--border);padding-top:1rem;margin-top:8px;">
+                <h4 style="margin:0 0 10px;font-size:.78rem;color:var(--text-2);display:flex;align-items:center;gap:5px;text-transform:uppercase;letter-spacing:.5px;">
+                    <span class="material-icons" style="font-size:.95rem;opacity:.7;">security</span> Logs de Auditoria
+                </h4>
+                <div style="max-height:160px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,.01);">
+                    <table style="width:100%;border-collapse:collapse;text-align:left;">
+                        <thead>
+                            <tr style="border-bottom:1px solid var(--border);background:rgba(255,255,255,.02);">
+                                <th style="padding:6px 10px;font-size:.68rem;color:var(--text-2);font-weight:700;">Usuário</th>
+                                <th style="padding:6px 10px;font-size:.68rem;color:var(--text-2);font-weight:700;">Modificação</th>
+                                <th style="padding:6px 10px;font-size:.68rem;color:var(--text-2);font-weight:700;text-align:right;">Data</th>
+                            </tr>
+                        </thead>
+                        <tbody id="config-logs-corpo"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         MODAL: FREE-ROLLING HISTÓRICO DE PERFORMANCE
+         ============================================================ -->
+    <div id="modal-historico-performance" class="modal-overlay" style="display:none;">
+        <div class="modal-content"></div>
+    </div>
+
+    <!-- ============================================================
+         COPILOTO GPS LEGACY (oculto, mantém compatibilidade)
+         ============================================================ -->
+    <div id="modal-gps" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-drag"></div>
+            <button class="close-btn" onclick="appUI.fecharModal('modal-gps')"><span class="material-icons">close</span></button>
+            <h3 class="modal-title"><span class="material-icons" style="color:var(--cyan);">gps_fixed</span> Copiloto GPS</h3>
+            <div id="modal-kx-conteudo"></div>
+        </div>
+    </div>
+
+    <!-- Rota Livre legada (oculta, mantém IDs para scripts) -->
+    <div id="modal-rota-livre" style="display:none;">
+        <div id="mini-kx-rota-livre" class="mini-copiloto-card">
+            <div class="mini-copiloto-info">
+                <span class="material-icons">support_agent</span>
+                <div class="mini-copiloto-text">
+                    <h4>Copiloto Dark Horse</h4>
+                    <p id="txt-kx-rota-livre">Assistente Inativo</p>
+                </div>
+            </div>
+            <button id="btn-kx-rota-livre" onclick="toggleCopilotoModo('RODAGEM','rota-livre')" class="btn-mini-kx">
+                <span class="material-icons">play_arrow</span> ATIVAR
+            </button>
+        </div>
+        <div class="dashboard-panel">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+                <div>
+                    <div style="font-size:.75rem;color:rgba(168,196,240,.6);">VELOCIDADE</div>
+                    <div id="ui-rl-vel" class="big-value" style="margin:5px 0 0;font-family:'Roboto Mono';">0 <span style="font-size:.8rem;">km/h</span></div>
+                </div>
+                <div>
+                    <div style="font-size:.75rem;color:rgba(168,196,240,.6);">DISTÃ‚NCIA</div>
+                    <div id="ui-rl-dist" class="big-value" style="margin:5px 0 0;font-family:'Roboto Mono';">0.00 <span style="font-size:.8rem;">km</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         MODAL: DESACELERAÃ‡ÃƒO
+         ============================================================ -->
+    <div id="modal-desaceleracao" class="modal-overlay color-pink" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-drag"></div>
+            <button class="close-btn" onclick="appUI.fecharModal('modal-desaceleracao')"><span class="material-icons">close</span></button>
+            <h3 class="modal-title" style="color:#f472b6;"><span class="material-icons">sports_score</span> Desaceleração 16 Laps</h3>
+
+            <div id="mini-kx-desaceleracao" class="mini-copiloto-card">
+                <div class="mini-copiloto-info">
+                    <span class="material-icons">support_agent</span>
+                    <div class="mini-copiloto-text">
+                        <h4>Copiloto Dark Horse</h4>
+                        <p id="txt-kx-desaceleracao">Assistente Inativo</p>
+                    </div>
+                </div>
+                <button id="btn-kx-desaceleracao" onclick="toggleCopilotoModo('DESACELERACAO','desaceleracao')" class="btn-mini-kx">
+                    <span class="material-icons">play_arrow</span> ATIVAR
+                </button>
+            </div>
+
+            <div class="dashboard-panel">
+                <label class="ford-label">Status / Etapa Atual</label>
+                <div id="etapa-desaceleracao-atual" class="big-value">Carregando...</div>
+                <button class="btn-primary" style="margin-top:1.5rem;" onclick="app.registrarPassagemDesaceleracao()">
+                    <span class="material-icons">touch_app</span> MARCAR MANUAL
+                </button>
+            </div>
+            <div class="input-group"><label class="ford-label">Timeline do Teste</label></div>
+            <div id="lista-desaceleracao" class="log-container"></div>
+            <div class="btn-row" style="margin-top:1.5rem;">
+                <button class="btn-secondary" onclick="app.novaVoltaDesaceleracao()"><span class="material-icons" style="font-size:1rem;">loop</span> FORÃ‡AR REINÃCIO</button>
+                <button class="btn-primary" style="background:var(--red);" onclick="app.gerarRelatorioDesaceleracao()"><span class="material-icons" style="font-size:1rem;">picture_as_pdf</span> GERAR PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         MODAL: CICLOS R389
+         ============================================================ -->
+    <div id="modal-roteiro" class="modal-overlay color-purple" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-drag"></div>
+            <button class="close-btn" onclick="appUI.fecharModal('modal-roteiro')"><span class="material-icons">close</span></button>
+            <h3 class="modal-title" style="color:#a78bfa;"><span class="material-icons">alt_route</span> Controle R389</h3>
+
+            <div id="mini-kx-roteiro" class="mini-copiloto-card">
+                <div class="mini-copiloto-info">
+                    <span class="material-icons">support_agent</span>
+                    <div class="mini-copiloto-text">
+                        <h4>Copiloto Dark Horse</h4>
+                        <p id="txt-kx-roteiro">Assistente Inativo</p>
+                    </div>
+                </div>
+                <button id="btn-kx-roteiro" onclick="toggleCopilotoModo('R389','roteiro')" class="btn-mini-kx">
+                    <span class="material-icons">play_arrow</span> ATIVAR
+                </button>
+            </div>
+
+            <div class="dashboard-panel">
+                <label class="ford-label">Status / Etapa Atual</label>
+                <div id="etapa-atual" class="big-value">Carregando...</div>
+                <button class="btn-primary" style="margin-top:1.5rem;" onclick="app.registrarPassagem()">
+                    <span class="material-icons">touch_app</span> MARCAR MANUAL
+                </button>
+            </div>
+            <div class="input-group"><label class="ford-label">Timeline do Turno</label></div>
+            <div id="lista-cola" class="log-container"></div>
+            <div class="btn-row" style="margin-top:1.5rem;">
+                <button class="btn-secondary" onclick="app.novaVolta()"><span class="material-icons" style="font-size:1rem;">loop</span> FORÃ‡AR REINÃCIO</button>
+                <button class="btn-primary" style="background:var(--red);" onclick="app.gerarRelatorioRoteiro()"><span class="material-icons" style="font-size:1rem;">picture_as_pdf</span> GERAR PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         MODAL: FRENAGEM
+         ============================================================ -->
+    <div id="modal-frenagem" class="modal-overlay color-orange" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-drag"></div>
+            <button class="close-btn" onclick="appUI.fecharModal('modal-frenagem')"><span class="material-icons">close</span></button>
+            <h3 class="modal-title" style="color:#fb923c;"><span class="material-icons">speed</span> Protocolo de Frenagem</h3>
+
+            <div id="mini-kx-frenagem" class="mini-copiloto-card">
+                <div class="mini-copiloto-info">
+                    <span class="material-icons">support_agent</span>
+                    <div class="mini-copiloto-text">
+                        <h4>Copiloto Dark Horse</h4>
+                        <p id="txt-kx-frenagem">Assistente Inativo</p>
+                    </div>
+                </div>
+                <button id="btn-kx-frenagem" onclick="toggleCopilotoModo('FRENAGEM','frenagem')" class="btn-mini-kx">
+                    <span class="material-icons">play_arrow</span> ATIVAR
+                </button>
+            </div>
+
+            <div class="dashboard-panel">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;flex-wrap:wrap;gap:10px;">
+                    <div id="f-ciclo-atual" style="background:rgba(234,88,12,.2);color:#fb923c;padding:6px 16px;border-radius:20px;font-weight:800;font-size:.95rem;border:1px solid rgba(234,88,12,.4);">CICLO 1</div>
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+                        <div id="f-progresso-ciclo" style="color:var(--text);font-size:1.1rem;font-weight:800;">Lap 1/8</div>
+                        <div class="frenagem-lap-selector">
+                            <button onclick="app.definirLapFrenagem(1)" class="btn-lap-sel active" id="f-btn-lap-1">1</button>
+                            <button onclick="app.definirLapFrenagem(2)" class="btn-lap-sel" id="f-btn-lap-2">2</button>
+                            <button onclick="app.definirLapFrenagem(3)" class="btn-lap-sel" id="f-btn-lap-3">3</button>
+                            <button onclick="app.definirLapFrenagem(4)" class="btn-lap-sel" id="f-btn-lap-4">4</button>
+                            <button onclick="app.definirLapFrenagem(5)" class="btn-lap-sel" id="f-btn-lap-5">5</button>
+                            <button onclick="app.definirLapFrenagem(6)" class="btn-lap-sel" id="f-btn-lap-6">6</button>
+                            <button onclick="app.definirLapFrenagem(7)" class="btn-lap-sel" id="f-btn-lap-7">7</button>
+                            <button onclick="app.definirLapFrenagem(8)" class="btn-lap-sel" id="f-btn-lap-8">8</button>
+                        </div>
+                    </div>
+                </div>
+                <label class="ford-label">Próximo Checkpoint</label>
+                <div id="f-proxima-etapa" class="big-value" style="color:#fb923c;">Pista Baixa - Volta 1</div>
+                <div class="input-group" style="margin-top:1.5rem;">
+                    <input type="text" id="f-obs" class="ford-input" placeholder="OK / Sem Anomalias">
+                </div>
+                <button class="btn-primary" style="background:var(--amber);" onclick="app.registrarVoltaFrenagem()">
+                    <span class="material-icons">touch_app</span> MARCAR MANUAL
+                </button>
+            </div>
+            <div class="input-group"><label class="ford-label">Histórico</label></div>
+            <div id="lista-frenagem" class="log-container"></div>
+            <button class="btn-primary" style="margin-top:1.5rem;background:var(--red);" onclick="app.gerarRelatorioFrenagem()">
+                <span class="material-icons">picture_as_pdf</span> GERAR PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         MODAL: LAUDO TÉCNICO
+         ============================================================ -->
+    <div id="modal-laudo" class="modal-overlay color-blue" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-drag"></div>
+            <button class="close-btn" onclick="fecharModalLaudo()"><span class="material-icons">close</span></button>
+            <h3 class="modal-title" style="color:#a78bfa;"><span class="material-icons">rate_review</span> Laudo Técnico de Ocorrência</h3>
+
+            <div id="laudo-ctx-sem-turno" style="display:none;">
+                <span class="material-icons" style="font-size:1rem;">warning</span>
+                Nenhum turno ativo - inicie um turno para herdar os dados.
+            </div>
+
+            <div id="laudo-ctx-painel">
+                <div style="font-size:.65rem;font-weight:700;color:#60a5fa;letter-spacing:.5px;margin-bottom:8px;">DADOS DO TURNO ATIVO - SOMENTE LEITURA</div>
+                <div class="grid-2" style="gap:6px;">
+                    <div><div style="font-size:.62rem;color:var(--text-2);">PROJETO</div><div id="laudo-ctx-projeto" style="font-size:.82rem;font-weight:600;">-</div></div>
+                    <div><div style="font-size:.62rem;color:var(--text-2);">TIPO DE TESTE</div><div id="laudo-ctx-teste" style="font-size:.82rem;font-weight:600;">-</div></div>
+                    <div><div style="font-size:.62rem;color:var(--text-2);">ANALISTA</div><div id="laudo-ctx-operador" style="font-size:.82rem;font-weight:600;">-</div></div>
+                    <div><div style="font-size:.62rem;color:var(--text-2);">VEÃCULO</div><div id="laudo-ctx-veiculo" style="font-size:.82rem;font-weight:600;">-</div></div>
+                    <div><div style="font-size:.62rem;color:var(--text-2);">VIN</div><div id="laudo-ctx-vin" style="font-size:.82rem;font-weight:600;">-</div></div>
+                    <div><div style="font-size:.62rem;color:var(--text-2);">DATA / HORA</div><div id="laudo-ctx-data" style="font-size:.82rem;font-weight:600;">-</div></div>
+                </div>
+            </div>
+
+            <!-- Seção 1 -->
+            <div class="laudo-section">
+                <div class="laudo-section-header"><span class="laudo-step-number">1</span> Relatar Ocorrência</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+                    <span style="font-size:.8rem;color:var(--text-2);">Analista: <span id="ui-analista-laudo" style="color:#60a5fa;font-weight:800;"></span></span>
+                </div>
+                <div class="input-group" style="display:flex;flex-direction:column;">
+                    <textarea id="i-obs" class="ford-input" rows="4" placeholder="Descreva a anomalia detectada com detalhes técnicos..."></textarea>
+                    <div style="display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:6px;">
+                        <button id="btn-refinar-ia" class="btn-refinar-ia" type="button" onclick="app.melhorarTextoComIA(this)">
+                            <span class="material-icons">auto_fix_high</span> Refinar com IA
+                        </button>
+                        <button id="btn-config-ia-key" class="btn-refinar-ia" type="button" onclick="app.alternarPainelApiKey()" style="padding:6px;" title="Configurar API Key">
+                            <span class="material-icons">settings</span>
+                        </button>
+                    </div>
+                    <div id="container-config-ia-key">
+                        <span class="material-icons" style="font-size:1rem;color:var(--text-2);">key</span>
+                        <input type="password" id="i-gemini-api-key" placeholder="Colar Gemini API Key..." style="flex:1;background:transparent;border:none;outline:none;color:var(--text);font-size:.8rem;padding:2px 0;">
+                        <button type="button" onclick="app.salvarApiKeyInline()" style="background:none;border:none;color:var(--cyan);cursor:pointer;display:flex;align-items:center;padding:2px;">
+                            <span class="material-icons" style="font-size:1.2rem;">check_circle</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="grid-2" style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px;">
+                    <div></div>
+                    <div>
+                        <!-- Tipo de Ocorrência mantido como hidden para compatibilidade com o PDF -->
+                        <input type="hidden" id="i-tipo" value="Geral">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção 2 -->
+            <div class="laudo-section">
+                <div class="laudo-section-header"><span class="laudo-step-number">2</span> Registro Fotográfico <span style="font-size:.7rem;font-weight:400;opacity:.5;text-transform:none;letter-spacing:0;">- opcional</span></div>
+                <div class="camera-trigger" onclick="document.getElementById('media-input').click()">
+                    <span class="material-icons" style="font-size:2.5rem;display:block;margin-bottom:5px;">camera_alt</span>
+                    Fotografar Avaria
+                </div>
+                <input type="file" id="media-input" accept="image/*,video/*" multiple style="display:none;" onchange="app.handleMedia(event)">
+                <div id="galeria-avaria" class="gallery"></div>
+            </div>
+
+            <button class="btn-primary" style="background:linear-gradient(135deg,#059669,#065f46);box-shadow:0 4px 16px rgba(5,150,105,.35);" onclick="app.gerarECompartilharLaudo()">
+                <span class="material-icons">send</span> EMITIR RELATÓRIO
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         MODAL: ENCERRAR TURNO
+         ============================================================ -->
+    <div id="modal-turno" class="modal-overlay color-green" style="display:none;">
+        <div class="modal-content" style="max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+            <div class="modal-drag"></div>
+            <button class="close-btn" onclick="appUI.fecharModal('modal-turno')"><span class="material-icons">close</span></button>
+            <h3 class="modal-title" style="color:var(--cyan);"><span class="material-icons">logout</span> Encerrar Turno</h3>
+
+            <div class="enc-info-card">
+                <div class="enc-info-header"><span class="material-icons" style="font-size:.9rem;">info</span> Dados do Início de Turno</div>
+                <div class="enc-grid">
+                    <div class="enc-item"><span class="enc-lbl">Projeto</span><span class="enc-val" id="enc-show-projeto">-</span></div>
+                    <div class="enc-item"><span class="enc-lbl">Tipo de Teste</span><span class="enc-val" id="enc-show-tipo">-</span></div>
+                    <div class="enc-item"><span class="enc-lbl">Operador</span><span class="enc-val" id="enc-show-operador">-</span></div>
+                    <div class="enc-item"><span class="enc-lbl">Veículo</span><span class="enc-val" id="enc-show-veiculo">-</span></div>
+                    <div class="enc-item"><span class="enc-lbl">KM Inicial</span><span class="enc-val" id="enc-show-km-ini">-</span></div>
+                    <div class="enc-item"><span class="enc-lbl">VIN</span><span class="enc-val" id="enc-show-vin">-</span></div>
+                    <div class="enc-item"><span class="enc-lbl">EJA</span><span class="enc-val" id="enc-show-eja">-</span></div>
+                    <div class="enc-item"><span class="enc-lbl">CC</span><span class="enc-val" id="enc-show-cc">-</span></div>
+                    <div class="enc-item"><span class="enc-lbl">Início</span><span class="enc-val" id="enc-show-hora">-</span></div>
+                    <div class="enc-item" style="grid-column:span 2;">
+                        <span class="enc-lbl">Outras Informações</span>
+                        <span class="enc-val" id="enc-show-outras-info" style="white-space:pre-wrap;">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="enc-section"><span class="material-icons" style="font-size:.9rem;">assignment</span> Km Final <span style="font-size:.7rem;color:var(--red);">*</span></div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label class="ford-label">Km Final <span style="color:var(--red);">*</span></label>
+                    <input type="number" id="enc-km-final" class="ford-input" inputmode="numeric" min="0" placeholder="0" oninput="TurnoUI.calcTrip()">
+                </div>
+                <div class="input-group">
+                    <label class="ford-label">Trip (calculado)</label>
+                    <div class="trip-box" id="enc-trip-display">- <small>Km Final &minus; Km Inicial</small></div>
+                </div>
+            </div>
+
+            <div class="enc-section" style="margin-top:1rem;"><span class="material-icons" style="font-size:.9rem;">local_gas_station</span> Abastecimento <span style="font-size:.7rem;color:var(--text-2);font-weight:400;">(opcional)</span></div>
+            <div class="input-group">
+                <label class="ford-label">Posto</label>
+                <select id="enc-posto" class="ford-input">
+                    <option value="">Não abasteci hoje</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label class="ford-label">Litros (Etanol / Gasolina / Diesel)</label>
+                <input type="number" id="enc-litros" class="ford-input" inputmode="decimal" placeholder="0.0" step="0.1" min="0">
+            </div>
+
+            <button class="enc-opcional-btn" onclick="TurnoUI.toggleOpcional(this)">
+                <span style="display:flex;align-items:center;gap:6px;">
+                    <span class="material-icons" style="font-size:1rem;">expand_more</span>
+                    <span id="enc-opcional-label">Informações Opcionais</span>
+                </span>
+                <span style="font-size:.68rem;opacity:.5;">Valor, Saldo, Autonomia...</span>
+            </button>
+
+            <div id="enc-opcional-body" class="enc-opcional-body">
+                <div class="grid-2">
+                    <div class="input-group"><label class="ford-label">Valor Pago (R$)</label><input type="number" id="enc-valor-pago" class="ford-input" inputmode="decimal" placeholder="0.00" step="0.01"></div>
+                    <div class="input-group"><label class="ford-label">Saldo Disponível (R$)</label><input type="number" id="enc-saldo" class="ford-input" inputmode="decimal" placeholder="0.00" step="0.01"></div>
+                </div>
+                <div class="grid-2">
+                    <div class="input-group"><label class="ford-label">Autonomia (km)</label><input type="number" id="enc-autonomia" class="ford-input" inputmode="decimal" placeholder="0" step="1"></div>
+                    <div class="input-group"><label class="ford-label">Consumo (km/l)</label><input type="number" id="enc-consumo" class="ford-input" inputmode="decimal" placeholder="0.0" step="0.1"></div>
+                </div>
+                <div class="grid-2">
+                    <div class="input-group"><label class="ford-label">Temperatura (Â°C)</label><input type="text" id="enc-temperatura" class="ford-input" placeholder="Ex: 28Â°C"></div>
+                    <div class="input-group"><label class="ford-label">Tempo (clima)</label><input type="text" id="enc-tempo" class="ford-input" placeholder="Ex: Ensolarado"></div>
+                </div>
+            </div>
+
+            <!-- Métricas Operacionais -->
+            <div class="ford-group" style="margin-top:1.5rem;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);">
+                    <span class="material-icons" style="color:var(--purple);font-size:1rem;">science</span>
+                    <span style="font-weight:700;font-size:.9rem;">Métricas Operacionais</span>
+                    <span style="font-size:.72rem;color:var(--text-2);margin-left:auto;">conforme tipo de teste</span>
+                </div>
+                <div id="enc-metricas-container">
+                    <div style="color:var(--text-2);font-size:.82rem;text-align:center;padding:1rem;">Inicie um turno para ver as métricas disponíveis</div>
+                </div>
+            </div>
+
+            <input type="hidden" id="t-turno">
+            <input type="hidden" id="t-tipo-teste">
+            <input type="hidden" id="t-veiculo">
+            <input type="hidden" id="t-posto">
+            <input type="hidden" id="t-km">
+            <input type="hidden" id="t-trip">
+            <input type="hidden" id="t-litros">
+            <input type="hidden" id="t-saldo">
+
+            <div id="enc-status-encerramento"></div>
+            <div id="enc-aviso-forms"><span class="material-icons" style="font-size:1rem;">assignment</span> Existem formulários obrigatórios de encerramento para este projeto.</div>
+
+            <button id="btn-encerrar-turno" class="btn-danger" style="margin-top:1.5rem;" onclick="TurnoUI.finalizarTurno('encerrar')">
+                <span class="material-icons">logout</span> ENCERRAR TURNO
+            </button>
+
+            <div id="enc-botoes-resumo">
+                <div style="border-top:1px solid var(--border);padding-top:10px;font-size:.72rem;color:var(--text-2);text-align:center;">Turno encerrado - baixe o laudo oficial em formato PDF</div>
+                <button class="btn-primary" onclick="TurnoUI.finalizarTurno('pdf')">
+                    <span class="material-icons">picture_as_pdf</span> BAIXAR RESUMO PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         MODAL: APROVAÃ‡Ã•ES
+         ============================================================ -->
+    <div id="modal-aprovacoes" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-drag"></div>
+            <button class="close-btn" onclick="document.getElementById('modal-aprovacoes').style.display='none';document.body.style.overflow='auto';"><span class="material-icons">close</span></button>
+            <h3 class="modal-title" style="color:var(--purple);"><span class="material-icons">approval</span> Painel de Aprovações</h3>
+            <p style="text-align:center;color:var(--text-2);font-size:.85rem;margin-bottom:1.5rem;">Gerencie os pedidos de acesso ao sistema</p>
+            <div id="lista-aprovacoes"><div style="text-align:center;padding:2rem;color:var(--text-2);">Carregando...</div></div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         MODAL: GERENCIAR FORMULÃRIOS POR PROJETO
+         ============================================================ -->
+    <div id="modal-gerenciar-forms" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-drag"></div>
+            <button class="close-btn" onclick="document.getElementById('modal-gerenciar-forms').style.display='none';document.body.style.overflow='auto';"><span class="material-icons">close</span></button>
+            <h3 class="modal-title" style="color:#60a5fa;"><span class="material-icons">assignment</span> Formulários do Projeto</h3>
+            <p id="mgf-projeto-nome" style="text-align:center;color:var(--cyan);font-weight:800;margin-bottom:1rem;">-</p>
+            <div id="mgf-lista" class="pc-lista"></div>
+            <div style="background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;padding:1rem;">
+                <h4 style="font-size:.9rem;margin-bottom:.8rem;opacity:.75;">+ Adicionar Formulário</h4>
+                <div class="input-group"><label class="ford-label">Ãcone</label><input type="text" id="mgf-in-icone" class="pc-inp" placeholder="Ãcone" maxlength="4" style="width:90px;"></div>
+                <div class="input-group"><label class="ford-label">Nome do Formulário</label><input type="text" id="mgf-in-nome" class="pc-inp" placeholder="Ex: Check List de Segurança"></div>
+                <div class="input-group"><label class="ford-label">URL do Microsoft Forms</label><input type="url" id="mgf-in-url" class="pc-inp" placeholder="https://forms.office.com/r/..."></div>
+                <button class="btn-primary" style="margin-top:.5rem;" onclick="TurnoUI.adicionarFormularioAoProjeto()">
+                    <span class="material-icons">add_link</span> Adicionar Formulário
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         MODAL: CENTRAL DE LINKS E UTILIDADES VEV
+         ============================================================ -->
+    <div id="modal-utilidades" class="modal-overlay" style="display:none; z-index:9999;">
+        <div class="modal-content" style="max-width:480px; width:92%; background:#16161a; border:1px solid var(--border-hi); border-radius:20px; padding:1.5rem; max-height:85vh; overflow-y:auto; font-family:'Inter', sans-serif;">
+            <div class="modal-drag"></div>
+            <button class="close-btn" onclick="document.getElementById('modal-utilidades').style.display='none';document.body.style.overflow='auto';"><span class="material-icons">close</span></button>
+            
+            <h3 class="modal-title" style="color:#60a5fa; display:flex; align-items:center; gap:8px; font-size:1.2rem; font-weight:700; margin-bottom:4px; justify-content:center;">
+                <span class="material-icons" style="color:#60a5fa; font-size:1.6rem;">apps</span> Central de Utilidades VEV
+            </h3>
+            <p style="color:var(--text-2); font-size:0.75rem; margin-bottom:1.5rem; text-align:center;">
+                Acesso rápido a formulários de campo, senhas e contatos úteis.
+            </p>
+            
+            <!-- SEÇÃO 1: FORMULÁRIOS OFICIAIS -->
+            <div style="margin-bottom:1.25rem;">
+                <div style="font-size:0.75rem; font-weight:700; color:var(--text-3); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+                    <span class="material-icons" style="font-size:0.9rem;">assignment</span> Formulários de Campo
+                </div>
+                
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <!-- Forms Km interno -->
+                    <a href="https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=eruQyfRRm0O9NpwH-xBBwP_dTP0IZDtLtTBWw5vI8tFUNFlUN1VMVEYzWUMxUDRGUFIzNkdGM1lLSiQlQCN0PWcu&origin=Invitation&channel=1" target="_blank" style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; text-decoration:none; color:var(--text); transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span class="material-icons" style="color:#60a5fa; font-size:1.2rem;">speed</span>
+                            <div style="font-size:0.82rem; font-weight:600;">Forms Km Interno</div>
+                        </div>
+                        <span class="material-icons" style="font-size:0.95rem; color:var(--text-3);">open_in_new</span>
+                    </a>
+                    
+                    <!-- Check List de Inspeção de Segurança -->
+                    <a href="https://forms.office.com/r/LGrPxcte1T" target="_blank" style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; text-decoration:none; color:var(--text); transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span class="material-icons" style="color:#10b981; font-size:1.2rem;">verified_user</span>
+                            <div style="font-size:0.82rem; font-weight:600;">Check List de Segurança</div>
+                        </div>
+                        <span class="material-icons" style="font-size:0.95rem; color:var(--text-3);">open_in_new</span>
+                    </a>
+                    
+                    <!-- Forms de Abastecimento -->
+                    <a href="https://forms.office.com/r/FmGd5gJF5e" target="_blank" style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; text-decoration:none; color:var(--text); transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span class="material-icons" style="color:#f59e0b; font-size:1.2rem;">local_gas_station</span>
+                            <div style="font-size:0.82rem; font-weight:600;">Forms de Abastecimento</div>
+                        </div>
+                        <span class="material-icons" style="font-size:0.95rem; color:var(--text-3);">open_in_new</span>
+                    </a>
+                    
+                    <!-- Drive Team Issues -->
+                    <a href="https://forms.office.com/r/KqBNKV9zjS" target="_blank" style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; text-decoration:none; color:var(--text); transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span class="material-icons" style="color:#ef4444; font-size:1.2rem;">report_problem</span>
+                            <div style="font-size:0.82rem; font-weight:600;">Drive Team Issues</div>
+                        </div>
+                        <span class="material-icons" style="font-size:0.95rem; color:var(--text-3);">open_in_new</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- SEÇÃO 2: ABASTECIMENTO -->
+            <div style="margin-bottom:1.25rem;">
+                <div style="font-size:0.75rem; font-weight:700; color:var(--text-3); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+                    <span class="material-icons" style="font-size:0.9rem;">credit_card</span> Cartão de Abastecimento
+                </div>
+                
+                <div style="background:rgba(255,255,255,0.02); border:1px dashed var(--border-hi); border-radius:14px; padding:12px 14px; display:flex; align-items:center; justify-content:space-between;">
+                    <div style="text-align:left;">
+                        <div style="font-size:0.72rem; color:var(--text-2); margin-bottom:2px;">Senha do Cartão</div>
+                        <div style="font-family:'Roboto Mono', monospace; font-size:1.25rem; font-weight:700; color:#38bdf8; letter-spacing:2px;" id="val-senha-cartao">958355</div>
+                    </div>
+                    <button class="header-icon-btn" onclick="navigator.clipboard.writeText('958355');Toast.show('Senha copiada com sucesso!');" style="background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:8px; width:36px; height:36px; display:flex; align-items:center; justify-content:center;" title="Copiar Senha">
+                        <span class="material-icons" style="font-size:1.1rem; color:var(--text);">content_copy</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- SEÇÃO 3: SUPORTE & EMERGÊNCIA -->
+            <div>
+                <div style="font-size:0.75rem; font-weight:700; color:var(--text-3); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+                    <span class="material-icons" style="font-size:0.9rem;">call</span> Emergência e Suporte
+                </div>
+                
+                <div style="background:rgba(239,68,68,0.04); border:1px solid rgba(239,68,68,0.15); border-radius:14px; padding:12px 14px; display:flex; align-items:center; justify-content:space-between;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span class="material-icons" style="color:#ef4444; font-size:1.5rem;">local_shipping</span>
+                        <div style="text-align:left;">
+                            <div style="font-size:0.82rem; font-weight:700; color:#fca5a5;">Serviço de Guincho</div>
+                            <div style="font-size:0.72rem; color:var(--text-2);">Atendimento 0800 24h</div>
+                        </div>
+                    </div>
+                    <a href="tel:08007033673" style="display:flex; align-items:center; justify-content:center; gap:4px; padding:8px 12px; background:#ef4444; color:#fff; border-radius:8px; text-decoration:none; font-size:0.78rem; font-weight:700; transition:opacity 0.2s;">
+                        <span class="material-icons" style="font-size:0.95rem;">phone</span> Ligar
+                    </a>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- ============================================================
+         MODAL: ANALYTICS
+         ============================================================ -->
+    <div id="modal-analytics" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-drag"></div>
+            <button class="close-btn" onclick="appUI.fecharModal('modal-analytics')"><span class="material-icons">close</span></button>
+            <h3 class="modal-title" style="color:var(--purple);"><span class="material-icons">bar_chart</span> Analytics - TPG Insight AI</h3>
+            <div style="display:flex;gap:8px;justify-content:center;margin-bottom:1.5rem;flex-wrap:wrap;">
+                <button class="analytics-periodo-btn active" onclick="AnalyticsEngine.setPeriodo(7,this)">7 dias</button>
+                <button class="analytics-periodo-btn" onclick="AnalyticsEngine.setPeriodo(15,this)">15 dias</button>
+                <button class="analytics-periodo-btn" onclick="AnalyticsEngine.setPeriodo(30,this)">30 dias</button>
+            </div>
+            <div class="analytics-cards-grid">
+                <div class="analytics-card"><span class="material-icons" style="color:var(--blue);">speed</span><div class="analytics-card-valor" id="anl-total-km">-</div><div class="analytics-card-label">Km Total</div></div>
+                <div class="analytics-card"><span class="material-icons" style="color:var(--cyan);">assignment_turned_in</span><div class="analytics-card-valor" id="anl-total-turnos">-</div><div class="analytics-card-label">Turnos</div></div>
+                <div class="analytics-card"><span class="material-icons" style="color:var(--amber);">warning_amber</span><div class="analytics-card-valor" id="anl-total-issues">-</div><div class="analytics-card-label">Issues</div></div>
+                <div class="analytics-card"><span class="material-icons" style="color:#22d3ee;">local_gas_station</span><div class="analytics-card-valor" id="anl-total-litros">-</div><div class="analytics-card-label">Litros</div></div>
+            </div>
+            <div class="analytics-section"><div class="analytics-section-title"><span class="material-icons" style="font-size:14px;opacity:.7;">flag</span> Km por Projeto</div><div id="anl-grafico-projetos"></div></div>
+            <div class="analytics-section"><div class="analytics-section-title"><span class="material-icons" style="font-size:14px;opacity:.7;">science</span> Tipos de Teste Mais Executados</div><div id="anl-grafico-testes"></div></div>
+            <div class="analytics-section"><div class="analytics-section-title"><span class="material-icons" style="font-size:14px;opacity:.7;">directions_car</span> Km por Veículo</div><div id="anl-grafico-veiculos"></div></div>
+            <div class="analytics-section"><div class="analytics-section-title"><span class="material-icons" style="font-size:14px;opacity:.7;">people</span> Top Operadores</div><div id="anl-tabela-operadores"></div></div>
+            <div id="anl-kpis-gerente" style="display:none;"></div>
+            <div id="anl-loading" style="text-align:center;padding:2rem;color:var(--text-2);display:none;"><span class="material-icons" style="font-size:2rem;animation:spin 1s linear infinite;display:block;margin-bottom:8px;">hourglass_empty</span>Carregando dados...</div>
+            <div id="anl-vazio" style="text-align:center;padding:2rem;color:var(--text-2);display:none;"><span class="material-icons" style="font-size:2.5rem;opacity:.3;display:block;margin-bottom:8px;">bar_chart</span>Nenhum turno encerrado no período.</div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         MODAL: HISTÓRICO DE TURNOS
+         ============================================================ -->
+    <div id="modal-historico-turnos" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-drag"></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;">
+                <h3 class="modal-title" style="color:#60a5fa;margin:0;"><span class="material-icons" style="font-size:1.15rem;">history</span> Meus Turnos Anteriores</h3>
+                <button onclick="HistoricoUI.fechar()" style="background:none;border:none;cursor:pointer;color:var(--text-2);"><span class="material-icons">close</span></button>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:1rem;">
+                <button class="btn-filtro-hist active" onclick="HistoricoUI.filtrar('7',this)">7 dias</button>
+                <button class="btn-filtro-hist" onclick="HistoricoUI.filtrar('30',this)">30 dias</button>
+                <button class="btn-filtro-hist" onclick="HistoricoUI.filtrar('todos',this)">Todos</button>
+            </div>
+            <div id="hist-totais" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem;"></div>
+            <div id="hist-lista" style="display:flex;flex-direction:column;gap:10px;">
+                <div style="text-align:center;padding:2rem;color:var(--text-2);"><span class="material-icons" style="font-size:2rem;">sync</span><div style="margin-top:8px;font-size:.85rem;">Carregando...</div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         MODAL: API KEY GEMINI
+         ============================================================ -->
+    <div id="modal-api-key" class="modal-overlay" style="display:none;z-index:99999;">
+        <div class="modal-content" style="max-width:400px;padding:2rem;text-align:center;">
+            <div style="background:rgba(0,51,153,.1);border-radius:50%;width:60px;height:60px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.2rem;">
+                <span class="material-icons" style="font-size:2rem;color:#60a5fa;">vpn_key</span>
+            </div>
+            <h3 class="modal-title" style="justify-content:center;margin-bottom:8px;">Configuração da Chave API</h3>
+            <p style="font-size:.78rem;color:var(--text-2);margin-bottom:1.5rem;line-height:1.4;">Para utilizar o Assistente de Inteligência Artificial, insira sua chave da API do Google Gemini.</p>
+            <div class="ford-group" style="text-align:left;">
+                <label class="ford-label">Google Gemini API Key</label>
+                <input type="password" id="input-api-key" class="ford-input" placeholder="Cole sua API Key aqui..." style="font-family:'Roboto Mono';">
+            </div>
+            <button class="btn-primary" onclick="app.salvarApiKeyInicial()">
+                <span class="material-icons" style="font-size:1rem;">save</span> Salvar Chave API
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="vev-toast-container"></div>
+
+    <!-- IDs legados ocultos para compatibilidade com scripts externos -->
+    <span id="global-vin" style="display:none;"></span>
+    <span id="ui-nome-usuario" style="display:none;"></span>
+    <span id="ui-cargo-badge" style="display:none;"></span>
+    <span id="btn-approval-panel" style="display:none;"></span>
+    <span id="aprov-count" style="display:none;"></span>
+    <span id="ops-email-master" style="display:none;"></span>
+    <span id="ops-email-save-btn" style="display:none;"></span>
+
+    <script src="app.js?v=20260601_v3"></script>
+    <script>
+        /* --- appUI global --- */
+        const appUI = {
+            abrirModal: (id) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                if (id  ===  'modal-laudo' && typeof app !== 'undefined' && app.operadorAtual) {
+                    const el2 = document.getElementById('ui-analista-laudo');
+                    if (el2) el2.innerText = app.operadorAtual;
+                }
+            },
+            fecharModal: (id) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        };
+        window.appUI = appUI;
+
+        /* --- Screen switcher --- */
+        function switchScreen(name) {
+            ['home','telemetry','history'].forEach(s => {
+                const screen = document.getElementById('screen-' + s);
+                const nav = document.getElementById('nav-' + s);
+                if (screen) screen.classList.toggle('active', s  ===  name);
+                if (nav) nav.classList.toggle('active', s  ===  name);
+            });
+            if (name  ===  'history') renderHistoryFeed();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /* --- Histórico feed --- */
+        let historyLoaded = false;
+        async function renderHistoryFeed() {
+            if (historyLoaded) return;
+            historyLoaded = true;
+            const feed = document.getElementById('historico-gmail-feed');
+            if (!feed) return;
+            try {
+                const uid = firebase.auth().currentUser?.uid;
+                if (!uid) {
+                    feed.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-2);">Faça login para ver o historico.</div>';
+                    return;
+                }
+                const issuesSnap = await firebase.firestore().collection('vev_issues')
+                    .where('uid', '==', uid).orderBy('timestamp', 'desc').limit(20).get().catch(() => null);
+                let cards = [];
+                if (issuesSnap && !issuesSnap.empty) {
+                    issuesSnap.forEach(doc => {
+                        const d = doc.data();
+                        const ts = d.timestamp?.toDate ? d.timestamp.toDate() : new Date(d.timestamp || Date.now());
+                        cards.push({ type: 'laudo', title: 'Laudo: ' + (d.tipo || 'Geral'), desc: d.observacao || '-', date: ts.toLocaleDateString('pt-BR'), id: doc.id });
+                    });
+                }
+                if (cards.length  ===  0) {
+                    feed.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-2);"><span class="material-icons" style="font-size:2.5rem;opacity:.2;display:block;margin-bottom:10px;">inbox</span><div>Nenhum relatório encontrado.</div></div>';
+                    return;
+                }
+                feed.innerHTML = cards.map(c => `
+                    <div class="feed-card" onclick="abrirItemHistorico('${c.id}','${c.type}')">
+                        <div class="feed-icon-wrap" style="background:rgba(139,92,246,.12);"><span class="material-icons" style="color:#c4b5fd;">rate_review</span></div>
+                        <div class="feed-body"><div class="feed-title">${c.title}</div><div class="feed-desc">${c.desc}</div></div>
+                        <div class="feed-right"><div class="feed-date">${c.date}</div><div class="feed-badge badge-laudo">PDF</div></div>
+                    </div>`).join('');
+            } catch (e) {
+                console.warn('renderHistoryFeed:', e);
+                feed.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-2);">Erro ao carregar historico.</div>';
+            }
+        }
+
+        function abrirItemHistorico(id, type) {
+            const viewer = document.getElementById('integrated-pdf-viewer');
+            if (!viewer) return;
+            viewer.style.display = 'block';
+            viewer.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function filtrarHistorico(tipo, btn) {
+            document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            historyLoaded = false;
+            const feed = document.getElementById('historico-gmail-feed');
+            if (feed) feed.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-2);">Carregando...</div>';
+            renderHistoryFeed();
+        }
+
+        /* --- Avatar --- */
+        function setarAvatar(nome) {
+            const el = document.getElementById('avatar-letra');
+            if (el && nome) el.textContent = nome.charAt(0).toUpperCase();
+        }
+
+        /* --- Mostrar App Shell --- */
+        window.mostrarAppShell = function(nomeUsuario) {
+            const loginEl = document.getElementById('modal-login');
+            if (loginEl) loginEl.style.display = 'none';
+            const shell = document.getElementById('app-shell');
+            if (shell) shell.classList.add('visible');
+            setarAvatar(nomeUsuario || '?');
+            const legNome = document.getElementById('ui-nome-usuario');
+            if (legNome) legNome.textContent = nomeUsuario || '';
+        };
+
+        /* --- Stubs de funções chamadas pelo HTML que podem não existir nos scripts --- */
+
+        // TurnoUI: adiciona métodos faltantes após carregar turno-engine
+        window.addEventListener('load', () => {
+            // Restaurar estado do turno ativo na home ao carregar a página
+            setTimeout(() => {
+                if (typeof TurnoUI !== 'undefined' && typeof TurnoEngine !== 'undefined') {
+                    TurnoEngine._cache = null; // força releitura do localStorage
+                    TurnoUI.atualizarBannerHome?.();
+                }
+            }, 300);
+
+            if (typeof TurnoUI !== 'undefined') {
+                if (!TurnoUI.mostrarPreCadastro) {
+                    TurnoUI.mostrarPreCadastro = function() {
+                        const el = document.getElementById('modal-precadastro');
+                        if (el) { el.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+                        if (typeof TurnoUI.carregarPC  ===  'function') TurnoUI.carregarPC('tiposTeste');
+                    };
+                }
+                if (!TurnoUI.fecharPC) {
+                    TurnoUI.fecharPC = function() {
+                        const el = document.getElementById('modal-precadastro');
+                        if (el) { el.style.display = 'none'; document.body.style.overflow = 'auto'; }
+                    };
+                }
+                if (!TurnoUI.abaPC) {
+                    TurnoUI.abaPC = function(tipo, btn) {
+                        document.querySelectorAll('.pc-tab').forEach(t => t.classList.remove('active'));
+                        document.querySelectorAll('.pc-panel').forEach(p => p.classList.remove('active'));
+                        if (btn) btn.classList.add('active');
+                        const panel = document.getElementById('pc-panel-' + tipo);
+                        if (panel) panel.classList.add('active');
+                        if (typeof TurnoUI.carregarPC  ===  'function') TurnoUI.carregarPC(tipo);
+                    };
+                }
+                if (!TurnoUI.fecharSeTiver) {
+                    TurnoUI.fecharSeTiver = function() {
+                        const el = document.getElementById('modal-inicio-turno');
+                        if (el) { el.style.display = 'none'; document.body.style.overflow = 'auto'; }
+                    };
+                }
+                if (!TurnoUI.calcTrip) {
+                    TurnoUI.calcTrip = function() {
+                        const kmFinal = parseFloat(document.getElementById('enc-km-final')?.value || 0);
+                        const trip = TurnoEngine?.calcTrip(kmFinal);
+                        const el = document.getElementById('enc-trip-display');
+                        if (el) el.textContent = trip ? trip + ' km' : '-';
+                    };
+                }
+            }
+
+            // Copiloto stubs
+            if (typeof toggleCopilotoModo  ===  'undefined') {
+                window.toggleCopilotoModo = function(modo, contexto) {
+                    console.log('[Copiloto] modo:', modo, 'contexto:', contexto);
+                };
+            }
+            if (typeof limparRotaLivre  ===  'undefined') {
+                window.limparRotaLivre = function() {
+                    ['ui-tel-dist','ui-tel-vel','ui-tel-velmedia','ui-tel-velmax'].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.innerHTML = '0<span style="font-size:.72rem;color:var(--text-2);"></span>';
+                    });
+                };
+            }
+
+            // AnalyticsEngine stub
+            if (typeof AnalyticsEngine  ===  'undefined') {
+                window.AnalyticsEngine = {
+                    setPeriodo(dias, btn) {
+                        document.querySelectorAll('.analytics-periodo-btn').forEach(b => b.classList.remove('active'));
+                        if (btn) btn.classList.add('active');
+                    }
+                };
+            }
+
+            // ConfiguracoesSistemaUI stub
+            if (typeof ConfiguracoesSistemaUI  ===  'undefined') {
+                window.ConfiguracoesSistemaUI = {
+                    fechar() { appUI.fecharModal('modal-configuracoes-sistema'); },
+                    salvar() { appUI.fecharModal('modal-configuracoes-sistema'); }
+                };
+            }
+
+            // HistoricoUI stub
+            if (typeof HistoricoUI  ===  'undefined') {
+                window.HistoricoUI = {
+                    fechar() { appUI.fecharModal('modal-historico-turnos'); },
+                    filtrar(d, btn) {
+                        document.querySelectorAll('.btn-filtro-hist').forEach(b => b.classList.remove('active'));
+                        if (btn) btn.classList.add('active');
+                    }
+                };
+            }
+
+            // fecharModalLaudo stub
+            if (typeof fecharModalLaudo  ===  'undefined') {
+                window.fecharModalLaudo = function() { appUI.fecharModal('modal-laudo'); };
+            }
+
+            console.log('[VEV] Stubs de compatibilidade carregados.');
+        });
+
+        /* --- Patch IDs legados: executado antes dos scripts externos --- */
+        (function patchLegacyIds() {
+            const legacyIds = ['global-vin','ui-nome-usuario','ui-cargo-badge','btn-approval-panel','aprov-count','ops-email-master','ops-email-save-btn'];
+            legacyIds.forEach(id => {
+                if (!document.getElementById(id)) {
+                    const el = document.createElement('span');
+                    el.id = id;
+                    el.style.display = 'none';
+                    document.body.appendChild(el);
+                }
+            });
+        })();
+    </script>
+
+    <script src="auth-security.js?v=20260601_v3"></script>
+    <script src="dados-mestres.js?v=20260601_v3"></script>
+    <script src="laudo-ia.js?v=20260601_v3"></script>
+    <script src="turno-engine.js?v=20260601_v3"></script>
+    <script src="forms-data.js?v=20260601_v3"></script>
+    <script src="forms-engine.js?v=20260601_v3"></script>
+    <script src="analytics.js?v=20260601_v3"></script>
+    <script src="notificacoes-engine.js?v=20260601_v3"></script>
+
+</body>
+</html>

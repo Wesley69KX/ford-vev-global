@@ -1,0 +1,2496 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ford VEV - Central Operacional</title>
+
+    <link rel="manifest" href="/assets/manifest-BacqtoHF.json">
+    <link rel="icon" type="image/png" href="/assets/ford_logo_icon_145825-ByxGPVxd.png">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Roboto+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+  <link rel="stylesheet" crossorigin href="/assets/index-Bv50Wr--.css">
+</head>
+
+<body>
+
+    <!-- ═══════════════════════════════════════════════════════════
+     TELA DE LOGIN — TPG INSIGHT AI · FORD VEV
+     ═══════════════════════════════════════════════════════════ -->
+
+    <div id="modal-login" style="
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+">
+
+        <!-- FOTO DE FUNDO — Entrada Ford Tatuí -->
+        <div style="
+        position: absolute;
+        inset: 0;
+        background-image: url('/assets/entrada-ford-MOgKH8Ha.jpg');
+        background-size: cover;
+        background-position: center 40%;
+        background-repeat: no-repeat;
+    "></div>
+
+        <!-- OVERLAY ESCURO sobre a foto -->
+        <div style="
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+            180deg,
+            rgba(0, 20, 60, 0.45) 0%,
+            rgba(0, 30, 80, 0.75) 40%,
+            rgba(2, 8, 25, 0.95) 100%
+        );
+    "></div>
+
+        <!-- GRID LINES DECORATIVAS -->
+        <div style="
+        position: absolute;
+        inset: 0;
+        background-image:
+            linear-gradient(rgba(0, 82, 180, 0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 82, 180, 0.04) 1px, transparent 1px);
+        background-size: 60px 60px;
+        pointer-events: none;
+    "></div>
+
+        <!-- PARTÍCULAS DECORATIVAS -->
+        <div class="login-particle" style="top:12%;left:8%;width:3px;height:3px;"></div>
+        <div class="login-particle" style="top:22%;left:88%;width:2px;height:2px;animation-delay:1s;"></div>
+        <div class="login-particle" style="top:72%;left:15%;width:2px;height:2px;animation-delay:2s;"></div>
+        <div class="login-particle" style="top:82%;left:78%;width:3px;height:3px;animation-delay:0.5s;"></div>
+        <div class="login-particle" style="top:48%;left:4%;width:2px;height:2px;animation-delay:1.5s;"></div>
+        <div class="login-particle" style="top:58%;left:94%;width:2px;height:2px;animation-delay:3s;"></div>
+
+        <!-- CONTAINER CENTRAL -->
+        <div style="
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        max-width: 400px;
+        width: calc(100% - 40px);
+        margin: 0 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        animation: loginCardEntrada 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        padding: 20px 0;
+        box-sizing: border-box;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(22,104,203,0.3) transparent;
+    ">
+
+            <!-- LOGO FORD -->
+            <div style="
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: radial-gradient(circle,
+                rgba(22, 104, 203, 0.45) 0%,
+                rgba(0, 30, 80, 0.55) 100%);
+            border: 2px solid rgba(22, 104, 203, 0.55);
+            box-shadow:
+                0 0 40px rgba(22, 104, 203, 0.35),
+                0 0 80px rgba(22, 104, 203, 0.12),
+                inset 0 1px 0 rgba(255,255,255,0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 14px;
+            flex-shrink: 0;
+        ">
+                <img src="/assets/ford_logo_icon_145825-ByxGPVxd.png" alt="Ford" style="width:54px;height:auto;
+                        filter:drop-shadow(0 2px 8px rgba(0,0,0,0.6));" onerror="this.style.display='none';
+                          this.nextElementSibling.style.display='block';">
+                <span style="
+                display:none;
+                font-size:1.4rem;
+                font-weight:900;
+                color:#ffffff;
+                font-style:italic;
+            ">Ford</span>
+            </div>
+
+            <!-- TÍTULO -->
+            <div style="text-align:center;margin-bottom:20px;">
+                <h1 style="
+                margin: 0 0 5px;
+                font-size: 1.65rem;
+                font-weight: 800;
+                letter-spacing: -0.5px;
+                background: linear-gradient(135deg, #ffffff 0%, #a8c4f0 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                line-height: 1.2;
+            ">TPG Insight AI</h1>
+                <p style="
+                margin: 0;
+                font-size: 0.75rem;
+                color: rgba(168, 196, 240, 0.6);
+                letter-spacing: 1px;
+                text-transform: uppercase;
+                font-weight: 500;
+            ">Campo de Provas Tatuí · Ford VEV</p>
+            </div>
+
+            <!-- CARD DO FORMULÁRIO -->
+            <div style="
+            width: 100%;
+            box-sizing: border-box;
+            background: rgba(5, 10, 28, 0.88);
+            border: 1px solid rgba(22, 104, 203, 0.25);
+            border-radius: 22px;
+            padding: 28px 28px 24px;
+            max-height: 85vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            box-shadow:
+                0 0 0 1px rgba(255,255,255,0.03),
+                0 28px 70px rgba(0, 0, 0, 0.75),
+                0 0 50px rgba(0, 40, 120, 0.2),
+                inset 0 1px 0 rgba(255,255,255,0.05);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            position: relative;
+        ">
+
+                <!-- Linha decorativa topo do card -->
+                <div style="
+                position: absolute;
+                top: 0; left: 8%; right: 8%;
+                height: 1px;
+                background: linear-gradient(90deg,
+                    transparent,
+                    rgba(22, 104, 203, 0.9) 30%,
+                    rgba(0, 82, 180, 0.9) 70%,
+                    transparent);
+            "></div>
+
+                <!-- ── ABAS: ENTRAR / CRIAR CONTA ──────────── -->
+                <div style="
+                display: flex;
+                background: rgba(255,255,255,0.05);
+                border: 1px solid rgba(255,255,255,0.07);
+                border-radius: 10px;
+                padding: 3px;
+                margin-bottom: 22px;
+                gap: 3px;
+            ">
+                    <button id="tab-login" onclick="mudarModoAuth('login')">
+                        Entrar
+                    </button>
+
+                    <button id="tab-signup" onclick="mudarModoAuth('signup')">
+                        Criar conta
+                    </button>
+                </div>
+
+                <!-- ── BANNER DE BLOQUEIO ───────────────────── -->
+                <div id="lockout-banner" style="
+                display: none;
+                text-align: center;
+                background: rgba(239,68,68,0.1);
+                border: 1px solid rgba(239,68,68,0.35);
+                border-radius: 12px;
+                padding: 16px;
+                margin-bottom: 18px;
+            ">
+                    <div class="lock-icon" style="margin-bottom:6px;"><span class="material-icons"
+                            style="font-size:1.8rem;color:#F87171;">lock</span></div>
+                    <p style="margin:0 0 6px;color:#fca5a5;font-size:0.85rem;font-weight:600;">
+                        Acesso bloqueado por segurança
+                    </p>
+                    <span id="lockout-contador" style="
+                    font-size:1.5rem;font-weight:800;color:#ef4444;">
+                        5:00
+                    </span>
+                </div>
+
+                <!-- ── CAMPO EMAIL ──────────────────────────── -->
+                <div style="margin-bottom:15px;">
+                    <label style="
+                    display:block;
+                    font-size:0.68rem;
+                    font-weight:600;
+                    color:rgba(168,196,240,0.65);
+                    letter-spacing:0.6px;
+                    text-transform:uppercase;
+                    margin-bottom:7px;
+                ">E-mail corporativo</label>
+
+                    <div style="position:relative;">
+                        <span class="material-icons"
+                            style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:18px;color:rgba(108,172,228,0.35);pointer-events:none;">mail_outline</span>
+                        <input type="email" id="login-nome" class="login-input" placeholder="nome@ford.com"
+                            autocomplete="email" style="padding-left:42px;" oninput="validarEmailTempoReal(this)">
+                    </div>
+
+                    <div id="email-feedback" style="
+                         font-size:0.72rem;
+                         margin-top:5px;
+                         padding-left:2px;
+                         color:rgba(255,255,255,0.22);
+                         display:flex;align-items:center;gap:4px;
+                     ">
+                        Apenas e-mails @ford.com são permitidos
+                    </div>
+                </div>
+
+                <!-- ── CAMPOS EXTRAS — SÓ NO CADASTRO ─────── -->
+                <div id="signup-extra-fields" style="display:none;">
+
+                    <!-- Nome Completo -->
+                    <div style="margin-bottom:15px;">
+                        <label style="
+                        display:block;font-size:0.68rem;font-weight:600;
+                        color:rgba(168,196,240,0.65);letter-spacing:0.6px;
+                        text-transform:uppercase;margin-bottom:7px;
+                    ">Nome Completo</label>
+                        <div style="position:relative;">
+                            <span class="material-icons"
+                                style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:18px;color:rgba(108,172,228,0.35);pointer-events:none;">person_outline</span>
+                            <input type="text" id="signup-nome" class="login-input" placeholder="Seu nome completo"
+                                autocomplete="name" style="padding-left:42px;">
+                        </div>
+                    </div>
+
+                    <!-- Cargo -->
+                    <div style="margin-bottom:15px;">
+                        <label style="
+                        display:block;font-size:0.68rem;font-weight:600;
+                        color:rgba(168,196,240,0.65);letter-spacing:0.6px;
+                        text-transform:uppercase;margin-bottom:7px;
+                    ">Cargo</label>
+                        <div style="position:relative;">
+                            <span class="material-icons"
+                                style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:18px;color:rgba(108,172,228,0.35);pointer-events:none;">badge</span>
+                            <select id="signup-cargo" class="login-input" style="padding-left:42px;cursor:pointer;">
+                                <option value="">Selecione sua funcao...</option>
+                                <option value="Analista">Analista de Testes</option>
+                                <option value="Outros">Outros</option>
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ── CAMPO SENHA ──────────────────────────── -->
+                <div style="margin-bottom:6px;">
+                    <label style="
+                    display:block;font-size:0.68rem;font-weight:600;
+                    color:rgba(168,196,240,0.65);letter-spacing:0.6px;
+                    text-transform:uppercase;margin-bottom:7px;
+                ">Senha</label>
+
+                    <div style="position:relative;">
+                        <span class="material-icons"
+                            style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:18px;color:rgba(108,172,228,0.35);pointer-events:none;">lock_outline</span>
+                        <input type="password" id="login-senha" class="login-input" placeholder="••••••••"
+                            autocomplete="current-password" style="padding-left:42px;padding-right:44px;"
+                            oninput="avaliarForcaSenha(this)">
+
+                        <!-- Mostrar/ocultar senha -->
+                        <button type="button" onclick="
+                                const i=document.getElementById('login-senha');
+                                i.type=i.type==='password'?'text':'password';
+                                this.querySelector('.material-icons').textContent=i.type==='text'?'visibility_off':'visibility';
+                                this.style.opacity=i.type==='text'?'0.8':'0.35';
+                            " style="
+                                position:absolute;right:10px;top:50%;
+                                transform:translateY(-50%);
+                                background:none;border:none;cursor:pointer;
+                                opacity:0.35;padding:4px;
+                                transition:opacity 0.2s;
+                                display:flex;align-items:center;
+                            " title="Mostrar/ocultar senha"><span class="material-icons"
+                                style="font-size:18px;color:rgba(108,172,228,0.8);">visibility</span></button>
+                    </div>
+
+                    <!-- Barra de força da senha -->
+                    <div id="strength-container" style="display:none;margin-top:8px;">
+                        <div style="
+                        display:flex;justify-content:space-between;
+                        font-size:0.7rem;color:rgba(255,255,255,0.3);
+                        margin-bottom:5px;
+                    ">
+                            <span>Força da senha</span>
+                            <span id="strength-label-text" style="font-weight:600;"></span>
+                        </div>
+                        <div style="display:flex;gap:4px;">
+                            <div id="seg1" style="
+                            flex:1;height:3px;border-radius:3px;
+                            background:rgba(255,255,255,0.08);
+                            transition:background 0.3s ease;
+                        "></div>
+                            <div id="seg2" style="
+                            flex:1;height:3px;border-radius:3px;
+                            background:rgba(255,255,255,0.08);
+                            transition:background 0.3s ease;
+                        "></div>
+                            <div id="seg3" style="
+                            flex:1;height:3px;border-radius:3px;
+                            background:rgba(255,255,255,0.08);
+                            transition:background 0.3s ease;
+                        "></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── LINK ESQUECI SENHA — só no login ────── -->
+                <div id="container-esqueci-senha" style="text-align:right;margin:8px 0 18px;">
+                    <a href="#" onclick="abrirModalRecuperacao();return false;" style="
+                       font-size:0.75rem;
+                       color:rgba(96,165,250,0.75);
+                       text-decoration:none;
+                       transition:color 0.2s;
+                   " onmouseover="this.style.color='#93c5fd'" onmouseout="this.style.color='rgba(96,165,250,0.75)'">
+                        Esqueci minha senha
+                    </a>
+                </div>
+
+                <!-- ── BOTÃO PRINCIPAL ─────────────────────── -->
+                <button id="btn-auth-principal" onclick="processarAutenticacao()" style="
+                        width:100%;
+                        padding:15px;
+                        background:linear-gradient(135deg,#1668CB 0%,#003478 100%);
+                        border:none;
+                        border-radius:12px;
+                        color:#ffffff;
+                        font-size:0.95rem;
+                        font-weight:700;
+                        letter-spacing:0.3px;
+                        cursor:pointer;
+                        font-family:inherit;
+                        transition:all 0.2s ease;
+                        box-shadow:
+                            0 4px 20px rgba(22,104,203,0.4),
+                            inset 0 1px 0 rgba(255,255,255,0.12);
+                        position:relative;
+                        overflow:hidden;
+                    " onmouseover="if(!this.disabled){
+                        this.style.transform='translateY(-2px)';
+                        this.style.boxShadow='0 8px 30px rgba(22,104,203,0.55),inset 0 1px 0 rgba(255,255,255,0.12)';
+                    }" onmouseout="if(!this.disabled){
+                        this.style.transform='translateY(0)';
+                        this.style.boxShadow='0 4px 20px rgba(22,104,203,0.4),inset 0 1px 0 rgba(255,255,255,0.12)';
+                    }">
+
+                    <!-- Brilho no botão -->
+                    <div style="
+                    position:absolute;inset:0;
+                    background:linear-gradient(135deg,
+                        rgba(255,255,255,0.08) 0%,transparent 60%);
+                    pointer-events:none;
+                "></div>
+
+                    <span id="btn-auth-texto" style="position:relative;display:flex;
+                             align-items:center;justify-content:center;gap:8px;">
+                        <span class="material-icons" style="font-size:1rem;">login</span>
+                        Acessar Sistema
+                    </span>
+
+                    <!-- Loading -->
+                    <span id="btn-auth-loading" style="position:relative;display:none;
+                             align-items:center;justify-content:center;gap:10px;">
+                        <span style="
+                        width:16px;height:16px;
+                        border:2px solid rgba(255,255,255,0.3);
+                        border-top-color:#ffffff;
+                        border-radius:50%;
+                        display:inline-block;
+                        animation:loginSpin 0.8s linear infinite;
+                    "></span>
+                        Aguarde...
+                    </span>
+
+                </button>
+
+                <!-- Info de tentativas -->
+                <div id="tentativas-info" style="
+                font-size:0.75rem;
+                color:rgba(251,191,36,0.8);
+                text-align:center;
+                margin-top:10px;
+                min-height:18px;
+            "></div>
+
+                <!-- Rodapé do card -->
+                <p style="
+                text-align:center;
+                font-size:0.68rem;
+                color:rgba(255,255,255,0.18);
+                margin:14px 0 0;
+            ">Acesso restrito a colaboradores autorizados</p>
+
+            </div>
+
+            <!-- COPYRIGHT -->
+            <p style="
+            color:rgba(255,255,255,0.3);
+            font-size:0.66rem;
+            margin-top:16px;
+            text-align:center;
+            text-shadow:0 1px 6px rgba(0,0,0,0.9);
+        ">© 2026 Ford Motor Company · TPG Tatuí · VEV Campo de Provas</p>
+
+        </div>
+    </div>
+
+
+    <div id="modal-recuperacao">
+        <div class="ford-login-card">
+            <h3 style="color:var(--ford-blue);margin-bottom:8px;font-size:1.1rem;">Recuperar senha</h3>
+            <p style="font-size:0.85rem;color:#64748b;margin-bottom:16px;">
+                Informe seu e-mail @ford.com para receber o link de redefinição.
+            </p>
+            <div class="ford-input-group">
+                <label for="email-recuperacao">E-mail corporativo</label>
+                <input type="email" id="email-recuperacao" class="ford-input" placeholder="nome@ford.com">
+            </div>
+            <button class="ford-btn" onclick="enviarLinkRecuperacao()">Enviar link</button>
+            <button class="ford-btn ford-btn-secondary"
+                onclick="document.getElementById('modal-recuperacao').style.display='none'">
+                Cancelar
+            </button>
+        </div>
+    </div>
+
+    <div id="tela-boas-vindas">
+        <div class="welcome-checkmark">
+            <span class="material-icons">verified_user</span>
+        </div>
+        <p class="welcome-greeting">Bem-vindo de volta</p>
+        <p class="welcome-name" id="welcome-nome-texto">ANALISTA</p>
+        <p class="welcome-role">Campo de Provas Tatuí · Acesso Autorizado</p>
+        <div class="welcome-bar-container">
+            <div class="welcome-bar"></div>
+        </div>
+    </div>
+
+    <div id="tela-pendente">
+        <div class="pend-icon">
+            <span class="material-icons" style="font-size:2rem;color:var(--neon-orange);">schedule</span>
+        </div>
+        <p class="pend-title">Aguardando Aprovação</p>
+        <p class="pend-nome" id="pend-nome">Usuário</p>
+        <span class="pend-cargo" id="pend-cargo">Analista</span>
+        <p class="pend-msg">
+            Seu cadastro foi recebido com sucesso.<br>
+            Um gestor foi notificado e precisa aprovar seu acesso.<br>
+            Você receberá um e-mail quando for aprovado.
+        </p>
+        <button class="btn-pend-sair" onclick="firebase.auth().signOut()">
+            <span class="material-icons" style="font-size:1rem;">logout</span>
+            Sair e aguardar aprovação
+        </button>
+    </div>
+
+    <div id="modal-inicio-turno" class="modal-overlay" style="display:none;--accent:var(--neon-blue);">
+        <div class="modal-content" style="max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+
+            <div class="close-btn" onclick="TurnoUI.fecharSeTiver()">
+                <span class="material-icons">close</span>
+            </div>
+
+            <h3 class="modal-title"
+                style="color:var(--neon-blue);display:flex;align-items:center;justify-content:center;gap:8px;">
+                <span class="material-icons" style="font-size:1.2rem;">play_circle</span>
+                Início de Turno
+            </h3>
+
+            <!-- 1. PROJETO -->
+            <div class="ford-group">
+                <label class="ford-label">
+                    <span class="material-icons" style="font-size:0.9rem;vertical-align:middle;">folder</span>
+                    Projeto <span style="color:var(--neon-red);">*</span>
+                </label>
+                <select id="it-projeto" class="ford-input" onchange="TurnoUI.aoSelecionarProjeto(this)">
+                    <option value="">Selecione o projeto...</option>
+                </select>
+            </div>
+
+            <!-- AMBIENTE DE TESTE -->
+            <div class="ford-group">
+                <label class="ford-label">
+                    <span class="material-icons" style="font-size:0.9rem;vertical-align:middle;">map</span>
+                    Ambiente de Teste <span style="color:var(--neon-red);">*</span>
+                </label>
+                <select id="it-ambiente" class="ford-input" onchange="TurnoUI.aoSelecionarAmbiente(this)">
+                    <option value="">Selecione o ambiente...</option>
+                    <option value="Interna">Pistas Internas (Laboratório, Dinamômetro)</option>
+                    <option value="Externa">Pistas Externas (Asfalto, Terra, Alta Velocidade)</option>
+                    <option value="VOC">VOC (Validação de Campo / Ruas Públicas)</option>
+                </select>
+            </div>
+
+            <!-- 2. TIPO DE TESTE DE PISTA -->
+            <div class="ford-group">
+                <label class="ford-label">
+                    <span class="material-icons" style="font-size:0.9rem;vertical-align:middle;">science</span>
+                    Tipo de Teste de Pista <span style="color:var(--neon-red);">*</span>
+                </label>
+                <select id="it-tipo-teste" class="ford-input" disabled>
+                    <option value="">Selecione o ambiente primeiro...</option>
+                </select>
+            </div>
+
+            <!-- 3. OPERADOR -->
+            <div class="ford-group">
+                <label class="ford-label">
+                    <span class="material-icons" style="font-size:0.9rem;vertical-align:middle;">person</span>
+                    Operador / Analista
+                </label>
+                <div id="it-operador-display"
+                    style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:12px 16px;font-size:0.9rem;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
+                </div>
+                <input type="hidden" id="it-operador-value">
+            </div>
+
+            <!-- 4. VEÍCULO -->
+            <div class="ford-group">
+                <label class="ford-label">
+                    <span class="material-icons" style="font-size:0.9rem;vertical-align:middle;">directions_car</span>
+                    Veículo <span style="color:var(--neon-red);">*</span>
+                </label>
+                <select id="it-veiculo" class="ford-input" onchange="TurnoUI.aoSelecionarVeiculo(this)">
+                    <option value="">Selecione o veículo...</option>
+                </select>
+            </div>
+
+            <!-- 5. KM INICIAL -->
+            <div class="ford-group">
+                <label class="ford-label">
+                    <span class="material-icons" style="font-size:0.9rem;vertical-align:middle;">speed</span>
+                    Km Inicial <span style="color:var(--neon-red);">*</span>
+                </label>
+                <input type="number" id="it-km-inicial" class="ford-input" placeholder="Ex: 298855" inputmode="numeric">
+            </div>
+
+            <!-- 6–9. CAMPOS AUTOMÁTICOS -->
+            <div class="ford-group">
+                <label class="ford-label" style="color:var(--text-secondary);font-size:0.75rem;">
+                    DADOS AUTOMÁTICOS DO VEÍCULO
+                </label>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+
+                    <div>
+                        <label class="ford-label" style="font-size:0.75rem;">VIN</label>
+                        <input type="text" id="it-vin" class="ford-input" placeholder="Automático" readonly
+                            style="background:rgba(255,255,255,0.02);color:var(--text-secondary);cursor:default;">
+                    </div>
+
+                    <div>
+                        <label class="ford-label" style="font-size:0.75rem;">EJA</label>
+                        <input type="text" id="it-eja" class="ford-input" placeholder="Automático" readonly
+                            style="background:rgba(255,255,255,0.02);color:var(--text-secondary);cursor:default;">
+                    </div>
+
+                    <div>
+                        <label class="ford-label" style="font-size:0.75rem;">CC</label>
+                        <input type="text" id="it-cc" class="ford-input" placeholder="Automático" readonly
+                            style="background:rgba(255,255,255,0.02);color:var(--text-secondary);cursor:default;">
+                    </div>
+
+                </div>
+
+                <div>
+                    <label class="ford-label" style="font-size:0.75rem;">Outras Informações</label>
+                    <textarea id="it-outras-info" class="ford-input" placeholder="Observações automáticas do veículo..."
+                        rows="2" readonly
+                        style="resize:none;background:rgba(255,255,255,0.02);color:var(--text-secondary);cursor:default;"></textarea>
+                </div>
+            </div>
+
+            <!-- Campo rápido para veículo não cadastrado -->
+            <div id="it-veiculo-nao-cadastrado-container" style="display:none; margin-top:15px; padding:12px; background:rgba(255,255,255,0.02); border:1px solid var(--border-glass); border-radius:8px;">
+                <label class="ford-label" style="font-size:0.75rem; color:var(--google-blue-lt); font-weight:700; display:block; margin-bottom:6px;">
+                    Identificador do Veículo (Carro em Registro)
+                </label>
+                <input type="text" id="it-veiculo-nome-rapido" class="ford-input" placeholder="Digite o nome, placa ou código do veículo...">
+                <button type="button" class="btn-primary" style="margin-top:10px; width:100%; font-size:0.8rem; padding:8px;" onclick="TurnoUI.salvarVeiculoRapido()">
+                    Salvar e Registrar Veículo
+                </button>
+            </div>
+
+            <!-- BOTÕES -->
+            <div style="display:flex;gap:10px;margin-top:1.5rem;">
+                <button class="btn-secondary" style="flex:1;" onclick="TurnoUI.fecharSeTiver()">
+                    Cancelar
+                </button>
+                <button class="btn-primary" style="flex:2;" onclick="TurnoUI.iniciarTurno()">
+                    <span class="material-icons" style="font-size:1rem;vertical-align:middle;">play_circle</span>
+                    Iniciar Turno
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="modal-precadastro">
+        <div class="pc-box">
+            <div class="pc-header">
+                <h3 style="display:flex;align-items:center;gap:8px;"><span class="material-icons"
+                        style="font-size:1.1rem;">manage_accounts</span>Gerenciar Cadastros</h3>
+                <div class="close-btn" onclick="TurnoUI.fecharPC()">
+                    <span class="material-icons">close</span>
+                </div>
+            </div>
+
+            <div class="pc-tabs">
+                <button class="pc-tab active" onclick="TurnoUI.abaPC('tiposTeste',this)">Projetos</button>
+                <button class="pc-tab" onclick="TurnoUI.abaPC('operadores',this)">Operadores</button>
+                <button class="pc-tab" onclick="TurnoUI.abaPC('veiculos',this)">Veículos</button>
+                <button class="pc-tab" onclick="TurnoUI.abaPC('postos',this)">Postos</button>
+            </div>
+
+            <div class="pc-body">
+
+                <!-- ABA: PROJETOS -->
+                <div id="pc-panel-tiposTeste" class="pc-panel active">
+                    <div class="pc-columns">
+                        <div class="pc-col-left">
+                            <input type="search" class="pc-inp" placeholder="Pesquisar projeto..."
+                                oninput="TurnoUI.pesquisarPC('tiposTeste', this.value)" style="margin-bottom:0.5rem;">
+                            <div id="pc-lista-tiposTeste" class="pc-lista"></div>
+                        </div>
+                        <div class="pc-col-right">
+                            <div class="pc-add-form">
+                                <h4>+ Adicionar Projeto</h4>
+                                <div class="pc-add-row">
+                                    <input type="text" id="pc-in-tiposTeste-nome" class="pc-inp"
+                                        placeholder="Ex: EET Ranger 2024 - Drive Team" style="margin-bottom:0;">
+                                    <button class="btn-pc-add" onclick="TurnoUI.addPC('tiposTeste')">
+                                        <span class="material-icons" style="font-size:1rem;">add</span>
+                                        Add
+                                    </button>
+                                </div>
+                                <p style="font-size:0.72rem;opacity:0.55;margin-top:8px;line-height:1.4;">
+                                    Após adicionar o projeto, clique no botão de edição para vincular os formulários.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ABA: OPERADORES / GESTÃO DE EQUIPE -->
+                <div id="pc-panel-operadores" class="pc-panel">
+                    <div class="pc-columns">
+                        <div class="pc-col-left">
+                            <div
+                                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; gap:10px;">
+                                <input type="search" class="pc-inp" placeholder="Pesquisar por nome, cargo ou e-mail..."
+                                    oninput="TurnoUI.pesquisarPC('operadores', this.value)"
+                                    style="margin-bottom:0; flex:1;">
+                            </div>
+                            <div class="pc-lista-wrapper" style="overflow-x:auto;">
+                                <table class="pc-tabela-usuarios"
+                                    style="width:100%; border-collapse:collapse; text-align:left;">
+                                    <thead>
+                                        <tr style="border-bottom:2px solid var(--border-glass);">
+                                            <th
+                                                style="padding:10px; font-size:0.75rem; color:var(--text-secondary); font-weight:700;">
+                                                Nome</th>
+                                            <th
+                                                style="padding:10px; font-size:0.75rem; color:var(--text-secondary); font-weight:700;">
+                                                E-mail / Matrícula</th>
+                                            <th
+                                                style="padding:10px; font-size:0.75rem; color:var(--text-secondary); font-weight:700;">
+                                                Perfil (RBAC)</th>
+                                            <th
+                                                style="padding:10px; font-size:0.75rem; color:var(--text-secondary); font-weight:700; text-align:right;">
+                                                Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="pc-tabela-corpo-operadores">
+                                        <!-- Renderizado Dinamicamente -->
+                                    </tbody>
+                                </table>
+                                <div id="pc-lista-operadores" style="display:none;"></div>
+                            </div>
+                        </div>
+                        <div class="pc-col-right">
+                            <div class="pc-add-form"
+                                style="border:1px solid var(--border-glass); border-radius:12px; padding:1.2rem; background:rgba(255,255,255,0.01);">
+                                <h4
+                                    style="margin-top:0; margin-bottom:1.2rem; font-size:0.95rem; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+                                    <span class="material-icons"
+                                        style="font-size:1.2rem; color:var(--neon-blue);">person_add</span>
+                                    Novo Membro da Equipe
+                                </h4>
+
+                                <div class="ford-group" style="margin-bottom:1rem;">
+                                    <label class="ford-label"
+                                        style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:4px;">Nome
+                                        Completo</label>
+                                    <input type="text" id="pc-in-operadores-nome" class="pc-inp"
+                                        placeholder="Ex: Carlos Santos" oninput="TurnoUI.validarFormOperador()"
+                                        style="width:100%; box-sizing:border-box;">
+                                </div>
+
+                                <div class="ford-group" style="margin-bottom:1rem;">
+                                    <label class="ford-label"
+                                        style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:4px; display:flex; justify-content:space-between;">
+                                        <span>E-mail Corporativo</span>
+                                        <span id="operador-val-email-msg"
+                                            style="font-size:0.65rem; font-weight:600; color:var(--neon-red);"></span>
+                                    </label>
+                                    <div style="position:relative;">
+                                        <input type="email" id="pc-in-operadores-email" class="pc-inp"
+                                            placeholder="usuario@ford.com" oninput="TurnoUI.validarFormOperador()"
+                                            style="width:100%; box-sizing:border-box; padding-right:35px;">
+                                        <span id="operador-val-email-icon" class="material-icons"
+                                            style="position:absolute; right:10px; top:50%; transform:translateY(-50%); font-size:1.1rem; display:none;"></span>
+                                    </div>
+                                </div>
+
+                                <div class="ford-group" style="margin-bottom:1rem;">
+                                    <label class="ford-label"
+                                        style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:4px;">Matrícula
+                                        (opcional)</label>
+                                    <input type="text" id="pc-in-operadores-matricula" class="pc-inp"
+                                        placeholder="Ex: 884722" style="width:100%; box-sizing:border-box;">
+                                </div>
+
+                                <div class="ford-group" style="margin-bottom:1.5rem;">
+                                    <label class="ford-label"
+                                        style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:4px;">Cargo
+                                        / Perfil de Acesso</label>
+                                    <select id="pc-in-operadores-cargo" class="pc-inp"
+                                        onchange="TurnoUI.validarFormOperador()"
+                                        style="width:100%; box-sizing:border-box; cursor:pointer;">
+                                        <option value="Analista" selected>Analista (Execução & Smart Relatório)
+                                        </option>
+                                        <option value="Coordenador">Coordenador (Alocação & Gestão de Pistas)
+                                        </option>
+                                        <option value="Gerente">Gerente (Acesso Total & Configurações Globais)
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <button id="btn-pc-add-operadores" class="btn-pc-add"
+                                    style="width:100%; justify-content:center; padding:10px; font-weight:700; opacity:0.6; cursor:not-allowed;"
+                                    disabled onclick="TurnoUI.addPC('operadores')">
+                                    <span class="material-icons"
+                                        style="font-size:1.1rem; vertical-align:middle; margin-right:4px;">check_circle</span>
+                                    Cadastrar Membro
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ABA: VEÍCULOS -->
+                <div id="pc-panel-veiculos" class="pc-panel">
+                    <div class="pc-columns">
+                        <div class="pc-col-left">
+                            <input type="search" class="pc-inp" placeholder="Pesquisar veículo..."
+                                oninput="TurnoUI.pesquisarPC('veiculos', this.value)" style="margin-bottom:0.5rem;">
+                            <div id="pc-lista-veiculos" class="pc-lista"></div>
+                        </div>
+                        <div class="pc-col-right">
+                            <div class="pc-add-form">
+                                <h4>+ Adicionar Veículo</h4>
+
+                                <input type="text" id="pc-in-veiculos-nome" class="pc-inp"
+                                    placeholder="Ex: Ford Ranger 4x4">
+
+                                <input type="text" id="pc-in-veiculos-vin" class="pc-inp"
+                                    placeholder="VIN (somente números)" inputmode="numeric"
+                                    oninput="this.value=this.value.replace(/\D/g,'')">
+
+                                <input type="text" id="pc-in-veiculos-eja" class="pc-inp"
+                                    placeholder="EJA (Ex: EJA-2024-001)">
+
+                                <input type="text" id="pc-in-veiculos-cc" class="pc-inp"
+                                    placeholder="CC (somente números)" inputmode="numeric"
+                                    oninput="this.value=this.value.replace(/\D/g,'')">
+
+                                <textarea id="pc-in-veiculos-outrasInfo" class="pc-inp"
+                                    placeholder="Outras Informações (opcional)" rows="3"
+                                    style="resize:vertical;font-family:inherit;line-height:1.4;"></textarea>
+                                <div class="input-group" style="margin-top:10px;">
+                                    <label
+                                        style="font-size:0.67rem;color:var(--vev-text-label);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:5px;">
+                                        <span class="material-icons"
+                                            style="font-size:14px;opacity:0.6;">folder_open</span> Projetos Vinculados
+                                    </label>
+                                    <div id="pc-veiculo-projetos-lista" style="background:rgba(255,255,255,0.03);
+                                            border:1px solid rgba(255,255,255,0.1);
+                                            border-radius:10px;padding:10px;
+                                            max-height:140px;overflow-y:auto; margin-bottom: 8px;">
+                                        <div style="color:var(--text-secondary);font-size:0.78rem;text-align:center;">
+                                            Carregando projetos...
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button class="btn-pc-add" style="width:100%;justify-content:center;"
+                                    onclick="TurnoUI.addPC('veiculos')">
+                                    <span class="material-icons" style="font-size:1rem;">add</span>
+                                    Adicionar Veículo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ABA: POSTOS -->
+                <div id="pc-panel-postos" class="pc-panel">
+                    <div class="pc-columns">
+                        <div class="pc-col-left">
+                            <input type="search" class="pc-inp" placeholder="Pesquisar posto..."
+                                oninput="TurnoUI.pesquisarPC('postos', this.value)" style="margin-bottom:0.5rem;">
+                            <div id="pc-lista-postos" class="pc-lista"></div>
+                        </div>
+                        <div class="pc-col-right">
+                            <div class="pc-add-form">
+                                <h4>+ Adicionar Posto</h4>
+                                <div class="pc-add-row">
+                                    <input type="text" id="pc-in-postos-nome" class="pc-inp"
+                                        placeholder="Ex: Posto BR Tatuí" style="margin-bottom:0;">
+                                    <button class="btn-pc-add" onclick="TurnoUI.addPC('postos')">
+                                        <span class="material-icons" style="font-size:1rem;">add</span>
+                                        Add
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+     MODAL CONFIGURAÇÕES DO SISTEMA (Apenas Gerente)
+     ═══════════════════════════════════════════════════════════ -->
+    <div id="modal-configuracoes-sistema" class="modal-overlay"
+        style="display:none; z-index:9998; --accent:var(--neon-blue);">
+        <div class="modal-content"
+            style="max-width: 600px; width: calc(100% - 40px); max-height:92vh; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 25px;">
+            <div class="close-btn" onclick="ConfiguracoesSistemaUI.fechar()">
+                <span class="material-icons">close</span>
+            </div>
+
+            <h3 class="modal-title"
+                style="color:var(--text-primary); display:flex; align-items:center; gap:8px; margin-bottom:1.5rem;">
+                <span class="material-icons" style="font-size:1.4rem; color:var(--neon-blue);">settings</span>
+                Configurações do Sistema
+            </h3>
+
+            <!-- Seção 1: E-mail da Gerência -->
+            <div class="ford-group" style="margin-bottom:1.5rem;">
+                <label class="ford-label"
+                    style="font-size:0.78rem; color:var(--text-secondary); margin-bottom:6px; display:flex; align-items:center; gap:4px;">
+                    <span class="material-icons" style="font-size:0.95rem; opacity:0.7;">email</span>
+                    E-mail Master da Gerência
+                </label>
+                <input type="email" id="config-master-email" class="ford-input" placeholder="gerencia.tatu@ford.com"
+                    style="width:100%; box-sizing:border-box;">
+                <p style="font-size:0.7rem; color:var(--text-secondary); margin-top:4px; opacity:0.6; line-height:1.4;">
+                    Endereço de destino para o recebimento de alertas operacionais críticos e relatórios consolidados
+                    automáticos.
+                </p>
+            </div>
+
+            <!-- Seção 2: Toggles de Notificação -->
+            <div class="ford-group"
+                style="margin-bottom:1.8rem; border-top: 1px solid var(--border-glass); padding-top:1.2rem;">
+                <label class="ford-label"
+                    style="font-size:0.78rem; color:var(--text-secondary); margin-bottom:10px; display:flex; align-items:center; gap:4px;">
+                    <span class="material-icons" style="font-size:0.95rem; opacity:0.7;">notifications_active</span>
+                    Configurações de Alertas e Notificações
+                </label>
+
+                <div
+                    style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.03);">
+                    <div>
+                        <div style="font-size:0.85rem; font-weight:600; color:var(--text-primary);">Alerta de Fluidos da
+                            IA</div>
+                        <div style="font-size:0.7rem; color:var(--text-secondary); margin-top:2px;">Disparar e-mail para
+                            cada "Líquido no mínimo" detectado.</div>
+                    </div>
+                    <label class="switch" style="position:relative; display:inline-block; width:46px; height:24px;">
+                        <input type="checkbox" id="config-notify-liquids" style="opacity:0; width:0; height:0;">
+                        <span class="slider round"
+                            style="position:absolute; cursor:pointer; inset:0; background-color:rgba(255,255,255,0.1); transition:0.3s; border-radius:34px; border:1px solid var(--border-glass);"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Botões de Ação -->
+            <div style="display:flex; gap:10px; margin-bottom:1.8rem;">
+                <button class="btn-secondary" style="flex:1; padding:10px;"
+                    onclick="ConfiguracoesSistemaUI.fechar()">Cancelar</button>
+                <button class="btn-pc-add" style="flex:1.5; justify-content:center; padding:10px; font-weight:700;"
+                    onclick="ConfiguracoesSistemaUI.salvar()">
+                    <span class="material-icons" style="font-size:1.1rem; margin-right:4px;">save</span>
+                    Salvar Alterações
+                </button>
+            </div>
+
+            <!-- Seção 3: Histórico de Logs de Auditoria -->
+            <div style="border-top:1px solid var(--border-glass); padding-top:1.2rem;">
+                <h4
+                    style="margin:0 0 10px 0; font-size:0.78rem; color:var(--text-secondary); display:flex; align-items:center; gap:5px; text-transform:uppercase; letter-spacing:0.5px;">
+                    <span class="material-icons" style="font-size:0.95rem; opacity:0.7;">security</span>
+                    Logs de Segurança e Auditoria
+                </h4>
+                <div
+                    style="max-height:160px; overflow-y:auto; border:1px solid var(--border-glass); border-radius:10px; background:rgba(255,255,255,0.01);">
+                    <table style="width:100%; border-collapse:collapse; text-align:left;">
+                        <thead>
+                            <tr style="border-bottom:1px solid var(--border-glass); background:rgba(255,255,255,0.02);">
+                                <th
+                                    style="padding:6px 10px; font-size:0.68rem; color:var(--text-secondary); font-weight:700;">
+                                    Usuário</th>
+                                <th
+                                    style="padding:6px 10px; font-size:0.68rem; color:var(--text-secondary); font-weight:700;">
+                                    Modificação</th>
+                                <th
+                                    style="padding:6px 10px; font-size:0.68rem; color:var(--text-secondary); font-weight:700; text-align:right;">
+                                    Data / Hora</th>
+                            </tr>
+                        </thead>
+                        <tbody id="config-logs-corpo">
+                            <!-- Renderizado Dinamicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <header>
+        <img src="/assets/ford_logo_icon_145825-ByxGPVxd.png" alt="VEV"
+            onerror="this.style.display='none';this.insertAdjacentHTML('afterend','<span style=\'font-weight:900;font-size:1.3rem;letter-spacing:1px;\'>FORD <span style=\'color:var(--neon-blue)\'>VEV</span></span>');">
+        <div class="header-info">
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+                <div class="user-name" id="ui-nome-usuario">NÃO LOGADO</div>
+            </div>
+            <button class="btn-logout" onclick="if(typeof app!=='undefined') app.efetuarLogout()"
+                title="Encerrar Turno">
+                <span class="material-icons" style="font-size:1.5rem;">power_settings_new</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- ═══════════════════════════════════════════════════════════
+     BANNER TURNO ATIVO — Reformulado
+     ═══════════════════════════════════════════════════════════ -->
+        <div id="turno-ativo-banner">
+
+            <!-- Linha decorativa topo -->
+            <div class="banner-topo-linha"></div>
+
+            <!-- HEADER: status + cronômetro -->
+            <div class="banner-header">
+
+                <div class="banner-status">
+                    <div class="banner-dot-wrapper">
+                        <div class="banner-dot-core"></div>
+                        <div class="banner-dot-ring"></div>
+                    </div>
+                    <span class="banner-status-texto">TURNO ATIVO</span>
+                </div>
+
+                <div class="banner-cronometro-wrapper">
+                    <span class="material-icons" style="font-size:0.85rem;opacity:0.45;vertical-align:middle;">
+                        timer
+                    </span>
+                    <span id="banner-cronometro" style="font-family:'Courier New',monospace;
+                         font-weight:700;
+                         font-size:0.88rem;
+                         color:rgba(168,196,240,0.8);
+                         letter-spacing:1px;">
+                        00:00:00
+                    </span>
+                </div>
+
+            </div>
+
+            <!-- GRID DE DADOS -->
+            <div class="tab-info-grid">
+
+                <div class="tab-info-item">
+                    <span class="tab-info-label">
+                        <span class="material-icons" style="font-size:0.7rem;vertical-align:middle;
+                             margin-right:3px;opacity:0.6;">
+                            folder
+                        </span>
+                        Projeto
+                    </span>
+                    <span class="tab-info-val" id="tab-ui-projeto">—</span>
+                </div>
+
+                <div class="tab-info-item">
+                    <span class="tab-info-label">
+                        <span class="material-icons" style="font-size:0.7rem;vertical-align:middle;
+                             margin-right:3px;opacity:0.6;">
+                            science
+                        </span>
+                        Teste / Ambiente
+                    </span>
+                    <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+                        <span id="tab-ui-ambiente-badge"></span>
+                        <span class="tab-info-val" id="tab-ui-tipo" style="margin-top:0;">—</span>
+                    </div>
+                </div>
+
+                <div class="tab-info-item">
+                    <span class="tab-info-label">
+                        <span class="material-icons" style="font-size:0.7rem;vertical-align:middle;
+                             margin-right:3px;opacity:0.6;">
+                            person
+                        </span>
+                        Operador
+                    </span>
+                    <span class="tab-info-val" id="tab-ui-operador">—</span>
+                </div>
+
+                <div class="tab-info-item">
+                    <span class="tab-info-label">
+                        <span class="material-icons" style="font-size:0.7rem;vertical-align:middle;
+                             margin-right:3px;opacity:0.6;">
+                            directions_car
+                        </span>
+                        Veículo
+                    </span>
+                    <span class="tab-info-val" id="tab-ui-veiculo">—</span>
+                </div>
+
+                <div class="tab-info-item">
+                    <span class="tab-info-label">
+                        <span class="material-icons" style="font-size:0.7rem;vertical-align:middle;
+                             margin-right:3px;opacity:0.6;">
+                            speed
+                        </span>
+                        Km Inicial
+                    </span>
+                    <span class="tab-info-val" id="tab-ui-km">—</span>
+                </div>
+
+                <div class="tab-info-item">
+                    <span class="tab-info-label">
+                        <span class="material-icons" style="font-size:0.7rem;vertical-align:middle;
+                             margin-right:3px;opacity:0.6;">
+                            tag
+                        </span>
+                        VIN
+                    </span>
+                    <span class="tab-info-val" id="tab-ui-vin">—</span>
+                </div>
+
+                <div class="tab-info-item">
+                    <span class="tab-info-label">
+                        <span class="material-icons" style="font-size:0.7rem;vertical-align:middle;
+                             margin-right:3px;opacity:0.6;">
+                            receipt
+                        </span>
+                        EJA
+                    </span>
+                    <span class="tab-info-val" id="tab-ui-eja">—</span>
+                </div>
+
+                <div class="tab-info-item">
+                    <span class="tab-info-label">
+                        <span class="material-icons" style="font-size:0.7rem;vertical-align:middle;
+                             margin-right:3px;opacity:0.6;">
+                            account_balance
+                        </span>
+                        CC
+                    </span>
+                    <span class="tab-info-val" id="tab-ui-cc">—</span>
+                </div>
+
+                <div class="tab-info-item tab-info-item--full">
+                    <span class="tab-info-label">
+                        <span class="material-icons" style="font-size:0.7rem;vertical-align:middle;
+                             margin-right:3px;opacity:0.6;">
+                            info
+                        </span>
+                        Outras Informações
+                    </span>
+                    <span class="tab-info-val" id="tab-ui-outras-info" style="white-space:pre-wrap;">—</span>
+                </div>
+
+            </div>
+
+            <!-- RODAPÉ: tipo de teste -->
+            <div class="banner-footer">
+                <div class="banner-tipo-teste-badge">
+                    <span class="material-icons" style="font-size:0.8rem;">science</span>
+                    <span id="banner-tipo-teste-label">—</span>
+                </div>
+            </div>
+
+            <!-- Linha decorativa fundo -->
+            <div class="banner-bottom-linha"></div>
+
+        </div>
+        <div id="banner-instalacao" class="bento-card bento-full"
+            style="background:rgba(16,185,129,0.1);border-color:var(--neon-green);display:none;flex-direction:row;align-items:center;justify-content:space-between;padding:1.2rem 1.5rem;margin-bottom:1.5rem;">
+            <div style="flex:1;">
+                <h3
+                    style="color:var(--neon-green);margin-bottom:4px;font-size:1.1rem;display:flex;align-items:center;gap:8px;">
+                    <span class="material-icons">install_mobile</span> Instalar App VEV
+                </h3>
+                <p style="font-size:0.75rem;margin-bottom:0;color:var(--text-primary);opacity:0.9;">
+                    Adicione à tela inicial para acesso offline.
+                </p>
+            </div>
+            <button onclick="instalarPWA()"
+                style="background:var(--neon-green);color:#000;border:none;padding:12px 20px;border-radius:12px;font-weight:900;cursor:pointer;text-transform:uppercase;font-size:0.85rem;">
+                INSTALAR
+            </button>
+        </div>
+
+
+
+
+
+        <!-- ========================================================
+             CENTRAL DE FORMULÁRIOS & LINKS ÚTEIS (SEM TRAVAS - SEMPRE ATIVO)
+             ======================================================== -->
+        <h2 style="font-size:1.25rem; font-weight:800; color:#fff; border-left:4px solid #00c896; padding-left:10px; margin: 24px 0 16px;">Sistemas & Formulários VEV</h2>
+
+        <div class="bento-grid" style="margin-bottom: 24px;">
+            <div class="bento-card bento-full" style="
+                    background: linear-gradient(135deg, rgba(10,20,45,0.92), rgba(15,30,65,0.85));
+                    border: 1px solid rgba(0,120,215,0.35);
+                    border-radius: 20px;
+                    padding: 24px;
+                    box-shadow: 0 15px 35px rgba(0,0,0,0.45);
+                    cursor: default;
+                ">
+                <div class="bento-glow" style="background:rgba(0,120,215,0.05);"></div>
+                <div class="bento-content" style="width:100%;">
+                    
+                    <!-- Header do Painel -->
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:12px;">
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <span class="material-icons" style="color:#00c896;font-size:1.5rem;">apps</span>
+                            <h3 style="color:#fff;font-size:1.05rem;margin:0;font-weight:800;letter-spacing:-0.3px;">Central Operacional VEV</h3>
+                        </div>
+                        <span style="
+                            font-size:0.6rem;font-weight:900;
+                            background:rgba(0,200,150,0.15);
+                            color:#00c896;
+                            border:1px solid rgba(0,200,150,0.35);
+                            padding:3px 10px;border-radius:20px;
+                            text-transform:uppercase;letter-spacing:0.8px;
+                        ">Acesso Livre</span>
+                    </div>
+
+                    <!-- Layout: Três Seções Lógicas (Testes, Relatórios/Turno, Links) -->
+                    <div style="display:grid;grid-template-columns:1.2fr 1.2fr 0.8fr;gap:20px;align-items:start;">
+                        
+                        <!-- Coluna 1: Testes de Pista -->
+                        <div style="background:rgba(255,255,255,0.01); border:1px solid rgba(255,255,255,0.03); border-radius:14px; padding:14px;">
+                            <div style="font-size:0.75rem;color:rgba(168,196,240,0.65);font-weight:800;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+                                <span class="material-icons" style="font-size:0.95rem;color:#38bdf8;">science</span> Executar Testes de Pista
+                            </div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                                <button class="fra-btn-action" style="
+                                        background:rgba(168,85,247,0.12);
+                                        border:1px solid rgba(168,85,247,0.35);
+                                        color:#c4b5fd;
+                                        padding:14px 6px;
+                                        border-radius:12px;
+                                        font-size:0.72rem;
+                                        font-weight:800;
+                                        cursor:pointer;
+                                        display:flex;flex-direction:column;align-items:center;gap:6px;
+                                        transition:all 0.2s ease;
+                                        width:100%;
+                                    "
+                                    onclick="appUI.abrirModal('modal-roteiro')">
+                                    <span class="material-icons" style="font-size:1.6rem;color:#a855f7;">alt_route</span>
+                                    Ciclos R389
+                                </button>
+                                <button class="fra-btn-action" style="
+                                        background:rgba(236,72,153,0.12);
+                                        border:1px solid rgba(236,72,153,0.35);
+                                        color:#fbcfe8;
+                                        padding:14px 6px;
+                                        border-radius:12px;
+                                        font-size:0.72rem;
+                                        font-weight:800;
+                                        cursor:pointer;
+                                        display:flex;flex-direction:column;align-items:center;gap:6px;
+                                        transition:all 0.2s ease;
+                                        width:100%;
+                                    "
+                                    onclick="appUI.abrirModal('modal-desaceleracao')">
+                                    <span class="material-icons" style="font-size:1.6rem;color:#ec4899;">sports_score</span>
+                                    Desaceleração
+                                </button>
+                                <button class="fra-btn-action" style="
+                                        background:rgba(56,189,248,0.12);
+                                        border:1px solid rgba(56,189,248,0.35);
+                                        color:#bae6fd;
+                                        padding:14px 6px;
+                                        border-radius:12px;
+                                        font-size:0.72rem;
+                                        font-weight:800;
+                                        cursor:pointer;
+                                        display:flex;flex-direction:column;align-items:center;gap:6px;
+                                        transition:all 0.2s ease;
+                                        width:100%;
+                                    "
+                                    onclick="appUI.abrirModal('modal-rota-livre')">
+                                    <span class="material-icons" style="font-size:1.6rem;color:#0284c7;">route</span>
+                                    Free-Rolling
+                                </button>
+                                <button class="fra-btn-action" style="
+                                        background:rgba(249,115,22,0.12);
+                                        border:1px solid rgba(249,115,22,0.35);
+                                        color:#ffedd5;
+                                        padding:14px 6px;
+                                        border-radius:12px;
+                                        font-size:0.72rem;
+                                        font-weight:800;
+                                        cursor:pointer;
+                                        display:flex;flex-direction:column;align-items:center;gap:6px;
+                                        transition:all 0.2s ease;
+                                        width:100%;
+                                    "
+                                    onclick="appUI.abrirModal('modal-frenagem')">
+                                    <span class="material-icons" style="font-size:1.6rem;color:#ea580c;">speed</span>
+                                    Frenagem
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Coluna 2: Relatórios, Históricos & Turno -->
+                        <div style="background:rgba(255,255,255,0.01); border:1px solid rgba(255,255,255,0.03); border-radius:14px; padding:14px;">
+                            <div style="font-size:0.75rem;color:rgba(168,196,240,0.65);font-weight:800;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+                                <span class="material-icons" style="font-size:0.95rem;color:#00c896;">edit_document</span> Relatar & Históricos
+                            </div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                                <button class="fra-btn-action" style="
+                                        background:rgba(16,185,129,0.12);
+                                        border:1px solid rgba(16,185,129,0.35);
+                                        color:#a7f3d0;
+                                        padding:14px 6px;
+                                        border-radius:12px;
+                                        font-size:0.72rem;
+                                        font-weight:800;
+                                        cursor:pointer;
+                                        display:flex;flex-direction:column;align-items:center;gap:6px;
+                                        transition:all 0.2s ease;
+                                        width:100%;
+                                        grid-column: span 2;
+                                    "
+                                    onclick="TurnoUI.mostrar()">
+                                    <span class="material-icons" style="font-size:1.6rem;color:#10b981;">play_circle_filled</span>
+                                    Iniciar Turno
+                                </button>
+                                <button class="fra-btn-action" style="
+                                        background:rgba(139,92,246,0.12);
+                                        border:1px solid rgba(139,92,246,0.3);
+                                        color:#d8b4fe;
+                                        padding:14px 6px;
+                                        border-radius:12px;
+                                        font-size:0.72rem;
+                                        font-weight:800;
+                                        cursor:pointer;
+                                        display:flex;flex-direction:column;align-items:center;gap:6px;
+                                        transition:all 0.2s ease;
+                                        width:100%;
+                                    "
+                                    onclick="appUI.abrirModal('modal-laudo')">
+                                    <span class="material-icons" style="font-size:1.6rem;color:#8b5cf6;">rate_review</span>
+                                    Laudo Técnico
+                                </button>
+                                <button class="fra-btn-action" style="
+                                        background:rgba(0,200,150,0.12);
+                                        border:1px solid rgba(0,200,150,0.35);
+                                        color:#a7f3d0;
+                                        padding:14px 6px;
+                                        border-radius:12px;
+                                        font-size:0.72rem;
+                                        font-weight:800;
+                                        cursor:pointer;
+                                        display:flex;flex-direction:column;align-items:center;gap:6px;
+                                        transition:all 0.2s ease;
+                                        width:100%;
+                                    "
+                                    onclick="abrirHistoricoPerformance()">
+                                    <span class="material-icons" style="font-size:1.6rem;color:#00c896;">analytics</span>
+                                    Performance GPS
+                                </button>
+                                <button class="fra-btn-action" style="
+                                        background:rgba(255,255,255,0.03);
+                                        border:1px solid rgba(255,255,255,0.12);
+                                        color:#f1f5f9;
+                                        padding:14px 6px;
+                                        border-radius:12px;
+                                        font-size:0.72rem;
+                                        font-weight:800;
+                                        cursor:pointer;
+                                        display:flex;flex-direction:column;align-items:center;gap:6px;
+                                        transition:all 0.2s ease;
+                                        width:100%;
+                                    "
+                                    onclick="app.abrirModalHistorico()">
+                                    <span class="material-icons" style="font-size:1.6rem;color:#94a3b8;">history</span>
+                                    Histórico Turnos
+                                </button>
+                                <button class="fra-btn-action" style="
+                                        background:rgba(239,68,68,0.12);
+                                        border:1px solid rgba(239,68,68,0.35);
+                                        color:#fca5a5;
+                                        padding:14px 6px;
+                                        border-radius:12px;
+                                        font-size:0.72rem;
+                                        font-weight:800;
+                                        cursor:pointer;
+                                        display:flex;flex-direction:column;align-items:center;gap:6px;
+                                        transition:all 0.2s ease;
+                                        width:100%;
+                                    "
+                                    onclick="appUI.abrirModal('modal-turno')">
+                                    <span class="material-icons" style="font-size:1.6rem;color:#ef4444;">verified_user</span>
+                                    Encerrar Turno
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Coluna 3: Links de Apoio Ford -->
+                        <div style="background:rgba(255,255,255,0.01); border:1px solid rgba(255,255,255,0.03); border-radius:14px; padding:14px; height: 100%;">
+                            <div style="font-size:0.75rem;color:rgba(168,196,240,0.65);font-weight:800;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+                                <span class="material-icons" style="font-size:0.95rem;color:#eab308;">link</span> Links Ford
+                            </div>
+                            <div style="display:flex;flex-direction:column;gap:8px;">
+                                <a href="https://www.ford.com" target="_blank" style="text-decoration:none; width:100%;">
+                                    <button class="fra-btn-action" style="
+                                            background:rgba(255,255,255,0.04);
+                                            border:1px solid rgba(255,255,255,0.1);
+                                            color:rgba(255,255,255,0.85);
+                                            padding:10px 4px;
+                                            border-radius:10px;
+                                            font-size:0.7rem;
+                                            font-weight:700;
+                                            cursor:pointer;
+                                            display:flex;align-items:center;justify-content:center;gap:6px;
+                                            width:100%;
+                                            transition:all 0.2s ease;
+                                        ">
+                                        <span class="material-icons" style="font-size:1.1rem;color:#38bdf8;">corporate_fare</span>
+                                        Portal Ford
+                                    </button>
+                                </a>
+                                <a href="https://maps.google.com" target="_blank" style="text-decoration:none; width:100%;">
+                                    <button class="fra-btn-action" style="
+                                            background:rgba(255,255,255,0.04);
+                                            border:1px solid rgba(255,255,255,0.1);
+                                            color:rgba(255,255,255,0.85);
+                                            padding:10px 4px;
+                                            border-radius:10px;
+                                            font-size:0.7rem;
+                                            font-weight:700;
+                                            cursor:pointer;
+                                            display:flex;align-items:center;justify-content:center;gap:6px;
+                                            width:100%;
+                                            transition:all 0.2s ease;
+                                        ">
+                                        <span class="material-icons" style="font-size:1.1rem;color:#f43f5e;">pin_drop</span>
+                                        Tatuí Maps
+                                    </button>
+                                </a>
+                                <a href="https://firebase.google.com" target="_blank" style="text-decoration:none; width:100%;">
+                                    <button class="fra-btn-action" style="
+                                            background:rgba(255,255,255,0.04);
+                                            border:1px solid rgba(255,255,255,0.1);
+                                            color:rgba(255,255,255,0.85);
+                                            padding:10px 4px;
+                                            border-radius:10px;
+                                            font-size:0.7rem;
+                                            font-weight:700;
+                                            cursor:pointer;
+                                            display:flex;align-items:center;justify-content:center;gap:6px;
+                                            width:100%;
+                                            transition:all 0.2s ease;
+                                        ">
+                                        <span class="material-icons" style="font-size:1.1rem;color:#f59e0b;">storage</span>
+                                        Firebase
+                                    </button>
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================================================
+         FORD FREE-ROLLING ANALYTICS — Modal Histórico de Performance
+         ==================================================== -->
+    <style>
+        /* ── Free-Rolling Analytics Cards ─────────────────── */
+        #modal-historico-performance .modal-content {
+            max-height: 92vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .fra-card-viagem {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(0,200,150,0.2);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: border-color 0.2s;
+        }
+        .fra-card-viagem:hover { border-color: rgba(0,200,150,0.5); }
+        .fra-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .fra-card-copiloto {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #00c896;
+        }
+        .fra-card-data {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            margin-top: 3px;
+        }
+        .fra-badge {
+            font-size: 0.65rem;
+            font-weight: 800;
+            background: rgba(0,200,150,0.12);
+            color: #00c896;
+            border: 1px solid rgba(0,200,150,0.3);
+            padding: 2px 8px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        .fra-card-metricas {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .fra-metrica-val {
+            font-size: 1.3rem;
+            font-weight: 900;
+            color: var(--text-primary);
+            font-family: 'Roboto Mono', monospace;
+            line-height: 1;
+        }
+        .fra-metrica-lbl {
+            font-size: 0.62rem;
+            color: var(--text-secondary);
+            margin-top: 3px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .fra-card-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .fra-btn-action {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 8px 4px;
+            border-radius: 10px;
+            border: 1px solid;
+            font-size: 0.72rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            transition: background 0.15s, transform 0.1s;
+        }
+        .fra-btn-action:active { transform: scale(0.97); }
+        .fra-btn-action .material-icons { font-size: 1rem; }
+        .fra-btn-json {
+            background: rgba(59,130,246,0.1);
+            border-color: rgba(59,130,246,0.35);
+            color: #60a5fa;
+        }
+        .fra-btn-csv {
+            background: rgba(34,197,94,0.1);
+            border-color: rgba(34,197,94,0.35);
+            color: #4ade80;
+        }
+        .fra-btn-share {
+            background: rgba(0,200,150,0.1);
+            border-color: rgba(0,200,150,0.35);
+            color: #00c896;
+        }
+        .fra-modal-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+        .fra-modal-badge {
+            font-size: 0.62rem;
+            font-weight: 800;
+            background: rgba(0,200,150,0.15);
+            color: #00c896;
+            border: 1px solid rgba(0,200,150,0.35);
+            padding: 2px 8px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    </style>
+
+    <div id="modal-historico-performance" class="modal-overlay" style="display:none;--accent:#00c896;">
+        <div class="modal-content" style="max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+            <div class="close-btn" onclick="document.getElementById('modal-historico-performance').style.display='none';document.body.style.overflow='auto';">
+                <span class="material-icons">close</span>
+            </div>
+
+            <div class="fra-modal-header">
+                <h3 class="modal-title" style="color:#00c896;margin-bottom:0;">Histórico de Performance</h3>
+                <span class="fra-modal-badge">Free-Rolling Analytics</span>
+            </div>
+            <p style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:1.2rem;">
+                Viagens registradas via GPS — armazenadas localmente e na nuvem.
+            </p>
+
+            <!-- Lista renderizada via JS -->
+            <div id="fra-lista-viagens">
+                <div style="text-align:center;padding:2rem;color:var(--text-secondary);">
+                    <div class="dash-spinner" style="margin:0 auto 12px;"></div>
+                    Carregando histórico...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-historico" class="modal-overlay color-white">
+        <div class="modal-content">
+            <div class="close-btn" onclick="appUI.fecharModal('modal-historico')"><span
+                    class="material-icons">close</span></div>
+            <h3 class="modal-title" style="color:#fff;">Histórico de Turnos</h3>
+            <p style="text-align:center;color:var(--text-secondary);margin-bottom:1rem;">Selecione um dia anterior para
+                baixar o relatório.</p>
+            <div id="lista-historico-nuvem" class="log-container" style="max-height:400px;">
+                <div style="text-align:center;padding:2rem;">Buscando dados na nuvem...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-gps" class="modal-overlay color-cyan">
+        <div class="modal-content">
+            <div class="close-btn" onclick="appUI.fecharModal('modal-gps')"><span class="material-icons">close</span>
+            </div>
+            <h3 class="modal-title">Copiloto Dark Horse</h3>
+            <div class="dashboard-panel">
+                <div class="input-group">
+                    <label>Selecione o Protocolo de Teste</label>
+                    <select id="gps-rota-selecionada"
+                        style="text-align:center;font-weight:bold;font-size:1.1rem;color:var(--accent);padding:12px;background:rgba(0,0,0,0.8);">
+                        <option value="R389">Ciclos R389 (Loop)</option>
+                        <option value="FRENAGEM">Frenagem (8 Laps)</option>
+                        <option value="DESACELERACAO">Desaceleração 16 Laps</option>
+                        <option value="RODAGEM">Ford Free-Rolling Analytics</option>
+                    </select>
+                </div>
+                <div class="grid-2" style="margin-top:1.5rem;">
+                    <button id="btn-ativar-kx" class="btn-main btn-solid" onclick="iniciarCopilotoKX()">
+                        <span class="material-icons">play_arrow</span> Iniciar Dark Horse
+                    </button>
+                    <button class="btn-main color-red" style="--accent:var(--neon-red);" onclick="pararCopilotoKX()">
+                        <span class="material-icons">stop</span> PARAR
+                    </button>
+                </div>
+                <div id="status-kx"
+                    style="margin-top:15px;font-size:0.95rem;font-weight:bold;color:var(--neon-cyan);text-align:center;height:20px;">
+                </div>
+                <div id="painel-rodagem" style="display:none;text-align:left;">
+                    <div
+                        style="background:rgba(0,0,0,0.6);padding:15px;border-radius:12px;margin-top:15px;border:1px solid var(--neon-cyan);">
+                        <div style="display:flex;justify-content:space-between;text-align:center;">
+                            <div>
+                                <div style="font-size:0.75rem;color:var(--text-secondary);">VELOCIDADE</div>
+                                <div id="ui-vel-atual" style="font-size:1.8rem;font-weight:900;color:#fff;">0 <span
+                                        style="font-size:0.8rem;">km/h</span></div>
+                            </div>
+                            <div>
+                                <div style="font-size:0.75rem;color:var(--text-secondary);">DISTÂNCIA</div>
+                                <div id="ui-dist-total"
+                                    style="font-size:1.8rem;font-weight:900;color:var(--neon-cyan);">0.00 <span
+                                        style="font-size:0.8rem;">km</span></div>
+                            </div>
+                        </div>
+                    </div>
+                <!-- [REMOVIDO v2.0] Bloco G-Force desativado — sistema opera 100% via GPS -->
+                    <div class="grid-2" style="margin-top:1.5rem;">
+                        <button class="btn-main" onclick="app.resetarRodagem()"><span
+                                class="material-icons">delete</span> LIMPAR</button>
+                        <button class="btn-main color-red" onclick="app.gerarRelatorioRodagem()"><span
+                                class="material-icons">picture_as_pdf</span> GERAR PDF</button>
+                    </div>
+                </div>
+                <div style="margin-top:20px;">
+                    <button class="btn-main" style="--accent:var(--text-primary);border-style:dashed;"
+                        onclick="abrirMapaAoVivo()">
+                        <span class="material-icons">map</span> ABRIR MAPA DE RADAR
+                    </button>
+                    <div id="container-mapa" style="display:none;margin-top:10px;">
+                        <div id="mapa-gps"
+                            style="height:300px;width:100%;border-radius:12px;border:1px solid rgba(255,255,255,0.1);">
+                        </div>
+                        <button class="btn-main"
+                            style="--accent:var(--neon-purple);border-style:dashed;margin-top:10px;padding:1rem;"
+                            onclick="desenharRotaColorida()">
+                            <span class="material-icons">route</span> DESENHAR ROTA NO MAPA (HEATMAP)
+                        </button>
+                        <p style="font-size:0.75rem;color:var(--text-secondary);margin-top:5px;text-align:center;">Verde
+                            = 0-40 | Laranja = 40-80 | Vermelho = 80+ km/h</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-rota-livre" class="modal-overlay color-blue">
+        <div class="modal-content" style="max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+            <div class="close-btn" onclick="appUI.fecharModal('modal-rota-livre')"><span
+                    class="material-icons">close</span></div>
+            <h3 class="modal-title">Rota Livre / Percurso</h3>
+
+            <!-- MINI COPILOTO INTEGRADO ROTA LIVRE -->
+            <div id="mini-kx-rota-livre" class="mini-copiloto-card">
+                <div class="mini-copiloto-info">
+                    <span class="material-icons">support_agent</span>
+                    <div class="mini-copiloto-text">
+                        <h4>Copiloto Dark Horse</h4>
+                        <p id="txt-kx-rota-livre">Gravador Inativo</p>
+                    </div>
+                </div>
+                <button id="btn-kx-rota-livre" onclick="toggleCopilotoModo('RODAGEM', 'rota-livre')"
+                    class="btn-mini-kx">
+                    <span class="material-icons">play_arrow</span> ATIVAR
+                </button>
+            </div>
+
+            <div class="dashboard-panel">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+                    <div>
+                        <div style="font-size:0.75rem;color:rgba(168,196,240,0.6);">VELOCIDADE</div>
+                        <div id="ui-rl-vel" class="big-value" style="margin:5px 0 0;font-family:'Roboto Mono';">0 <span
+                                style="font-size:0.8rem;">km/h</span></div>
+                    </div>
+                    <div>
+                        <div style="font-size:0.75rem;color:rgba(168,196,240,0.6);">DISTÂNCIA</div>
+                        <div id="ui-rl-dist" class="big-value"
+                            style="margin:5px 0 0;color:var(--vev-blue-300);font-family:'Roboto Mono';">0.00 <span
+                                style="font-size:0.8rem;">km</span></div>
+                    </div>
+                </div>
+                <div
+                    style="font-size:0.72rem;color:rgba(168,196,240,0.45);text-align:left;margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">
+                    Coordenadas Registradas</div>
+                <div id="rl-pontos-cont" class="big-value"
+                    style="font-size:1.25rem;margin:5px 0;font-family:'Roboto Mono';">0 pontos</div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:1rem;">
+                <div class="grid-2">
+                    <button class="btn-secondary" onclick="limparRotaLivre()" style="width:100%; display:flex; align-items:center; justify-content:center; gap:6px;">
+                        <span class="material-icons">delete</span> LIMPAR
+                    </button>
+                    <button class="btn-secondary" onclick="abrirMapaRotaLivre()" style="width:100%; display:flex; align-items:center; justify-content:center; gap:6px;">
+                        <span class="material-icons">map</span> VER MAPA
+                    </button>
+                </div>
+            </div>
+
+            <div id="rl-container-mapa" style="display:none;margin-top:15px;">
+                <div id="rl-mapa"
+                    style="height:250px;width:100%;border-radius:12px;border:1px solid rgba(255,255,255,0.1);"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-desaceleracao" class="modal-overlay color-pink">
+        <div class="modal-content">
+            <div class="close-btn" onclick="appUI.fecharModal('modal-desaceleracao')"><span
+                    class="material-icons">close</span></div>
+            <h3 class="modal-title">Desaceleração 16 Laps</h3>
+
+            <!-- MINI COPILOTO INTEGRADO -->
+            <div id="mini-kx-desaceleracao" class="mini-copiloto-card">
+                <div class="mini-copiloto-info">
+                    <span class="material-icons">support_agent</span>
+                    <div class="mini-copiloto-text">
+                        <h4>Copiloto Dark Horse</h4>
+                        <p id="txt-kx-desaceleracao">Assistente Inativo</p>
+                    </div>
+                </div>
+                <button id="btn-kx-desaceleracao" onclick="toggleCopilotoModo('DESACELERACAO', 'desaceleracao')"
+                    class="btn-mini-kx">
+                    <span class="material-icons">play_arrow</span> ATIVAR
+                </button>
+            </div>
+
+            <div class="dashboard-panel">
+                <label>Status / Etapa Atual</label>
+                <div id="etapa-desaceleracao-atual" class="big-value">Carregando...</div>
+                <button class="btn-main btn-solid" style="margin-top:1.5rem;"
+                    onclick="app.registrarPassagemDesaceleracao()">
+                    <span class="material-icons">touch_app</span> MARCAR MANUAL
+                </button>
+            </div>
+            <div class="input-group"><label>Timeline do Teste</label></div>
+            <div id="lista-desaceleracao" class="log-container"></div>
+            <div class="grid-2" style="margin-top:1.5rem;">
+                <button class="btn-main" onclick="app.novaVoltaDesaceleracao()"><span class="material-icons">loop</span>
+                    FORÇAR REINÍCIO</button>
+                <button class="btn-main color-red" onclick="app.gerarRelatorioDesaceleracao()"><span
+                        class="material-icons">picture_as_pdf</span> GERAR PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-roteiro" class="modal-overlay color-purple">
+        <div class="modal-content">
+            <div class="close-btn" onclick="appUI.fecharModal('modal-roteiro')"><span
+                    class="material-icons">close</span></div>
+            <h3 class="modal-title">Controle R389</h3>
+
+            <!-- MINI COPILOTO INTEGRADO ROTEIRO -->
+            <div id="mini-kx-roteiro" class="mini-copiloto-card">
+                <div class="mini-copiloto-info">
+                    <span class="material-icons">support_agent</span>
+                    <div class="mini-copiloto-text">
+                        <h4>Copiloto Dark Horse</h4>
+                        <p id="txt-kx-roteiro">Assistente Inativo</p>
+                    </div>
+                </div>
+                <button id="btn-kx-roteiro" onclick="toggleCopilotoModo('R389', 'roteiro')" class="btn-mini-kx">
+                    <span class="material-icons">play_arrow</span> ATIVAR
+                </button>
+            </div>
+            <div class="dashboard-panel">
+                <label>Status / Etapa Atual</label>
+                <div id="etapa-atual" class="big-value">Carregando...</div>
+                <button class="btn-main btn-solid" style="margin-top:1.5rem;" onclick="app.registrarPassagem()">
+                    <span class="material-icons">touch_app</span> MARCAR MANUAL
+                </button>
+            </div>
+            <div class="input-group"><label>Timeline do Turno</label></div>
+            <div id="lista-cola" class="log-container"></div>
+            <div class="grid-2" style="margin-top:1.5rem;">
+                <button class="btn-main" onclick="app.novaVolta()"><span class="material-icons">loop</span> FORÇAR
+                    REINÍCIO</button>
+                <button class="btn-main color-red" onclick="app.gerarRelatorioRoteiro()"><span
+                        class="material-icons">picture_as_pdf</span> GERAR PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-frenagem" class="modal-overlay color-orange">
+        <div class="modal-content">
+            <div class="close-btn" onclick="appUI.fecharModal('modal-frenagem')"><span
+                    class="material-icons">close</span></div>
+            <h3 class="modal-title">Protocolo de Frenagem</h3>
+
+            <!-- MINI COPILOTO INTEGRADO FRENAGEM -->
+            <div id="mini-kx-frenagem" class="mini-copiloto-card">
+                <div class="mini-copiloto-info">
+                    <span class="material-icons">support_agent</span>
+                    <div class="mini-copiloto-text">
+                        <h4>Copiloto Dark Horse</h4>
+                        <p id="txt-kx-frenagem">Assistente Inativo</p>
+                    </div>
+                </div>
+                <button id="btn-kx-frenagem" onclick="toggleCopilotoModo('FRENAGEM', 'frenagem')" class="btn-mini-kx">
+                    <span class="material-icons">play_arrow</span> ATIVAR
+                </button>
+            </div>
+            <div class="dashboard-panel">
+                <div
+                    style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;flex-wrap:wrap;gap:10px;width:100%;">
+                    <div id="f-ciclo-atual"
+                        style="background:rgba(249,115,22,0.2);color:var(--accent);padding:6px 16px;border-radius:20px;font-weight:800;font-size:0.95rem;border:1px solid rgba(249,115,22,0.4);height:fit-content;">
+                        CICLO 1</div>
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+                        <div id="f-progresso-ciclo" style="color:var(--text-primary);font-size:1.1rem;font-weight:800;">
+                            Lap 1/8</div>
+                        <div style="display:flex;gap:4px;" class="frenagem-lap-selector">
+                            <button onclick="app.definirLapFrenagem(1)" class="btn-lap-sel active"
+                                id="f-btn-lap-1">1</button>
+                            <button onclick="app.definirLapFrenagem(2)" class="btn-lap-sel" id="f-btn-lap-2">2</button>
+                            <button onclick="app.definirLapFrenagem(3)" class="btn-lap-sel" id="f-btn-lap-3">3</button>
+                            <button onclick="app.definirLapFrenagem(4)" class="btn-lap-sel" id="f-btn-lap-4">4</button>
+                            <button onclick="app.definirLapFrenagem(5)" class="btn-lap-sel" id="f-btn-lap-5">5</button>
+                            <button onclick="app.definirLapFrenagem(6)" class="btn-lap-sel" id="f-btn-lap-6">6</button>
+                            <button onclick="app.definirLapFrenagem(7)" class="btn-lap-sel" id="f-btn-lap-7">7</button>
+                            <button onclick="app.definirLapFrenagem(8)" class="btn-lap-sel" id="f-btn-lap-8">8</button>
+                        </div>
+                    </div>
+                </div>
+                <label>Próximo Checkpoint</label>
+                <div id="f-proxima-etapa" class="big-value" style="color:var(--accent);">Pista Baixa - Volta 1</div>
+                <div class="input-group" style="margin-top:1.5rem;">
+                    <input type="text" id="f-obs" placeholder="OK / Sem Anomalias" style="text-align:center;">
+                </div>
+                <button class="btn-main btn-solid" onclick="app.registrarVoltaFrenagem()">
+                    <span class="material-icons">touch_app</span> MARCAR MANUAL
+                </button>
+            </div>
+            <div class="input-group"><label>Histórico</label></div>
+            <div id="lista-frenagem" class="log-container"></div>
+            <button class="btn-main color-red" style="margin-top:1.5rem;" onclick="app.gerarRelatorioFrenagem()">
+                <span class="material-icons">picture_as_pdf</span> GERAR PDF
+            </button>
+        </div>
+    </div>
+
+    <div id="modal-laudo" class="modal-overlay color-blue">
+        <div class="modal-content">
+            <div class="close-btn" onclick="fecharModalLaudo()">
+                <span class="material-icons">close</span>
+            </div>
+            <h3 class="modal-title">Laudo Técnico de Ocorrência</h3>
+            <!-- CONTEXTO AUTOMÁTICO DO TURNO ATIVO -->
+            <div id="laudo-ctx-sem-turno" style="display:none;align-items:center;gap:8px;
+            background:rgba(251,191,36,0.08);
+            border:1px solid rgba(251,191,36,0.25);
+            border-radius:10px;padding:10px 14px;
+            margin-bottom:12px;font-size:0.78rem;
+            color:rgba(251,191,36,0.9);">
+                <span class="material-icons" style="font-size:1rem;">warning</span>
+                Nenhum turno ativo — inicie um turno para herdar os dados.
+            </div>
+
+            <div id="laudo-ctx-painel" style="background:rgba(59,130,246,0.06);
+            border:1px solid rgba(59,130,246,0.18);
+            border-radius:12px;padding:12px 14px;
+            margin-bottom:1rem;">
+
+                <div style="font-size:0.65rem;font-weight:700;
+                color:var(--neon-blue);letter-spacing:0.5px;
+                margin-bottom:8px;">
+                    DADOS DO TURNO ATIVO — SOMENTE LEITURA
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+
+                    <div>
+                        <div style="font-size:0.62rem;color:var(--text-secondary);">PROJETO</div>
+                        <div id="laudo-ctx-projeto"
+                            style="font-size:0.82rem;font-weight:600;color:var(--text-primary);">—</div>
+                    </div>
+
+                    <div>
+                        <div style="font-size:0.62rem;color:var(--text-secondary);">TIPO DE TESTE</div>
+                        <div id="laudo-ctx-teste" style="font-size:0.82rem;font-weight:600;color:var(--text-primary);">—
+                        </div>
+                    </div>
+
+                    <div>
+                        <div style="font-size:0.62rem;color:var(--text-secondary);">ANALISTA</div>
+                        <div id="laudo-ctx-operador"
+                            style="font-size:0.82rem;font-weight:600;color:var(--text-primary);">—</div>
+                    </div>
+
+                    <div>
+                        <div style="font-size:0.62rem;color:var(--text-secondary);">VEÍCULO</div>
+                        <div id="laudo-ctx-veiculo"
+                            style="font-size:0.82rem;font-weight:600;color:var(--text-primary);">—</div>
+                    </div>
+
+                    <div>
+                        <div style="font-size:0.62rem;color:var(--text-secondary);">VIN</div>
+                        <div id="laudo-ctx-vin" style="font-size:0.82rem;font-weight:600;color:var(--text-primary);">—
+                        </div>
+                    </div>
+
+                    <div>
+                        <div style="font-size:0.62rem;color:var(--text-secondary);">DATA / HORA</div>
+                        <div id="laudo-ctx-data" style="font-size:0.82rem;font-weight:600;color:var(--text-primary);">—
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="laudo-section">
+                <div class="laudo-section-header">
+                    <span class="laudo-step-number">1</span>Relatar Ocorrência
+                </div>
+                <div
+                    style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+                    <span style="font-size:0.8rem;color:var(--text-secondary);">
+                        Analista: <span id="ui-analista-laudo" style="color:var(--neon-blue);font-weight:800;"></span>
+                    </span>
+                </div>
+                <div class="input-group" style="margin-top:12px; display: flex; flex-direction: column;">
+                    <textarea id="i-obs" rows="4"
+                        placeholder="Descreva a anomalia detectada com detalhes técnicos..."></textarea>
+                    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 6px;">
+                        <button id="btn-refinar-ia" class="btn-refinar-ia" type="button" onclick="app.melhorarTextoComIA(this)">
+                            <span class="material-icons">auto_fix_high</span>
+                            Refinar com IA
+                        </button>
+                        <button id="btn-config-ia-key" class="btn-refinar-ia" type="button" onclick="app.alternarPainelApiKey()" style="padding: 6px;" title="Configurar API Key">
+                            <span class="material-icons">settings</span>
+                        </button>
+                    </div>
+                    <div id="container-config-ia-key" style="display: none; align-items: center; gap: 8px; margin-top: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-glass); border-radius: 8px; padding: 6px 10px; width: 100%;">
+                        <span class="material-icons" style="font-size: 1rem; color: var(--text-secondary);">key</span>
+                        <input type="password" id="i-gemini-api-key" placeholder="Colar Gemini API Key..." style="flex: 1; background: transparent; border: none; outline: none; color: var(--text-primary); font-size: 0.8rem; padding: 2px 0;">
+                        <button type="button" onclick="app.salvarApiKeyInline()" style="background: none; border: none; color: var(--neon-green); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="Salvar Chave">
+                            <span class="material-icons" style="font-size: 1.2rem;">check_circle</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; border-top: 1px solid var(--border-glass); padding-top: 12px;">
+                    <div class="input-group" style="margin-bottom: 0;">
+
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label style="font-size: 0.72rem; color: var(--text-secondary); font-weight: 700; margin-bottom: 6px; display: block;">Tipo de Ocorrência</label>
+                        <select id="i-tipo" style="width: 100%; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid var(--border-glass); color: var(--text-primary); font-weight: 700;">
+                            <option value="Geral" selected>Geral</option>
+                            <option value="Freios">Freios</option>
+                            <option value="Suspensão">Suspensão</option>
+                            <option value="Motor">Motor</option>
+                            <option value="Elétrico">Elétrico</option>
+                            <option value="Transmissão">Transmissão</option>
+                            <option value="Direção">Direção</option>
+                            <option value="Carroceria">Carroceria</option>
+                            <option value="Pneus">Pneus</option>
+                            <option value="Arrefecimento">Arrefecimento</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="laudo-section">
+                <div class="laudo-section-header">
+                    <span class="laudo-step-number">2</span>Registro Fotográfico <span
+                        style="font-size:0.7rem;font-weight:400;opacity:0.5;text-transform:none;letter-spacing:0;">—
+                        opcional</span>
+                </div>
+                <div class="camera-trigger" onclick="document.getElementById('media-input').click()">
+                    <span class="material-icons"
+                        style="font-size:2.5rem;margin-bottom:5px;">camera_alt</span><br>Fotografar Avaria
+                </div>
+                <input type="file" id="media-input" accept="image/*,video/*" multiple style="display:none"
+                    onchange="app.handleMedia(event)">
+                <div id="galeria-avaria" class="gallery"></div>
+            </div>
+
+            <button class="btn-main" style="--accent:var(--neon-green);border-color:var(--neon-green);margin-top:1.5rem;"
+                onclick="app.gerarECompartilharLaudo()">
+                <span class="material-icons">send</span> EMITIR RELATÓRIO
+            </button>
+        </div>
+    </div>
+
+    <div id="modal-turno" class="modal-overlay color-green">
+        <div class="modal-content" style="max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+            <div class="close-btn" onclick="appUI.fecharModal('modal-turno')"><span class="material-icons">close</span>
+            </div>
+            <h3 class="modal-title">Encerrar Turno</h3>
+            <div class="enc-info-card">
+                <div class="enc-info-header">
+                    <span class="material-icons" style="font-size:0.9rem;">info</span>Dados do Início de Turno
+                </div>
+
+                <!-- NOVO: EJA e Outras Informações adicionados no painel de resumo -->
+                <div class="enc-grid">
+                    <div class="enc-item">
+                        <span class="enc-lbl">Projeto</span>
+                        <span class="enc-val" id="enc-show-projeto">—</span>
+                    </div>
+
+                    <div class="enc-item">
+                        <span class="enc-lbl">Tipo de Teste</span>
+                        <span class="enc-val" id="enc-show-tipo">—</span>
+                    </div>
+
+                    <div class="enc-item">
+                        <span class="enc-lbl">Operador</span>
+                        <span class="enc-val" id="enc-show-operador">—</span>
+                    </div>
+
+                    <div class="enc-item">
+                        <span class="enc-lbl">Veículo</span>
+                        <span class="enc-val" id="enc-show-veiculo">—</span>
+                    </div>
+
+                    <div class="enc-item">
+                        <span class="enc-lbl">KM Inicial</span>
+                        <span class="enc-val" id="enc-show-km-ini">—</span>
+                    </div>
+
+                    <div class="enc-item">
+                        <span class="enc-lbl">VIN</span>
+                        <span class="enc-val" id="enc-show-vin">—</span>
+                    </div>
+
+                    <div class="enc-item">
+                        <span class="enc-lbl">EJA</span>
+                        <span class="enc-val" id="enc-show-eja">—</span>
+                    </div>
+
+                    <div class="enc-item">
+                        <span class="enc-lbl">CC</span>
+                        <span class="enc-val" id="enc-show-cc">—</span>
+                    </div>
+
+                    <div class="enc-item">
+                        <span class="enc-lbl">Início</span>
+                        <span class="enc-val" id="enc-show-hora">—</span>
+                    </div>
+
+                    <div class="enc-item" style="grid-column: span 2;">
+                        <span class="enc-lbl">Outras Informações</span>
+                        <span class="enc-val" id="enc-show-outras-info" style="white-space:pre-wrap;">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="enc-section"><span class="material-icons" style="font-size:0.9rem;">assignment</span>Informações
+                Obrigatórias</div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Km Final</label>
+                    <input type="number" id="enc-km-final" inputmode="numeric" min="0" placeholder="0"
+                        oninput="TurnoUI.calcTrip()">
+                </div>
+                <div class="input-group">
+                    <label>Trip (calculado)</label>
+                    <div class="trip-box" id="enc-trip-display">— <small>Km Final − Km Inicial</small></div>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Abastecimento</label>
+                <select id="enc-posto"></select>
+            </div>
+            <div class="input-group">
+                <label>Litros (Etanol / Gasolina / Diesel)</label>
+                <input type="number" id="enc-litros" inputmode="decimal" placeholder="0.0" step="0.1" min="0">
+            </div>
+
+            <button class="enc-opcional-btn" onclick="TurnoUI.toggleOpcional(this)">
+                <span style="display:flex;align-items:center;gap:6px;">
+                    <span class="material-icons" style="font-size:1rem;">expand_more</span>
+                    <span id="enc-opcional-label">Informações Opcionais</span>
+                </span>
+                <span style="font-size:0.68rem;opacity:0.5;">Valor, Saldo, Autonomia...</span>
+            </button>
+
+            <div id="enc-opcional-body" class="enc-opcional-body">
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label>Valor Pago (R$)</label>
+                        <input type="number" id="enc-valor-pago" inputmode="decimal" placeholder="0.00" step="0.01">
+                    </div>
+                    <div class="input-group">
+                        <label>Saldo Disponível (R$)</label>
+                        <input type="number" id="enc-saldo" inputmode="decimal" placeholder="0.00" step="0.01">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label>Autonomia (km)</label>
+                        <input type="number" id="enc-autonomia" inputmode="decimal" placeholder="0" step="1">
+                    </div>
+                    <div class="input-group">
+                        <label>Consumo (km/l)</label>
+                        <input type="number" id="enc-consumo" inputmode="decimal" placeholder="0.0" step="0.1">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label>Temperatura (°C)</label>
+                        <input type="text" id="enc-temperatura" placeholder="Ex: 28°C">
+                    </div>
+                    <div class="input-group">
+                        <label>Tempo (clima)</label>
+                        <input type="text" id="enc-tempo" placeholder="Ex: Ensolarado">
+                    </div>
+                </div>
+            </div>
+            <!-- MÉTRICAS OPERACIONAIS DO TESTE -->
+            <div class="ford-group" style="margin-top:1.5rem;">
+                <div
+                    style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.1);">
+                    <span class="material-icons" style="color:var(--neon-purple);font-size:1rem;">science</span>
+                    <span style="font-weight:700;font-size:0.9rem;">Métricas Operacionais</span>
+                    <span style="font-size:0.72rem;color:var(--text-secondary);margin-left:auto;">conforme tipo de
+                        teste</span>
+                </div>
+
+                <div id="enc-metricas-container">
+                    <!-- Preenchido dinamicamente pelo TurnoUI.prepararMetricas() -->
+                    <div style="color:var(--text-secondary);font-size:0.82rem;text-align:center;padding:1rem;">
+                        Inicie um turno para ver as métricas disponíveis
+                    </div>
+                </div>
+            </div>
+
+            <input type="hidden" id="t-turno">
+            <input type="hidden" id="t-tipo-teste">
+            <input type="hidden" id="t-veiculo">
+            <input type="hidden" id="t-posto">
+            <input type="hidden" id="t-km">
+            <input type="hidden" id="t-trip">
+            <input type="hidden" id="t-litros">
+            <input type="hidden" id="t-saldo">
+
+            <!-- STATUS DO ENCERRAMENTO -->
+            <div id="enc-status-encerramento" style="display:none;align-items:center;gap:8px;
+            background:rgba(34,197,94,0.08);
+            border:1px solid rgba(34,197,94,0.2);
+            border-radius:12px;padding:12px 16px;margin-top:1.2rem;">
+            </div>
+
+            <!-- AVISO DE FORMULÁRIOS DE ENCERRAMENTO -->
+            <div id="enc-aviso-forms" style="display:none;align-items:center;gap:8px;
+            background:rgba(255,193,7,0.08);
+            border:1px solid rgba(255,193,7,0.25);
+            border-radius:12px;padding:10px 14px;margin-top:1rem;
+            font-size:0.8rem;color:rgba(255,193,7,0.9);">
+                <span class="material-icons" style="font-size:1rem;">assignment</span>
+                Existem formulários obrigatórios de encerramento para este projeto.
+            </div>
+
+            <!-- BOTÃO PRINCIPAL: ENCERRAR TURNO -->
+            <button id="btn-encerrar-turno" class="btn-main btn-solid" style="margin-top:1.5rem;
+               background:linear-gradient(135deg,#dc2626,#991b1b);
+               border-color:#dc2626;" onclick="TurnoUI.finalizarTurno('encerrar')">
+                <span class="material-icons">logout</span>
+                ENCERRAR TURNO
+            </button>
+
+            <!-- BOTÕES DE RESUMO — aparecem só após encerramento -->
+            <div id="enc-botoes-resumo" style="display:none;flex-direction:column;gap:10px;margin-top:10px;">
+
+                <div style="border-top:1px solid rgba(255,255,255,0.08);
+                padding-top:10px;margin-bottom:4px;
+                font-size:0.72rem;color:var(--text-secondary);text-align:center;">
+                    Turno encerrado — baixe o laudo oficial em formato PDF
+                </div>
+
+                <button class="btn-main" style="--accent:var(--neon-blue); width: 100%;" onclick="TurnoUI.finalizarTurno('pdf')">
+                    <span class="material-icons">picture_as_pdf</span>
+                    BAIXAR RESUMO PDF
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+
+    <div id="modal-aprovacoes" class="modal-overlay" style="--accent:var(--neon-purple);">
+        <div class="modal-content">
+            <div class="close-btn"
+                onclick="document.getElementById('modal-aprovacoes').style.display='none'; document.body.style.overflow='auto';">
+                <span class="material-icons">close</span>
+            </div>
+            <h3 class="modal-title" style="color:var(--neon-purple);">Painel de Aprovações</h3>
+            <p style="text-align:center;color:var(--text-secondary);font-size:0.85rem;margin-bottom:1.5rem;">Gerencie os
+                pedidos de acesso ao sistema</p>
+            <div id="lista-aprovacoes">
+                <div style="text-align:center;padding:2rem;color:var(--text-secondary);">Carregando...</div>
+            </div>
+        </div>
+    </div>
+    <!-- ========================================================
+     NOVO: Modal para Gerenciar Formulários por Projeto
+     ======================================================== -->
+    <div id="modal-gerenciar-forms" class="modal-overlay" style="display:none;--accent:var(--neon-blue);">
+        <div class="modal-content">
+            <div class="close-btn"
+                onclick="document.getElementById('modal-gerenciar-forms').style.display='none'; document.body.style.overflow='auto';">
+                <span class="material-icons">close</span>
+            </div>
+
+            <h3 class="modal-title"
+                style="color:var(--neon-blue);display:flex;align-items:center;justify-content:center;gap:8px;"><span
+                    class="material-icons" style="font-size:1.15rem;">assignment</span>Formulários do Projeto</h3>
+
+            <p id="mgf-projeto-nome"
+                style="text-align:center;color:var(--neon-cyan);font-weight:800;margin-bottom:1rem;">
+                —
+            </p>
+
+            <div id="mgf-lista" class="pc-lista" style="max-height:220px;overflow-y:auto;margin-bottom:1rem;">
+                <div class="pc-empty">
+                    <span class="material-icons">link_off</span>
+                    Nenhum formulário cadastrado
+                </div>
+            </div>
+
+            <div
+                style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:1rem;">
+                <h4 style="font-size:0.9rem;margin-bottom:0.8rem;opacity:0.75;">
+                    + Adicionar Formulário
+                </h4>
+
+                <div class="input-group">
+                    <label>Ícone</label>
+                    <input type="text" id="mgf-in-icone" class="pc-inp" placeholder="Ícone" maxlength="4"
+                        style="width:90px;">
+                </div>
+
+                <div class="input-group">
+                    <label>Nome do Formulário</label>
+                    <input type="text" id="mgf-in-nome" class="pc-inp" placeholder="Ex: Check List de Segurança">
+                </div>
+
+                <div class="input-group">
+                    <label>URL do Microsoft Forms</label>
+                    <input type="url" id="mgf-in-url" class="pc-inp" placeholder="https://forms.office.com/r/...">
+                </div>
+
+                <button class="btn-pc-add" style="width:100%;justify-content:center;margin-top:0.5rem;"
+                    onclick="TurnoUI.adicionarFormularioAoProjeto()">
+                    <span class="material-icons" style="font-size:1rem;">add_link</span>
+                    Adicionar Formulário
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- ================================================
+     FASE 3: Modal de Analytics
+     Visível apenas para Coordenador e Gerente
+     ================================================ -->
+    <div id="modal-analytics" class="modal-overlay" style="display:none;--accent:var(--neon-purple);">
+        <div class="modal-content">
+
+            <div class="close-btn" onclick="appUI.fecharModal('modal-analytics')">
+                <span class="material-icons">close</span>
+            </div>
+
+            <h3 class="modal-title"
+                style="color:var(--neon-purple);display:flex;align-items:center;justify-content:center;gap:8px;">
+                <span class="material-icons" style="font-size:1.15rem;">bar_chart</span> Analytics — TPG Insight AI
+            </h3>
+
+            <!-- Período -->
+            <div style="display:flex;gap:8px;justify-content:center;margin-bottom:1.5rem;flex-wrap:wrap;">
+                <button class="analytics-periodo-btn active" onclick="AnalyticsEngine.setPeriodo(7, this)">7
+                    dias</button>
+                <button class="analytics-periodo-btn" onclick="AnalyticsEngine.setPeriodo(15, this)">15 dias</button>
+                <button class="analytics-periodo-btn" onclick="AnalyticsEngine.setPeriodo(30, this)">30 dias</button>
+            </div>
+
+            <!-- Cards de resumo -->
+            <div class="analytics-cards-grid">
+
+                <div class="analytics-card">
+                    <span class="material-icons" style="color:var(--neon-blue);">speed</span>
+                    <div class="analytics-card-valor" id="anl-total-km">—</div>
+                    <div class="analytics-card-label">Km Total</div>
+                </div>
+
+                <div class="analytics-card">
+                    <span class="material-icons" style="color:var(--neon-green);">assignment_turned_in</span>
+                    <div class="analytics-card-valor" id="anl-total-turnos">—</div>
+                    <div class="analytics-card-label">Turnos</div>
+                </div>
+
+                <div class="analytics-card">
+                    <span class="material-icons" style="color:var(--neon-orange);">warning_amber</span>
+                    <div class="analytics-card-valor" id="anl-total-issues">—</div>
+                    <div class="analytics-card-label">Issues</div>
+                </div>
+
+                <div class="analytics-card">
+                    <span class="material-icons" style="color:var(--neon-cyan);">local_gas_station</span>
+                    <div class="analytics-card-valor" id="anl-total-litros">—</div>
+                    <div class="analytics-card-label">Litros</div>
+                </div>
+
+            </div>
+
+            <!-- Gráfico — Km por Projeto -->
+            <div class="analytics-section">
+                <div class="analytics-section-title" style="display:flex;align-items:center;gap:6px;">
+                    <span class="material-icons" style="font-size:14px;opacity:0.7;">flag</span> Km por Projeto
+                </div>
+                <div id="anl-grafico-projetos"></div>
+                <div class="analytics-section">
+                    <div class="analytics-section-title" style="display:flex;align-items:center;gap:6px;">
+                        <span class="material-icons" style="font-size:14px;opacity:0.7;">science</span> Tipos de Teste
+                        Mais Executados
+                    </div>
+                    <div id="anl-grafico-testes"></div>
+                </div>
+
+                <div id="anl-kpis-gerente" style="display:none;"></div>
+
+            </div>
+
+            <!-- Gráfico — Km por Veículo -->
+            <div class="analytics-section">
+                <div class="analytics-section-title" style="display:flex;align-items:center;gap:6px;">
+                    <span class="material-icons" style="font-size:14px;opacity:0.7;">directions_car</span> Km por
+                    Veículo
+                </div>
+                <div id="anl-grafico-veiculos"></div>
+            </div>
+
+            <!-- Tabela — Operadores -->
+            <div class="analytics-section">
+                <div class="analytics-section-title" style="display:flex;align-items:center;gap:6px;">
+                    <span class="material-icons" style="font-size:14px;opacity:0.7;">people</span> Top Operadores
+                </div>
+                <div id="anl-tabela-operadores"></div>
+            </div>
+
+            <!-- Estado de carregamento -->
+            <div id="anl-loading" style="text-align:center;padding:2rem;color:var(--text-secondary);display:none;">
+                <span class="material-icons"
+                    style="font-size:2rem;animation:spin 1s linear infinite;display:block;margin-bottom:8px;">hourglass_empty</span>
+                Carregando dados...
+            </div>
+
+            <!-- Estado vazio -->
+            <div id="anl-vazio" style="text-align:center;padding:2rem;color:var(--text-secondary);display:none;">
+                <span class="material-icons"
+                    style="font-size:2.5rem;opacity:0.3;display:block;margin-bottom:8px;">bar_chart</span>
+                Nenhum turno encerrado no período selecionado.
+            </div>
+
+        </div>
+    </div>
+    <!-- MODAL HISTÓRICO DE TURNOS -->
+    <div id="modal-historico-turnos" class="modal-overlay" style="display:none;">
+        <div class="modal-content" style="max-width:580px;max-height:90vh;overflow-y:auto;">
+
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;">
+                <h3 class="modal-title"
+                    style="color:var(--neon-blue);margin:0;display:flex;align-items:center;gap:8px;">
+                    <span class="material-icons" style="font-size:1.15rem;">history</span> Meus Turnos Anteriores
+                </h3>
+                <button onclick="HistoricoUI.fechar()"
+                    style="background:none;border:none;cursor:pointer;color:var(--text-secondary);">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+
+            <div style="display:flex;gap:8px;margin-bottom:1rem;">
+                <button class="btn-filtro-hist active" onclick="HistoricoUI.filtrar('7', this)">7 dias</button>
+                <button class="btn-filtro-hist" onclick="HistoricoUI.filtrar('30', this)">30 dias</button>
+                <button class="btn-filtro-hist" onclick="HistoricoUI.filtrar('todos', this)">Todos</button>
+            </div>
+
+            <div id="hist-totais" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem;">
+            </div>
+
+            <div id="hist-lista" style="display:flex;flex-direction:column;gap:10px;">
+                <div style="text-align:center;padding:2rem;color:var(--text-secondary);">
+                    <span class="material-icons" style="font-size:2rem;">sync</span>
+                    <div style="margin-top:8px;font-size:0.85rem;">Carregando...</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal de Configuração da Chave API Gemini -->
+    <div id="modal-api-key" class="modal-overlay" style="display:none; z-index:99999;">
+        <div class="modal-content" style="max-width:400px; padding:2rem; text-align:center;">
+            <div style="background:rgba(66,133,244,0.1); border-radius:50%; width:60px; height:60px; display:flex; align-items:center; justify-content:center; margin:0 auto 1.2rem;">
+                <span class="material-icons" style="font-size:2rem; color:var(--google-blue-lt);">vpn_key</span>
+            </div>
+            <h3 class="modal-title" style="margin-bottom:8px;">Configuração da Chave API</h3>
+            <p style="font-size:0.78rem; color:var(--text-secondary); margin-bottom:1.5rem; line-height:1.4;">
+                Para utilizar o Assistente de Inteligência Artificial, insira sua chave da API do Google Gemini. A chave será armazenada de forma segura e local em seu dispositivo.
+            </p>
+            <div class="ford-group" style="margin-bottom:1.5rem; text-align:left;">
+                <label class="ford-label">Google Gemini API Key</label>
+                <input type="password" id="input-api-key" class="ford-input" placeholder="Cole sua API Key aqui..." style="font-family:'Roboto Mono';">
+            </div>
+            <button class="btn-primary" style="width:100%; display:flex; justify-content:center; align-items:center; gap:6px;" onclick="app.salvarApiKeyInicial()">
+                <span class="material-icons" style="font-size:1rem;">save</span>
+                Salvar Chave API
+            </button>
+        </div>
+    </div>
+
+    <script src="app.js?v=20260526_v1"></script>
+    <script>
+        const appUI = {
+            abrirModal: (id) => {
+                document.getElementById(id).style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                if (id === 'modal-laudo' && typeof app !== 'undefined' && app.operadorAtual) {
+                    document.getElementById('ui-analista-laudo').innerText = app.operadorAtual;
+                }
+            },
+            fecharModal: (id) => {
+                document.getElementById(id).style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        };
+        window.appUI = appUI;
+
+        function abrirModalCopiloto() {
+            appUI.abrirModal('modal-gps');
+            setTimeout(() => { if (window.mapaTelemetria) window.mapaTelemetria.invalidateSize(); }, 300);
+        }
+    </script>
+
+    <script src="auth-security.js?v=20260526_v1"></script>
+    <script src="dados-mestres.js?v=20260526_v1"></script>
+    <script src="laudo-ia.js?v=20260526_v1"></script>
+    <script src="turno-engine.js?v=20260526_v1"></script>
+    <script src="forms-data.js?v=20260526_v1"></script>
+    <script src="forms-engine.js?v=20260526_v1"></script>
+    <script src="analytics.js?v=20260526_v1"></script>
+    <script src="notificacoes-engine.js?v=20260526_v1"></script>
+
+</body>
+
+</html>
