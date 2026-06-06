@@ -64,6 +64,7 @@ const TurnoEngine = {
     iniciar(dados) {
         dados.horaInicio = new Date().toLocaleString('pt-BR');
         dados.uid = firebase.auth().currentUser?.uid || 'anonimo';
+        dados.abastecimentos = []; // suporte a múltiplos abastecimentos
         this._cache = dados;
         localStorage.setItem(this._chave(), JSON.stringify(dados));
 
@@ -81,7 +82,56 @@ const TurnoEngine = {
         this.sincronizarComApp();
     },
 
+    // Adiciona um abastecimento intermediário ao turno ativo
+    adicionarAbastecimento({ posto, tipoCombustivel, litros, kmAtual }) {
+        const d = this.dados;
+        if (!d) return false;
+
+        const hora = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        const abastecimento = {
+            posto: posto || '',
+            tipoCombustivel: tipoCombustivel || '',
+            litros: parseFloat(litros) || 0,
+            kmAtual: parseFloat(kmAtual) || 0,
+            hora,
+            timestamp: new Date().toISOString(),
+        };
+
+        if (!d.abastecimentos) d.abastecimentos = [];
+        d.abastecimentos.push(abastecimento);
+
+        this._cache = d;
+        localStorage.setItem(this._chave(), JSON.stringify(d));
+
+        // Sincronizar com RTDB
+        try {
+            const uid = firebase.auth().currentUser?.uid || 'anonimo';
+            firebase.database().ref('vev_turnos_ativos').child(uid).update({
+                abastecimentos: d.abastecimentos
+            });
+        } catch (e) { /* ignore offline */ }
+
+        console.log('[TurnoEngine] Abastecimento registrado:', abastecimento);
+        return true;
+    },
+
+    // Total de litros somados de todos os abastecimentos
+    get totalLitros() {
+        const d = this.dados;
+        if (!d?.abastecimentos?.length) return 0;
+        return d.abastecimentos.reduce((sum, a) => sum + (parseFloat(a.litros) || 0), 0);
+    },
+
+
     encerrar() {
+        // Salvar horaFim antes de limpar
+        const d = this.dados;
+        if (d) {
+            d.horaFim = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            // Guardar snapshot final para uso do PDF/WhatsApp nesta sessão
+            this._snapshotFinal = { ...d };
+        }
+
         // Remover do Realtime Database também
         try {
             const uid = firebase.auth().currentUser?.uid || 'anonimo';
@@ -124,12 +174,14 @@ const TurnoEngine = {
         }
 
         if (typeof TurnoUI !== 'undefined') TurnoUI.atualizarBannerHome?.();
+        if (typeof LaudoPendente !== 'undefined') LaudoPendente.atualizarContagemHome();
     },
 
     gerarMensagemWhatsApp(enc) {
-        const d = this.dados || {};
+        const d = this._snapshotFinal || this.dados || {};
         const trip = this.calcTrip(enc.kmFinal);
         const hora = new Date().toLocaleString('pt-BR');
+        const horaFim = d.horaFim || new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
         let msg = `*ENCERRAMENTO DE TURNO — FORD VEV*\n`;
         msg += `Campo de Provas Tatui\n`;
@@ -147,15 +199,28 @@ const TurnoEngine = {
         if (d.cc)         msg += `• CC: *${d.cc}*\n`;
         if (d.kmInicial)  msg += `• Km Inicial: *${d.kmInicial} km*\n`;
         if (d.outrasInfo) msg += `• Outras Informacoes: ${d.outrasInfo}\n`;
-        if (d.horaInicio) msg += `• Inicio: ${d.horaInicio}\n`;
+        if (d.horaInicio) msg += `• Inicio: *${d.horaInicio}*\n`;
+        msg += `• Fim: *${horaFim}*\n`;
+
+        // Abastecimentos múltiplos
+        const abastecimentos = d.abastecimentos || [];
+        const totalLitros = abastecimentos.reduce((s, a) => s + (parseFloat(a.litros) || 0), 0);
 
         msg += `\n━━━━━━━━━━━━━━━━━━━━━━━━\n`;
         msg += `*ABASTECIMENTO / FINAL*\n`;
         msg += `━━━━━━━━━━━━━━━━━━━━━━━━\n`;
         msg += `• Km Final: *${enc.kmFinal} km*\n`;
         msg += `• Trip: *${trip || '—'} km*\n`;
-        msg += `• Posto: *${enc.posto}*\n`;
-        msg += `• Litros: *${enc.litros} L*\n`;
+
+        if (abastecimentos.length > 0) {
+            msg += `• Total Litros: *${totalLitros.toFixed(1)} L* (${abastecimentos.length} abastecimento(s))\n`;
+            abastecimentos.forEach((a, i) => {
+                msg += `  ${i + 1}. ${a.posto} — ${a.tipoCombustivel} — *${a.litros} L* — ${a.kmAtual} km — ${a.hora}\n`;
+            });
+        } else {
+            msg += `• Posto: *${enc.posto || '—'}*\n`;
+            msg += `• Litros: *${enc.litros || '0'} L*\n`;
+        }
 
         if (enc.valorPago)   msg += `• Valor Pago: *R$ ${enc.valorPago}*\n`;
         if (enc.saldo)       msg += `• Saldo: *R$ ${enc.saldo}*\n`;
@@ -308,7 +373,9 @@ const TurnoUI = {
                 veiculos.forEach(v => {
                     const o = document.createElement('option');
                     o.value = v.id;
-                    o.textContent = v.nome;
+                    // Mostrar nome + VIN para distinguir veículos iguais
+                    const vinLabel = v.vin ? ` - VIN: ${v.vin}` : '';
+                    o.textContent = `${v.nome}${vinLabel}`;
                     selVeiculo.appendChild(o);
                 });
             }
@@ -351,7 +418,10 @@ const TurnoUI = {
             }
 
             pop('it-veiculo', PreCadastroEngine.getAll('veiculos'),
-                'Selecione o veículo...', i => i.nome);
+                'Selecione o veículo...', i => {
+                    const vinLabel = i.vin ? ` - VIN: ${i.vin}` : '';
+                    return `${i.nome}${vinLabel}`;
+                });
         }
     },
 
@@ -416,7 +486,8 @@ const TurnoUI = {
         filtrados.forEach(v => {
             const o = document.createElement('option');
             o.value = v.id;
-            o.textContent = v.nome;
+            const vinLabel = v.vin ? ` - VIN: ${v.vin}` : '';
+            o.textContent = `${v.nome}${vinLabel}`;
             selVeiculo.appendChild(o);
         });
 
@@ -557,7 +628,8 @@ const TurnoUI = {
             nome: nomeRapido,
             vin: 'REG_' + Math.floor(Math.random() * 900000 + 100000).toString(),
             status: 'Carro em Registro',
-            projetoId: document.getElementById('it-projeto')?.value || 'geral'
+            projetoId: document.getElementById('it-projeto')?.value || 'geral',
+            ativo: true
         };
 
         try {
@@ -573,7 +645,7 @@ const TurnoUI = {
             if (selVeiculo) {
                 const opt = document.createElement('option');
                 opt.value = id;
-                opt.textContent = nomeRapido;
+                opt.textContent = `${novoVei.nome} - VIN: ${novoVei.vin}`;
                 opt.selected = true;
                 selVeiculo.appendChild(opt);
                 
@@ -777,9 +849,11 @@ const TurnoUI = {
         if (inactiveSection) inactiveSection.style.display = 'none';
         if (btnEncerrar)     btnEncerrar.style.display   = 'flex';
 
-        // Mostrar botão de encerrar na home quando turno está ativo
+        // Mostrar botão de encerrar + abastecimento na home quando turno está ativo
         const activeActions = document.getElementById('turno-active-actions');
-        if (activeActions) activeActions.style.display = 'block';
+        if (activeActions) activeActions.style.display = 'flex';
+        // Atualizar histórico de abastecimentos se disponível
+        if (typeof AbastecimentoUI !== 'undefined') AbastecimentoUI._renderHistorico?.();
 
         const set = (id, val) => {
             const el = document.getElementById(id);
@@ -867,6 +941,10 @@ const TurnoUI = {
         document.body.style.overflow = 'hidden';
     },
 
+    async mostrarPreCadastro() {
+        await this.abrirPC();
+    },
+
     async abrirPCComAba(tipo) {
         await this.renderTodasListas();
         document.getElementById('modal-precadastro').style.display = 'flex';
@@ -897,6 +975,7 @@ const TurnoUI = {
         btn.classList.add('active');
         document.getElementById(`pc-panel-${tipo}`)?.classList.add('active');
         if (tipo === 'veiculos') this.renderCheckboxesProjetos();
+        this.renderListaFirestore(tipo);
     },
 
     async renderTodasListas() {
@@ -929,11 +1008,11 @@ const TurnoUI = {
         try {
             const snap = await firebase.firestore()
                 .collection(colecao)
-                .where('ativo', '==', true)
                 .get();
 
             const lista = snap.docs
                 .map(d => ({ id: d.id, ...d.data() }))
+                .filter(d => d.ativo !== false)
                 .sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
 
             this._renderItens(tipo, lista);
@@ -1055,7 +1134,7 @@ const TurnoUI = {
 
             if (tipo === 'tiposTeste') {
                 const totalForms = item.formularios?.length || 0;
-                subs.push(`📋 ${totalForms} formulário(s)`);
+                subs.push(`${totalForms} formulário(s)`);
             }
 
             const botoesProjeto = tipo === 'tiposTeste'
@@ -1401,7 +1480,7 @@ const TurnoUI = {
         el.innerHTML = formularios.map((f, idx) => `
             <div class="pc-item">
                 <div class="pc-item-info" style="min-width:0;">
-                    <span class="pc-item-nome">${f.icone || '📋'} ${f.nome}</span>
+                    <span class="pc-item-nome">${f.icone || ''} ${f.nome}</span>
                     <span class="pc-item-sub" style="word-break:break-all;">${f.url}</span>
                 </div>
                 <div style="display:flex;gap:6px;flex-shrink:0;">
@@ -1560,11 +1639,11 @@ const TurnoUI = {
         try {
             const snap = await firebase.firestore()
                 .collection('vev_projetos')
-                .where('ativo', '==', true)
                 .get();
 
             const projetos = snap.docs
                 .map(d => ({ id: d.id, ...d.data() }))
+                .filter(d => d.ativo !== false)
                 .sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
 
             if (projetos.length === 0) {
@@ -1602,11 +1681,12 @@ const TurnoUI = {
         try {
             const snap = await firebase.firestore()
                 .collection('vev_projetos')
-                .where('ativo', '==', true)
                 .get();
 
             snap.docs.forEach(doc => {
-                const projeto = { id: doc.id, ...doc.data() };
+                const data = doc.data();
+                if (data.ativo === false) return;
+                const projeto = { id: doc.id, ...data };
                 if (!projeto.formularios?.length) return;
 
                 FormsData.adicionarProjeto(projeto.nome, {
@@ -1738,6 +1818,8 @@ const TurnoUI = {
         set('enc-show-outras-info', d?.outrasInfo);
         set('enc-show-km-ini',      d?.kmInicial ? `${d.kmInicial} km` : null);
         set('enc-show-hora',        d?.horaInicio);
+        const qtdLaudos = d?.laudosPendentes ? d.laudosPendentes.length : 0;
+        set('enc-show-laudos-pendentes', `${qtdLaudos} laudo(s)`);
 
         let postos = [];
         try {
@@ -1916,6 +1998,48 @@ const TurnoUI = {
 
         try {
             this._syncWesleyHidden(enc);
+
+            // Salvar todos os laudos que ficaram em aberto no Firestore
+            const laudosPendentes = d?.laudosPendentes || [];
+            if (laudosPendentes.length > 0) {
+                console.log(`[Turno] Salvando ${laudosPendentes.length} laudos pendentes no Firestore...`);
+                const firestoreDB = firebase.firestore();
+                for (const laudo of laudosPendentes) {
+                    try {
+                        const payload = {
+                            uid:          d.uid || 'anonimo',
+                            projetoId:    d.projetoId || '',
+                            projeto:      d.projeto || '',
+                            tipoTeste:    d.tipoTeste || '',
+                            operador:     d.operador || '',
+                            veiculoId:    d.veiculoId || '',
+                            veiculo:      d.veiculo || '',
+                            vin:          d.vin || '',
+                            eja:          d.eja || '',
+                            cc:           d.cc || '',
+                            turnoData:    d.horaInicio ? d.horaInicio.split(' ')[0] : new Date().toLocaleDateString('pt-BR'),
+                            horaRegistro: laudo.timestamp ? new Date(laudo.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString('pt-BR'),
+                            
+                            relatoOriginal: laudo.relatoOriginal || '',
+                            titulo:         laudo.titulo || 'Ocorrência em Aberto',
+                            categoria:      laudo.categoria || 'Geral',
+                            severidade:     laudo.severidade || 'N/A',
+                            causaRaiz:      laudo.causaRaiz || '',
+                            parecerFinal:   laudo.parecerFinal || '',
+                            status:         'finalizado',
+                            
+                            totalMidias:    laudo.fotos ? laudo.fotos.length : 0,
+                            totalImagens:   laudo.fotos ? laudo.fotos.length : 0,
+                            totalVideos:    0,
+                            
+                            criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+                        };
+                        await firestoreDB.collection('vev_issues').add(payload);
+                    } catch (err) {
+                        console.error('[Turno] Erro ao salvar laudo pendente:', err);
+                    }
+                }
+            }
 
             if (typeof AnalyticsEngine !== 'undefined') {
                 await comTimeout(AnalyticsEngine._salvarTurnoEncerrado(enc), 7000);

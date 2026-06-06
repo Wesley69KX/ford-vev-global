@@ -585,6 +585,55 @@
         .speed-band-bar { width: 100%; height: 7px; background: rgba(255,255,255,.04); border-radius: 4px; overflow: hidden; }
         .speed-band-fill { height: 100%; border-radius: 4px; transition: width .4s cubic-bezier(0.4,0,0.2,1); width: 0%; }
 
+        /* ── Animações Dinâmicas Telemetria ─────────────────────────── */
+        .stat-val {
+            transition: color 0.3s ease, transform 0.15s ease;
+        }
+        .stat-val.updated {
+            animation: statPulse 0.35s ease forwards;
+        }
+        @keyframes statPulse {
+            0%   { transform: scale(1);    opacity: 1; }
+            40%  { transform: scale(1.06); opacity: 0.85; }
+            100% { transform: scale(1);    opacity: 1; }
+        }
+
+        /* Radar icon pulsante quando GPS ativo */
+        .telemetry-hero.gps-ativo .radar-icon {
+            animation: radarSpin 2s linear infinite;
+            background: rgba(0,212,170,0.2);
+            border-color: rgba(0,212,170,0.5);
+            box-shadow: 0 0 16px rgba(0,212,170,0.35);
+        }
+        @keyframes radarSpin {
+            0%   { box-shadow: 0 0 8px rgba(0,212,170,0.3);  }
+            50%  { box-shadow: 0 0 22px rgba(0,212,170,0.7); }
+            100% { box-shadow: 0 0 8px rgba(0,212,170,0.3);  }
+        }
+
+        /* Hero card glow quando GPS ativo */
+        .telemetry-hero.gps-ativo {
+            border-color: rgba(0,212,170,0.3) !important;
+            box-shadow: 0 0 0 1px rgba(0,212,170,0.15), 0 12px 40px rgba(0,0,0,0.5);
+        }
+
+        /* Botão ATIVAR — estado ativo */
+        .btn-activate.ativo {
+            background: rgba(227,24,55,0.15) !important;
+            border: 1px solid var(--red) !important;
+            color: var(--red) !important;
+            animation: btnPulse 2s ease infinite;
+        }
+        @keyframes btnPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(227,24,55,0); }
+            50%       { box-shadow: 0 0 0 5px rgba(227,24,55,0.15); }
+        }
+
+        /* Label status GPS dinâmico */
+        .telemetry-brand p {
+            transition: color 0.4s ease;
+        }
+
         /* ============================================================
            TELA HISTÓRICO
            ============================================================ */
@@ -1344,12 +1393,30 @@
                             <div class="turno-chip-val" id="tab-ui-veiculo">-</div>
                         </div>
                     </div>
+                    
+                    <!-- Indicador de laudos em aberto -->
+                    <div id="home-laudos-abertos-indicador" style="display:none;align-items:center;gap:6px;background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.3);color:#a78bfa;padding:8px 12px;border-radius:8px;font-size:0.78rem;font-weight:700;margin:10px 16px 0 16px;">
+                        <span class="material-icons" style="font-size:1rem;">rate_review</span>
+                        <span id="home-laudos-abertos-text">0 laudo(s) em aberto</span>
+                    </div>
 
-                    <!-- Botão Encerrar visível quando turno ativo -->
-                    <div id="turno-active-actions" style="display:none;padding:14px 16px;">
+                    <!-- Botão Encerrar + Abastecimento visíveis quando turno ativo -->
+                    <div id="turno-active-actions" style="display:none;padding:14px 16px;flex-direction:column;gap:10px;">
                         <button class="btn-turno-end" style="width:100%;justify-content:center;font-size:.92rem;padding:14px;" onclick="appUI.abrirModal('modal-turno')">
                             <span class="material-icons" style="font-size:1.1rem;">logout</span> ENCERRAR TURNO
                         </button>
+                        <button id="btn-registrar-abastecimento"
+                            style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
+                                   background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.35);
+                                   color:#f59e0b;border-radius:12px;padding:12px;font-size:.88rem;
+                                   font-weight:700;cursor:pointer;letter-spacing:.3px;
+                                   transition:all .2s ease;"
+                            onclick="AbastecimentoUI.abrir()">
+                            <span class="material-icons" style="font-size:1.1rem;">local_gas_station</span>
+                            REGISTRAR ABASTECIMENTO
+                        </button>
+                        <!-- Histórico de abastecimentos do turno -->
+                        <div id="abastecimentos-historico" style="display:none;"></div>
                     </div>
 
                     <!-- Botões turno -->
@@ -1790,7 +1857,7 @@
                             <div class="pc-add-form">
                                 <h4>+ Adicionar Veículo</h4>
                                 <input type="text" id="pc-in-veiculos-nome" class="pc-inp" placeholder="Ex: Ford Ranger 4x4">
-                                <input type="text" id="pc-in-veiculos-vin" class="pc-inp" placeholder="VIN (somente números)" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'')">
+                                <input type="text" id="pc-in-veiculos-vin" class="pc-inp" placeholder="VIN do Veículo (alfanumérico)">
                                 <input type="text" id="pc-in-veiculos-eja" class="pc-inp" placeholder="EJA (Ex: EJA-2024-001)">
                                 <input type="text" id="pc-in-veiculos-cc" class="pc-inp" placeholder="CC (somente números)" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'')">
                                 <textarea id="pc-in-veiculos-outrasInfo" class="pc-inp" placeholder="Outras Informações (opcional)" rows="3" style="resize:vertical;"></textarea>
@@ -2132,9 +2199,22 @@
                 <div id="galeria-avaria" class="gallery"></div>
             </div>
 
-            <button class="btn-primary" style="background:linear-gradient(135deg,#059669,#065f46);box-shadow:0 4px 16px rgba(5,150,105,.35);" onclick="app.gerarECompartilharLaudo()">
-                <span class="material-icons">send</span> EMITIR RELATÓRIO
-            </button>
+            <!-- Botões do Laudo: Em Aberto ou Emitir -->
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;">
+                <button class="btn-primary" style="background:linear-gradient(135deg,#059669,#065f46);box-shadow:0 4px 16px rgba(5,150,105,.35);" onclick="app.gerarECompartilharLaudo()">
+                    <span class="material-icons">send</span> EMITIR RELATÓRIO
+                </button>
+                <button id="btn-laudo-aberto"
+                        style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.35);
+                               color:#f59e0b;border-radius:12px;padding:13px;
+                               font-size:.88rem;font-weight:700;cursor:pointer;
+                               display:flex;align-items:center;justify-content:center;gap:8px;
+                               transition:all .2s ease;"
+                        onclick="LaudoPendente.salvarEmAberto()">
+                    <span class="material-icons" style="font-size:1rem;">bookmark</span>
+                    DEIXAR EM ABERTO (finaliza com o turno)
+                </button>
+            </div>
         </div>
     </div>
 
@@ -2159,6 +2239,7 @@
                     <div class="enc-item"><span class="enc-lbl">EJA</span><span class="enc-val" id="enc-show-eja">-</span></div>
                     <div class="enc-item"><span class="enc-lbl">CC</span><span class="enc-val" id="enc-show-cc">-</span></div>
                     <div class="enc-item"><span class="enc-lbl">Início</span><span class="enc-val" id="enc-show-hora">-</span></div>
+                    <div class="enc-item"><span class="enc-lbl">Laudos em Aberto</span><span class="enc-val" id="enc-show-laudos-pendentes">0</span></div>
                     <div class="enc-item" style="grid-column:span 2;">
                         <span class="enc-lbl">Outras Informações</span>
                         <span class="enc-val" id="enc-show-outras-info" style="white-space:pre-wrap;">-</span>
@@ -2186,7 +2267,16 @@
                 </select>
             </div>
             <div class="input-group">
-                <label class="ford-label">Litros (Etanol / Gasolina / Diesel)</label>
+                <label class="ford-label">Tipo de Combustível</label>
+                <select id="enc-combustivel" class="ford-input">
+                    <option value="">Não abasteci</option>
+                    <option value="E100">E100</option>
+                    <option value="Gasolina">Gasolina</option>
+                    <option value="Diesel">Diesel</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label class="ford-label">Litros</label>
                 <input type="number" id="enc-litros" class="ford-input" inputmode="decimal" placeholder="0.0" step="0.1" min="0">
             </div>
 
@@ -2392,7 +2482,7 @@
         <div class="modal-content">
             <div class="modal-drag"></div>
             <button class="close-btn" onclick="appUI.fecharModal('modal-analytics')"><span class="material-icons">close</span></button>
-            <h3 class="modal-title" style="color:var(--purple);"><span class="material-icons">bar_chart</span> Analytics - TPG Insight AI</h3>
+            <h3 class="modal-title" style="color:var(--purple);"><span class="material-icons">bar_chart</span> Meus Analytics</h3>
             <div style="display:flex;gap:8px;justify-content:center;margin-bottom:1.5rem;flex-wrap:wrap;">
                 <button class="analytics-periodo-btn active" onclick="AnalyticsEngine.setPeriodo(7,this)">7 dias</button>
                 <button class="analytics-periodo-btn" onclick="AnalyticsEngine.setPeriodo(15,this)">15 dias</button>
@@ -2701,6 +2791,346 @@
     <script src="forms-engine.js?v=20260601_v3"></script>
     <script src="analytics.js?v=20260601_v3"></script>
     <script src="notificacoes-engine.js?v=20260601_v3"></script>
+
+    <!-- ============================================================
+         INIT: Chart.js Telemetria + Animações Dinâmicas
+         ============================================================ -->
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // ── Inicializar Gráfico de Velocidade × Tempo ─────────────────
+        const canvas = document.getElementById('chart-telemetria-tempo');
+        if (canvas && typeof Chart !== 'undefined') {
+            const ctx = canvas.getContext('2d');
+
+            // Gradiente preenchimento
+            const gradient = ctx.createLinearGradient(0, 0, 0, 150);
+            gradient.addColorStop(0, 'rgba(56,189,248,0.45)');
+            gradient.addColorStop(1, 'rgba(56,189,248,0.02)');
+
+            window._chartTelemetria = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Velocidade (km/h)',
+                        data: [],
+                        borderColor: '#38bdf8',
+                        backgroundColor: gradient,
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        pointHoverRadius: 4,
+                        fill: true,
+                        tension: 0.4,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(13,13,16,0.95)',
+                            borderColor: 'rgba(56,189,248,0.4)',
+                            borderWidth: 1,
+                            titleColor: '#38bdf8',
+                            bodyColor: 'rgba(255,255,255,0.7)',
+                            callbacks: {
+                                label: ctx => `${ctx.parsed.y} km/h`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: false,
+                        },
+                        y: {
+                            display: true,
+                            grid: {
+                                color: 'rgba(255,255,255,0.04)',
+                                drawBorder: false,
+                            },
+                            ticks: {
+                                color: 'rgba(255,255,255,0.3)',
+                                font: { size: 9, family: "'Roboto Mono', monospace" },
+                                callback: v => `${v} km/h`,
+                                maxTicksLimit: 4,
+                            },
+                            beginAtZero: true,
+                        }
+                    },
+                    interaction: { mode: 'nearest', axis: 'x', intersect: false },
+                }
+            });
+        }
+
+        // ── Animação de pulso no hero quando ativo ────────────────────
+        const heroBtn = document.getElementById('btn-kx-telemetry');
+        if (heroBtn) {
+            const origToggle = window.toggleCopilotoModo;
+            // Sobrescreve para adicionar animação extra no hero card
+            window.toggleCopilotoModo = function(modo, suffix) {
+                origToggle && origToggle(modo, suffix);
+                const hero = document.querySelector('.telemetry-hero');
+                if (hero) {
+                    if (window._chartTelemetria) {
+                        // Reset gráfico ao iniciar nova sessão
+                        if (window._chartTelemetria.data.labels.length === 0) {
+                            // Já vazio, OK
+                        }
+                    }
+                }
+            };
+        }
+
+        // ── Transição suave nas stat-cells ───────────────────────────
+        document.querySelectorAll('.stat-val').forEach(el => {
+            el.style.transition = 'color 0.3s ease';
+        });
+    });
+    </script>
+
+
+<!-- ══════════════════════════════════════════════════════
+     MODAL: REGISTRAR ABASTECIMENTO INTERMEDIÁRIO
+     ══════════════════════════════════════════════════════ -->
+<div id="modal-abastecimento-parcial"
+     style="display:none;position:fixed;inset:0;z-index:9000;
+            background:rgba(0,0,0,0.75);align-items:flex-end;justify-content:center;
+            backdrop-filter:blur(4px);">
+    <div style="background:#16161a;border-radius:20px 20px 0 0;padding:24px;
+                width:100%;max-width:480px;border-top:1px solid rgba(255,255,255,0.08);
+                animation:slideUp .25s ease;">
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <span class="material-icons" style="color:#f59e0b;font-size:1.3rem;">local_gas_station</span>
+                <span style="font-weight:800;font-size:1rem;color:#fff;">Registrar Abastecimento</span>
+            </div>
+            <button onclick="AbastecimentoUI.fechar()"
+                    style="background:none;border:none;color:rgba(255,255,255,0.4);
+                           cursor:pointer;padding:4px;display:flex;">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+
+        <!-- Posto -->
+        <div class="input-group" style="margin-bottom:14px;">
+            <label class="ford-label">Posto</label>
+            <select id="ab-posto" class="ford-input">
+                <option value="">Selecione o posto...</option>
+            </select>
+        </div>
+
+        <!-- Tipo de Combustível -->
+        <div class="input-group" style="margin-bottom:14px;">
+            <label class="ford-label">Tipo de Combustível <span style="color:var(--red);">*</span></label>
+            <select id="ab-combustivel" class="ford-input">
+                <option value="">Selecione...</option>
+                <option value="E100">E100</option>
+                <option value="Gasolina">Gasolina</option>
+                <option value="Diesel">Diesel</option>
+            </select>
+        </div>
+
+        <!-- Grid litros + km -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+            <div class="input-group">
+                <label class="ford-label">Litros <span style="color:var(--red);">*</span></label>
+                <input type="number" id="ab-litros" class="ford-input"
+                       inputmode="decimal" placeholder="0.0" step="0.1" min="0">
+            </div>
+            <div class="input-group">
+                <label class="ford-label">Km Atual (odômetro)</label>
+                <input type="number" id="ab-km" class="ford-input"
+                       inputmode="numeric" placeholder="0" min="0">
+            </div>
+        </div>
+
+        <!-- Total acumulado -->
+        <div id="ab-total-acumulado"
+             style="display:none;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);
+                    border-radius:10px;padding:10px 14px;margin-bottom:16px;
+                    font-size:0.82rem;color:#f59e0b;">
+        </div>
+
+        <button onclick="AbastecimentoUI.confirmar()"
+                style="width:100%;background:linear-gradient(135deg,#f59e0b,#d97706);
+                       border:none;border-radius:12px;padding:14px;
+                       color:#000;font-weight:800;font-size:.95rem;
+                       cursor:pointer;display:flex;align-items:center;
+                       justify-content:center;gap:8px;letter-spacing:.3px;">
+            <span class="material-icons" style="font-size:1.1rem;">check_circle</span>
+            CONFIRMAR ABASTECIMENTO
+        </button>
+    </div>
+</div>
+
+<style>
+@keyframes slideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* Botão abastecimento hover */
+#btn-registrar-abastecimento:hover {
+    background: rgba(245,158,11,0.2) !important;
+    border-color: rgba(245,158,11,0.6) !important;
+    transform: translateY(-1px);
+}
+</style>
+
+<script>
+const AbastecimentoUI = {
+    async abrir() {
+        if (!TurnoEngine.dados) {
+            alert('Nenhum turno ativo. Inicie um turno antes de registrar abastecimento.');
+            return;
+        }
+
+        // Popular select de postos do Firestore
+        const postoSel = document.getElementById('ab-posto');
+        if (postoSel) {
+            postoSel.innerHTML = '<option value="">Selecione o posto...</option>';
+            try {
+                const postos = await DadosMestres.getPostos();
+                postos.forEach(p => {
+                    const o = document.createElement('option');
+                    o.value = p.nome || '';
+                    o.textContent = p.nome || '';
+                    postoSel.appendChild(o);
+                });
+            } catch (e) {
+                const lista = PreCadastroEngine.getAll('postos');
+                lista.forEach(p => {
+                    const o = document.createElement('option');
+                    o.value = p.nome || '';
+                    o.textContent = p.nome || '';
+                    postoSel.appendChild(o);
+                });
+            }
+        }
+
+        // Mostrar total acumulado se já há abastecimentos
+        this._atualizarTotal();
+
+        // Limpar campos
+        ['ab-litros', 'ab-km'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        const comb = document.getElementById('ab-combustivel');
+        if (comb) comb.value = '';
+
+        const modal = document.getElementById('modal-abastecimento-parcial');
+        if (modal) modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    },
+
+    fechar() {
+        const modal = document.getElementById('modal-abastecimento-parcial');
+        if (modal) modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    },
+
+    confirmar() {
+        const posto       = document.getElementById('ab-posto')?.value || '';
+        const combustivel = document.getElementById('ab-combustivel')?.value || '';
+        const litros      = parseFloat(document.getElementById('ab-litros')?.value || '0');
+        const km          = parseFloat(document.getElementById('ab-km')?.value || '0');
+
+        if (!combustivel) {
+            alert('Selecione o tipo de combustível.');
+            return;
+        }
+        if (!litros || litros <= 0) {
+            alert('Informe a quantidade de litros.');
+            return;
+        }
+
+        const ok = TurnoEngine.adicionarAbastecimento({
+            posto,
+            tipoCombustivel: combustivel,
+            litros,
+            kmAtual: km,
+        });
+
+        if (ok) {
+            this.fechar();
+            this._renderHistorico();
+
+            // Feedback visual
+            const btn = document.getElementById('btn-registrar-abastecimento');
+            if (btn) {
+                btn.innerHTML = '<span class="material-icons" style="font-size:1.1rem;">check_circle</span> Registrado!';
+                btn.style.color = '#4ade80';
+                btn.style.borderColor = 'rgba(74,222,128,0.35)';
+                btn.style.background = 'rgba(74,222,128,0.1)';
+                setTimeout(() => {
+                    btn.innerHTML = '<span class="material-icons" style="font-size:1.1rem;">local_gas_station</span> REGISTRAR ABASTECIMENTO';
+                    btn.style.color = '#f59e0b';
+                    btn.style.borderColor = 'rgba(245,158,11,0.35)';
+                    btn.style.background = 'rgba(245,158,11,0.12)';
+                }, 2500);
+            }
+        }
+    },
+
+    _atualizarTotal() {
+        const d = TurnoEngine.dados;
+        const el = document.getElementById('ab-total-acumulado');
+        if (!el) return;
+
+        const lista = d?.abastecimentos || [];
+        if (lista.length === 0) { el.style.display = 'none'; return; }
+
+        const total = lista.reduce((s, a) => s + (parseFloat(a.litros) || 0), 0);
+        el.style.display = 'block';
+        el.innerHTML = `
+            <strong>${lista.length} abastecimento(s) neste turno</strong>
+            &nbsp;·&nbsp; Total acumulado: <strong>${total.toFixed(1)} L</strong>`;
+    },
+
+    _renderHistorico() {
+        const d = TurnoEngine.dados;
+        const container = document.getElementById('abastecimentos-historico');
+        if (!container) return;
+
+        const lista = d?.abastecimentos || [];
+        if (lista.length === 0) { container.style.display = 'none'; return; }
+
+        container.style.display = 'block';
+        const total = lista.reduce((s, a) => s + (parseFloat(a.litros) || 0), 0);
+
+        container.innerHTML = `
+            <div style="background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.2);
+                        border-radius:10px;padding:10px 14px;font-size:0.78rem;">
+                <div style="font-weight:700;color:#f59e0b;margin-bottom:6px;display:flex;align-items:center;gap:6px;">
+                    <span class="material-icons" style="font-size:.9rem;">receipt_long</span>
+                    ${lista.length} Abastecimento(s) — Total: <strong>${total.toFixed(1)} L</strong>
+                </div>
+                ${lista.map((a, i) => `
+                    <div style="display:flex;justify-content:space-between;padding:4px 0;
+                                border-bottom:1px solid rgba(255,255,255,0.05);color:rgba(255,255,255,0.75);">
+                        <span>${i + 1}. ${a.posto || '—'} · <em>${a.tipoCombustivel}</em></span>
+                        <span style="font-weight:600;color:#f59e0b;">${a.litros} L · ${a.hora}</span>
+                    </div>
+                `).join('')}
+            </div>`;
+    },
+};
+
+// Atualizar histórico ao sincronizar turno
+const _origSincronizar = TurnoEngine.sincronizarComApp?.bind(TurnoEngine);
+if (_origSincronizar) {
+    TurnoEngine.sincronizarComApp = function() {
+        _origSincronizar();
+        AbastecimentoUI._renderHistorico?.();
+    };
+}
+</script>
 
 </body>
 </html>

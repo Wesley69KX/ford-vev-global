@@ -15,17 +15,11 @@ const AnalyticsEngine = {
 
         this._cargoAtual = cargo;
 
-        // Título dinâmico por cargo
+        // Título dinâmico por cargo - Ajustado para Analytics Pessoal
         const titulo = document.getElementById('anl-titulo-cargo');
 
         if (titulo) {
-            if (cargo === 'Gerente') {
-                titulo.innerText = '📊 Visão Gerencial — Consolidado da Equipe';
-            } else if (cargo === 'Coordenador') {
-                titulo.innerText = '📊 Analytics — Desempenho Operacional da Equipe';
-            } else {
-                titulo.innerText = '📊 Analytics — TPG Insight AI';
-            }
+            titulo.innerText = 'Meus Analytics — Meus Turnos';
         }
 
         appUI.abrirModal('modal-analytics');
@@ -71,10 +65,18 @@ const AnalyticsEngine = {
             const dataLimite = new Date();
             dataLimite.setDate(dataLimite.getDate() - this._periodo);
 
-            const snap = await db.collection('vev_turnos_encerrados')
+            // Restrição de Analytics Pessoal: Cada usuário acessa apenas sua estatística
+            const uid = firebase.auth().currentUser?.uid;
+
+            let query = db.collection('vev_turnos_encerrados')
                 .where('dataEncerramento', '>=', dataLimite)
-                .orderBy('dataEncerramento', 'desc')
-                .get();
+                .orderBy('dataEncerramento', 'desc');
+
+            if (uid) {
+                query = query.where('uid', '==', uid);
+            }
+
+            const snap = await query.get();
 
             this._dados = snap.docs.map(doc => ({
                 id: doc.id,
@@ -230,22 +232,30 @@ const AnalyticsEngine = {
 
         this._renderTabelaOperadores('anl-tabela-operadores', opStats);
 
-        // ── KPIs exclusivos do Gerente ──────────────────────────
-        if (cargo === 'Gerente') {
-            this._renderKPIsGerente(dados, opStats);
-        } else {
-            this._ocultarKPIsGerente();
+        // Ocultar tabela de ranking de operadores no Analytics pessoal
+        const elTabela = document.getElementById('anl-tabela-operadores');
+        if (elTabela && elTabela.parentElement) {
+            elTabela.parentElement.style.display = 'none';
         }
+
+        // Forçar ocultação dos KPIs de gerente
+        this._ocultarKPIsGerente();
 
         // ── Buscar Issues reais do Firestore ────────────────────
         try {
             const db = firebase.firestore();
             const dataLimite = new Date();
             dataLimite.setDate(dataLimite.getDate() - this._periodo);
+            const uid = firebase.auth().currentUser?.uid;
 
-            const snapIssues = await db.collection('vev_issues')
-                .where('criadoEm', '>=', dataLimite)
-                .get();
+            let queryIssues = db.collection('vev_issues')
+                .where('criadoEm', '>=', dataLimite);
+
+            if (uid) {
+                queryIssues = queryIssues.where('uid', '==', uid);
+            }
+
+            const snapIssues = await queryIssues.get();
 
             const issues = snapIssues.docs.map(doc => ({
                 id: doc.id,
@@ -378,11 +388,11 @@ const AnalyticsEngine = {
             const especialidade = this._obterEspecialidade(s.testes);
 
             return `
-                            <tr>
-                                <td>
-                                    ${idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : ''}
-                                    ${this._escapeHtml(nome)}
-                                </td>
+                             <tr>
+                                 <td>
+                                     ${idx === 0 ? '1º' : idx === 1 ? '2º' : idx === 2 ? '3º' : ''}
+                                     ${this._escapeHtml(nome)}
+                                 </td>
 
                                 <td>${s.turnos}</td>
 
@@ -464,7 +474,7 @@ const AnalyticsEngine = {
         container.innerHTML = `
             <div class="analytics-section">
                 <div class="analytics-section-title">
-                    📈 KPIs Gerenciais
+                    KPIs Gerenciais
                 </div>
 
                 <div class="analytics-cards-grid" style="grid-template-columns:repeat(2,1fr);">
@@ -624,11 +634,24 @@ const AnalyticsEngine = {
     // ─────────────────────────────────────────────────────────
     async _salvarTurnoEncerrado(enc) {
         try {
-            const d = TurnoEngine.dados || {};
+            // Usar snapshot final que preserva abastecimentos e horaFim (capturado antes de TurnoEngine.encerrar())
+            const d = TurnoEngine._snapshotFinal || TurnoEngine.dados || {};
             const trip = TurnoEngine.calcTrip(enc.kmFinal);
             const db = firebase.firestore();
 
             const metricas = enc.metricas || {};
+
+            // Calcular totais de abastecimentos múltiplos
+            const abastecimentos = d.abastecimentos || [];
+            const totalLitros = abastecimentos.length > 0
+                ? abastecimentos.reduce((s, a) => s + (parseFloat(a.litros) || 0), 0)
+                : (parseFloat(enc.litros) || 0);
+            const postoFinal = abastecimentos.length > 0
+                ? abastecimentos[abastecimentos.length - 1].posto
+                : (enc.posto || '');
+            const tipoCombustivelFinal = abastecimentos.length > 0
+                ? abastecimentos[abastecimentos.length - 1].tipoCombustivel
+                : (enc.tipoCombustivel || '');
 
             const payloadTurno = {
                 uid: d.uid || firebase.auth().currentUser?.uid || '',
@@ -653,8 +676,11 @@ const AnalyticsEngine = {
                 kmFinal: parseFloat(enc.kmFinal) || 0,
                 trip: parseFloat(trip) || 0,
 
-                litros: parseFloat(enc.litros) || 0,
-                posto: enc.posto || '',
+                // Abastecimentos
+                abastecimentos,
+                litros: parseFloat(totalLitros.toFixed(2)),
+                posto: postoFinal,
+                tipoCombustivel: tipoCombustivelFinal,
                 valorPago: parseFloat(enc.valorPago) || 0,
                 saldo: parseFloat(enc.saldo) || 0,
                 autonomia: parseFloat(enc.autonomia) || 0,
@@ -668,6 +694,7 @@ const AnalyticsEngine = {
 
                 issues: 0,
                 horaInicio: d.horaInicio || '',
+                horaFim: d.horaFim || new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
 
                 turnoData: new Date().toISOString().split('T')[0],
                 dataEncerramento: firebase.firestore.FieldValue.serverTimestamp(),

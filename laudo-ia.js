@@ -102,11 +102,11 @@ const IAEngine = {
 
         const config = {
             MOCK_LOCAL: {
-                label: '🔵 MOCK LOCAL',
+                label: 'MOCK LOCAL',
                 style: 'background:rgba(59,130,246,0.15);color:#60a5fa;border-color:#3b82f6;'
             },
             FORDLLM_OFICIAL: {
-                label: '🟢 FordLLM Oficial',
+                label: 'FordLLM Oficial',
                 style: 'background:rgba(34,197,94,0.15);color:#4ade80;border-color:#22c55e;'
             }
         };
@@ -379,19 +379,11 @@ async function aplicarResultadoIA() {
     const ta = document.getElementById('i-obs');
     if (ta) {
         ta.value = r.parecerFinal;
-        ta.dataset.tituloIA = r.titulo;
+        ta.dataset.tituloIA = r.titulo || 'Ocorrência';
+        ta.dataset.categoriaIA = r.categoria || 'Geral';
+        ta.dataset.severidadeIA = r.severidade || 'N/A';
+        ta.dataset.causaRaizIA = r.causaRaiz || '';
     }
-
-    // Conta mídias anexadas
-    const galeria = document.getElementById('galeria-avaria');
-    const totalMidias = galeria ? galeria.children.length : 0;
-
-    // Salva no Firestore automaticamente ao aplicar
-    const issueId = await salvarIssueNoFirestore(
-        r,
-        _textoOriginalLaudo,
-        { total: totalMidias, imagens: totalMidias, videos: 0 }
-    );
 
     const container = document.getElementById('ia-resultado-container');
 
@@ -406,18 +398,10 @@ async function aplicarResultadoIA() {
                     check_circle
                 </span>
                 <p style="color:var(--neon-green);font-weight:800;margin-top:8px;">
-                    Parecer técnico aplicado ao laudo!
+                    Parecer técnico aplicado ao formulário!
                 </p>
-                ${issueId
-                    ? `<p style="color:var(--text-secondary);font-size:0.72rem;margin-top:4px;">
-                           Issue salvo no banco · ID: ${issueId}
-                       </p>`
-                    : `<p style="color:orange;font-size:0.72rem;margin-top:4px;">
-                           Salvo localmente — verifique conexão
-                       </p>`
-                }
-                <p style="color:var(--text-secondary);font-size:0.8rem;margin-top:6px;">
-                    Revise o texto acima e clique em EMITIR RELATÓRIO
+                <p style="color:var(--text-secondary);font-size:0.8rem;margin-top:4px;">
+                    Você pode agora clicar em EMITIR RELATÓRIO ou DEIXAR EM ABERTO.
                 </p>
             </div>
         `;
@@ -428,7 +412,6 @@ async function aplicarResultadoIA() {
     });
 
     _ultimoResultadoIA  = null;
-    _textoOriginalLaudo = '';
 }
 
 function descartarResultadoIA() {
@@ -586,10 +569,10 @@ function _htmlResultado(r) {
                 CONTEXTO DO TURNO
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
-                ${ctx.projeto   ? `<div>📁 ${ctx.projeto}</div>` : ''}
-                ${ctx.tipoTeste ? `<div>🧪 ${ctx.tipoTeste}</div>` : ''}
-                ${ctx.operador  ? `<div>👤 ${ctx.operador}</div>` : ''}
-                ${ctx.veiculo   ? `<div>🚗 ${ctx.veiculo}</div>` : ''}
+                ${ctx.projeto   ? `<div>Projeto: ${ctx.projeto}</div>` : ''}
+                ${ctx.tipoTeste ? `<div>Teste: ${ctx.tipoTeste}</div>` : ''}
+                ${ctx.operador  ? `<div>Operador: ${ctx.operador}</div>` : ''}
+                ${ctx.veiculo   ? `<div>Veículo: ${ctx.veiculo}</div>` : ''}
                 ${ctx.vin       ? `<div>VIN: ${ctx.vin}</div>` : ''}
             </div>
         </div>
@@ -694,3 +677,100 @@ function _htmlErro(msg) {
         </div>
     `;
 }
+
+// ─────────────────────────────────────────────────────────────
+// 6. LAUDOS EM ABERTO (SALVAR LOCALMENTE E FINALIZAR COM TURNO)
+// ─────────────────────────────────────────────────────────────
+const LaudoPendente = {
+    salvarEmAberto() {
+        if (typeof TurnoEngine === 'undefined' || !TurnoEngine.dados) {
+            alert("Atenção: Você precisa iniciar um turno para deixar o laudo em aberto.");
+            return;
+        }
+
+        const d = TurnoEngine.dados;
+        const obsEl = document.getElementById('i-obs');
+        const relato = obsEl ? obsEl.value.trim() : '';
+
+        if (!relato && (!app.fotos || app.fotos.length === 0)) {
+            alert("Por favor, relate a ocorrência ou anexe uma foto antes de salvar.");
+            return;
+        }
+
+        const titulo = obsEl.dataset.tituloIA || 'Ocorrência Manual';
+        const categoria = obsEl.dataset.categoriaIA || 'Geral';
+        const severidade = obsEl.dataset.severidadeIA || 'N/A';
+        const causaRaiz = obsEl.dataset.causaRaizIA || '';
+        const parecerFinal = relato;
+
+        const laudo = {
+            relatoOriginal: relato,
+            titulo,
+            categoria,
+            severidade,
+            causaRaiz,
+            parecerFinal,
+            fotos: JSON.parse(JSON.stringify(app.fotos || [])),
+            timestamp: new Date().toISOString()
+        };
+
+        if (!d.laudosPendentes) {
+            d.laudosPendentes = [];
+        }
+
+        d.laudosPendentes.push(laudo);
+
+        TurnoEngine._cache = d;
+        localStorage.setItem(TurnoEngine._chave(), JSON.stringify(d));
+
+        try {
+            firebase.database().ref('vev_turnos_ativos').child(d.uid).update({
+                laudosPendentes: d.laudosPendentes
+            });
+        } catch (e) {
+            console.warn('[LaudoPendente] Erro ao sincronizar RTDB:', e);
+        }
+
+        alert("Laudo salvo em aberto com sucesso! Ele será finalizado junto com o encerramento do turno.");
+
+        if (typeof app !== 'undefined' && typeof app.resetarFormularioLaudo === 'function') {
+            app.resetarFormularioLaudo();
+        }
+
+        if (obsEl) {
+            delete obsEl.dataset.tituloIA;
+            delete obsEl.dataset.categoriaIA;
+            delete obsEl.dataset.severidadeIA;
+            delete obsEl.dataset.causaRaizIA;
+        }
+
+        if (typeof fecharModalLaudo === 'function') {
+            fecharModalLaudo();
+        }
+
+        this.atualizarContagemHome();
+    },
+
+    obterQuantidade() {
+        if (typeof TurnoEngine === 'undefined') return 0;
+        const d = TurnoEngine.dados;
+        if (!d || !d.laudosPendentes) return 0;
+        return d.laudosPendentes.length;
+    },
+
+    atualizarContagemHome() {
+        const qtd = this.obterQuantidade();
+        const el = document.getElementById('home-laudos-abertos-indicador');
+        const txt = document.getElementById('home-laudos-abertos-text');
+        if (el) {
+            if (qtd > 0) {
+                el.style.display = 'inline-flex';
+                if (txt) txt.innerText = `${qtd} laudo(s) em aberto`;
+            } else {
+                el.style.display = 'none';
+            }
+        }
+    }
+};
+
+window.LaudoPendente = LaudoPendente;

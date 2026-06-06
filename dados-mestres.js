@@ -209,11 +209,11 @@ const DadosMestres = {
 async getProjetos() {
     const snap = await firebase.firestore()
         .collection('vev_projetos')
-        .where('ativo', '==', true)
         .get();
 
     return snap.docs
         .map(d => ({ id: d.id, ...d.data() }))
+        .filter(d => d.ativo !== false)
         .sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
 },
 
@@ -221,7 +221,6 @@ async getProjetos() {
 async getTestesPista() {
     const snap = await firebase.firestore()
         .collection('vev_testes_pista')
-        .where('ativo', '==', true)
         .get();
 
     return snap.docs
@@ -234,28 +233,29 @@ async getTestesPista() {
                 ambiente: data.ambiente || local.ambiente || 'VOC'
             };
         })
+        .filter(d => d.ativo !== false)
         .sort((a, b) => a.nome.localeCompare(b.nome));
 },
 
 async getVeiculos() {
     const snap = await firebase.firestore()
         .collection('vev_veiculos')
-        .where('ativo', '==', true)
         .get();
 
     return snap.docs
         .map(d => ({ id: d.id, ...d.data() }))
+        .filter(d => d.ativo !== false)
         .sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
 },
 
 async getPostos() {
     const snap = await firebase.firestore()
         .collection('vev_postos')
-        .where('ativo', '==', true)
         .get();
 
     return snap.docs
         .map(d => ({ id: d.id, ...d.data() }))
+        .filter(d => d.ativo !== false)
         .sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
 },
 

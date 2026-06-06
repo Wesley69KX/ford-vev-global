@@ -469,7 +469,8 @@ function atualizarTentativas(t) {
 // ─────────────────────────────────────────
 function validarEmailTempoReal(input) {
     const e = input.value.trim().toLowerCase();
-    const f = document.getElementById('email-feedback');
+    // Suporte aos dois IDs possíveis (login form novo e legado)
+    const f = document.getElementById('login-email-feedback') || document.getElementById('email-feedback');
 
     if (!f) return;
 
@@ -552,6 +553,10 @@ function exibirBoasVindas(nome) {
     const n = document.getElementById('welcome-nome-texto');
     if (n) n.innerText = nome;
 
+    // Esconde a tela de login imediatamente para mostrar as boas-vindas sem sobreposição
+    const loginEl = document.getElementById('modal-login');
+    if (loginEl) loginEl.style.display = 'none';
+
     t.style.display = 'flex';
 
     const b = t.querySelector('.welcome-bar');
@@ -617,8 +622,8 @@ function mudarModoAuth(modo) {
     const btnTexto = document.getElementById('btn-auth-texto');
     if (btnTexto) {
         btnTexto.innerHTML = modo === 'login'
-            ? '🔐 Acessar Sistema'
-            : '🚀 Criar Conta';
+            ? 'Acessar Sistema'
+            : 'Criar Conta';
     }
 
     // ── Limpa aviso de tentativas ──────────────────
@@ -635,7 +640,12 @@ function resetBtn() {
     if (!btn) return;
 
     btn.disabled = false;
-    btn.innerHTML = modoAtual === 'login' ? 'Acessar Sistema' : 'Criar Conta';
+    // Preserva o ícone material no texto do botão
+    if (modoAtual === 'login') {
+        btn.innerHTML = '<span id="btn-auth-texto" class="login-btn-inner"><span class="material-icons" style="font-size:1rem;">login</span> Acessar Sistema</span>';
+    } else {
+        btn.innerHTML = '<span id="btn-auth-texto" class="login-btn-inner"><span class="material-icons" style="font-size:1rem;">person_add</span> Criar Conta</span>';
+    }
 }
 
 // ─────────────────────────────────────────
@@ -721,18 +731,17 @@ async function processarAutenticacao() {
                 cargo,
             });
 
-            await cred.user.sendEmailVerification();
-            await EmailEngine.novoUsuario({ nome, cargo, email });
-            await firebase.auth().signOut();
+            // Envia verificação como boas práticas, mas NÃO bloqueia o acesso.
+            // O onAuthStateChanged vai detectar o login e liberar o app shell.
+            try { await cred.user.sendEmailVerification(); } catch (_) { /* ignore */ }
+            try { await EmailEngine.novoUsuario({ nome, cargo, email }); } catch (_) { /* ignore */ }
 
-            // Confirmacao de e-mail obrigatoria para primeiro acesso.
-            const instrucao = 'Confirme seu e-mail para acessar o sistema. Apos a confirmacao, o acesso sera liberado automaticamente.';
+            // [FIX v3.1] — NÃO deslogar após cadastro. O usuário entra direto no sistema.
+            // O onAuthStateChanged cuida da aprovação automática para @ford.com.
 
-            alert(`Conta criada com sucesso!\n\n${instrucao}`);
+            resetBtn();
 
-            mudarModoAuth('login');
-
-            ['signup-nome', 'signup-cargo', 'login-senha'].forEach(id => {
+            ['signup-nome', 'signup-cargo'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.value = '';
             });
@@ -801,16 +810,9 @@ function mostrarPendente(perfil) {
     if (n) n.innerText = perfil.nome || 'Usuário';
     if (c) c.innerText = perfil.cargo || '';
 
-    document.getElementById('modal-login').style.display = 'none';
-    // ── Inicia Dashboard e Cronômetro após login ──
-setTimeout(() => {
-    if (typeof DashboardGestao !== 'undefined') {
-        DashboardGestao.iniciar();
-    }
-    if (typeof BannerCronometro !== 'undefined') {
-        BannerCronometro.iniciar();
-    }
-}, 2000); // aguarda perfil + cargo carregar
+    // Null-check antes de esconder o login
+    const loginEl = document.getElementById('modal-login');
+    if (loginEl) loginEl.style.display = 'none';
 
     t.style.display = 'flex';
 }
@@ -828,15 +830,10 @@ firebase.auth().onAuthStateChanged(async user => {
         if (user) {
             limparTentativas();
 
-            // Validação automática de domínio corporativo @ford.com apenas após confirmação do e-mail
-            if (!isLocal && user.email && user.email.toLowerCase().endsWith('@ford.com')) {
-                if (!user.emailVerified) {
-                    alert('Por favor, confirme seu e-mail corporativo (@ford.com) no seu inbox antes de acessar o sistema.\nO acesso foi bloqueado até a confirmação.');
-                    await firebase.auth().signOut();
-                    _authProc = false;
-                    return;
-                }
-            }
+            // [FIX v3.1] — Verificação de e-mail corporativo sem bloqueio rígido.
+            // Usuários @ford.com têm acesso imediato (contas existentes não ficam presas).
+            // O sendEmailVerification no cadastro é mantido como boa-prática, mas não impede o login.
+            // Nenhum bloqueio por emailVerified para evitar lock-out de usuários legados.
 
             let perfil = null;
             try {
@@ -914,7 +911,9 @@ firebase.auth().onAuthStateChanged(async user => {
                 return;
             }
 
-            const nome = perfil.nome || user.email.split('@')[0].toUpperCase();
+            // Null-safe: garante nome mesmo sem email ou perfil completo
+            const nome = perfil.nome ||
+                (user.email ? user.email.split('@')[0].toUpperCase() : 'ANALISTA');
 
             localStorage.setItem('app_vev_operador', nome);
             localStorage.setItem('app_vev_cargo', perfil.cargo);
@@ -928,13 +927,16 @@ firebase.auth().onAuthStateChanged(async user => {
                 if (typeof mostrarAppShell === 'function') {
                     mostrarAppShell(nome);
                 } else {
-                    // fallback
-                    document.getElementById('modal-login').style.display = 'none';
+                    // fallback com null-check
+                    const loginFb = document.getElementById('modal-login');
+                    if (loginFb) loginFb.style.display = 'none';
                     const shell = document.getElementById('app-shell');
                     if (shell) shell.classList.add('visible');
                 }
 
-                document.getElementById('tela-pendente').style.display = 'none';
+                // Null-check na tela pendente antes de ocultar
+                const tpEl = document.getElementById('tela-pendente');
+                if (tpEl) tpEl.style.display = 'none';
                 document.body.style.overflow = 'auto';
 
                 // Compatibilidade: atualiza ID legado de forma segura
@@ -993,6 +995,10 @@ firebase.auth().onAuthStateChanged(async user => {
             RoleEngine._perfil = null;
 
             resetBtn();
+
+            // Esconde o App Shell ao deslogar
+            const shell = document.getElementById('app-shell');
+            if (shell) shell.classList.remove('visible');
 
             document.getElementById('modal-login').style.display = 'flex';
             document.body.style.overflow = 'hidden';
