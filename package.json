@@ -6,12 +6,21 @@
     "scripts": {
         "dev": "vite",
         "build": "vite build",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "lint": "eslint . --ext .js --ignore-pattern dist/ --ignore-pattern node_modules/",
+        "lint:fix": "eslint . --ext .js --ignore-pattern dist/ --ignore-pattern node_modules/ --fix",
+        "format": "prettier --write \"**/*.{js,css,html}\" --ignore-path .gitignore",
+        "format:check": "prettier --check \"**/*.{js,css,html}\" --ignore-path .gitignore",
+        "deploy": "npm run build && firebase deploy --only hosting",
+        "deploy:preview": "npm run build && firebase hosting:channel:deploy preview"
     },
     "dependencies": {
         "firebase": "^10.0.0"
     },
     "devDependencies": {
+        "eslint": "^8.57.1",
+        "eslint-config-prettier": "^10.1.8",
+        "prettier": "^3.8.3",
         "vite": "^5.0.0"
     }
 }

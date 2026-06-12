@@ -1,0 +1,37 @@
+{
+    "version": "1.0",
+    "agents": {
+        "power-bi-analyst": {
+            "file": "agents/power-bi-analyst.json"
+        },
+        "dashboard-optimizer": {
+            "file": "agents/dashboard-optimizer.json"
+        },
+        "frontend-ux-designer": {
+            "file": "agents/frontend-ux-designer.json"
+        },
+        "data-analyst": {
+            "file": "agents/data-analyst.json"
+        },
+        "refresh-ux-agent": {
+            "file": "agents/refresh-ux-agent.json"
+        }
+    },
+    "skills": {
+        "power-bi-analysis": {
+            "file": "skills/power-bi-analysis.md"
+        },
+        "dashboard-optimization": {
+            "file": "skills/dashboard-optimization.md"
+        },
+        "frontend-ux": {
+            "file": "skills/frontend-ux.md"
+        },
+        "data-analysis-visual": {
+            "file": "skills/data-analysis-visual.md"
+        },
+        "refresh-ux": {
+            "file": "skills/refresh-ux.md"
+        }
+    }
+}

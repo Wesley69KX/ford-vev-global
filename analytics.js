@@ -11,20 +11,20 @@ const AnalyticsEngine = {
     // Abre o modal e carrega os dados conforme perfil
     // ─────────────────────────────────────────────────────────
     async abrir() {
-        const cargo = this._obterCargoAtual();
+        const cargo = this._obterCargoAtual()
 
-        this._cargoAtual = cargo;
+        this._cargoAtual = cargo
 
         // Título dinâmico por cargo - Ajustado para Analytics Pessoal
-        const titulo = document.getElementById('anl-titulo-cargo');
+        const titulo = document.getElementById('anl-titulo-cargo')
 
         if (titulo) {
-            titulo.innerText = 'Meus Analytics — Meus Turnos';
+            titulo.innerText = 'Meus Analytics — Meus Turnos'
         }
 
-        appUI.abrirModal('modal-analytics');
+        appUI.abrirModal('modal-analytics')
 
-        await this.carregar(cargo);
+        await this.carregar(cargo)
     },
 
     // ─────────────────────────────────────────────────────────
@@ -32,73 +32,76 @@ const AnalyticsEngine = {
     // ─────────────────────────────────────────────────────────
     _obterCargoAtual() {
         if (typeof RoleEngine !== 'undefined' && RoleEngine.perfil?.cargo) {
-            return RoleEngine.perfil.cargo;
+            return RoleEngine.perfil.cargo
         }
 
-        return localStorage.getItem('app_vev_cargo') || 'Analista';
+        return localStorage.getItem('app_vev_cargo') || 'Analista'
     },
 
     // ─────────────────────────────────────────────────────────
     // Define período e recarrega dados
     // ─────────────────────────────────────────────────────────
     async setPeriodo(dias, btn) {
-        document.querySelectorAll('.analytics-periodo-btn')
-            .forEach(b => b.classList.remove('active'));
+        document
+            .querySelectorAll('.analytics-periodo-btn')
+            .forEach((b) => b.classList.remove('active'))
 
-        if (btn) btn.classList.add('active');
+        if (btn) btn.classList.add('active')
 
-        this._periodo = dias;
+        this._periodo = dias
 
-        await this.carregar(this._cargoAtual || this._obterCargoAtual());
+        await this.carregar(this._cargoAtual || this._obterCargoAtual())
     },
 
     // ─────────────────────────────────────────────────────────
     // Busca dados no Firestore
     // ─────────────────────────────────────────────────────────
     async carregar(cargo) {
-        this._mostrarLoading(true);
-        this._mostrarVazio(false);
+        this._mostrarLoading(true)
+        this._mostrarVazio(false)
 
         try {
-            const db = firebase.firestore();
+            const db = firebase.firestore()
 
-            const dataLimite = new Date();
-            dataLimite.setDate(dataLimite.getDate() - this._periodo);
+            const dataLimite = new Date()
+            dataLimite.setDate(dataLimite.getDate() - this._periodo)
 
             // Restrição de Analytics Pessoal: Cada usuário acessa apenas sua estatística
-            const uid = firebase.auth().currentUser?.uid;
+            const uid = firebase.auth().currentUser?.uid
 
-            let query = db.collection('vev_turnos_encerrados')
+            let query = db
+                .collection('vev_turnos_encerrados')
                 .where('dataEncerramento', '>=', dataLimite)
-                .orderBy('dataEncerramento', 'desc');
+                .orderBy('dataEncerramento', 'desc')
 
             if (uid) {
-                query = query.where('uid', '==', uid);
+                query = query.where('uid', '==', uid)
             }
 
-            const snap = await query.get();
+            const snap = await query.get()
 
-            this._dados = snap.docs.map(doc => ({
+            this._dados = snap.docs.map((doc) => ({
                 id: doc.id,
-                ...doc.data()
-            }));
+                ...doc.data(),
+            }))
 
             if (this._dados.length === 0) {
-                this._limparDashboard();
-                this._mostrarVazio(true);
-                this._mostrarLoading(false);
-                return;
+                this._limparDashboard()
+                this._mostrarVazio(true)
+                this._mostrarLoading(false)
+                return
             }
 
-            this._mostrarVazio(false);
-            this._renderizar(cargo || this._obterCargoAtual());
-
+            this._mostrarVazio(false)
+            this._renderizar(cargo || this._obterCargoAtual())
         } catch (e) {
-            console.error('[Analytics] Erro ao carregar dados:', e);
-            alert('Erro ao carregar dados do Analytics. Verifique a conexão ou os índices do Firestore.');
+            console.error('[Analytics] Erro ao carregar dados:', e)
+            alert(
+                'Erro ao carregar dados do Analytics. Verifique a conexão ou os índices do Firestore.'
+            )
         }
 
-        this._mostrarLoading(false);
+        this._mostrarLoading(false)
     },
 
     // ─────────────────────────────────────────────────────────
@@ -107,96 +110,72 @@ const AnalyticsEngine = {
     // Gerente: visão equipe + KPIs gerenciais macro
     // ─────────────────────────────────────────────────────────
     async _renderizar(cargo) {
-        const dados = this._dados || [];
+        const dados = this._dados || []
 
         // ── Cards de resumo ─────────────────────────────────
-        const totalKm = dados.reduce((s, d) =>
-            s + (parseFloat(d.trip) || 0), 0);
+        const totalKm = dados.reduce((s, d) => s + (parseFloat(d.trip) || 0), 0)
 
-        const totalTurnos = dados.length;
+        const totalTurnos = dados.length
 
-        const totalIssues = dados.reduce((s, d) =>
-            s + (parseInt(d.issues) || 0), 0);
+        const totalIssues = dados.reduce((s, d) => s + (parseInt(d.issues) || 0), 0)
 
-        const totalLitros = dados.reduce((s, d) =>
-            s + (parseFloat(d.litros) || 0), 0);
+        const totalLitros = dados.reduce((s, d) => s + (parseFloat(d.litros) || 0), 0)
 
         this._setCard(
             'anl-total-km',
             `${totalKm.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} km`
-        );
+        )
 
-        this._setCard('anl-total-turnos', `${totalTurnos}`);
-        this._setCard('anl-total-issues', `${totalIssues}`);
+        this._setCard('anl-total-turnos', `${totalTurnos}`)
+        this._setCard('anl-total-issues', `${totalIssues}`)
 
         this._setCard(
             'anl-total-litros',
             `${totalLitros.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} L`
-        );
+        )
 
         // ── Km por Projeto ──────────────────────────────────
-        const kmPorProjeto = {};
+        const kmPorProjeto = {}
 
-        dados.forEach(d => {
-            const projeto = d.projeto || 'Sem Projeto';
-            kmPorProjeto[projeto] = (kmPorProjeto[projeto] || 0) + (parseFloat(d.trip) || 0);
-        });
+        dados.forEach((d) => {
+            const projeto = d.projeto || 'Sem Projeto'
+            kmPorProjeto[projeto] = (kmPorProjeto[projeto] || 0) + (parseFloat(d.trip) || 0)
+        })
 
-        this._renderBarras(
-            'anl-grafico-projetos',
-            kmPorProjeto,
-            'km',
-            'var(--neon-purple)'
-        );
+        this._renderBarras('anl-grafico-projetos', kmPorProjeto, 'km', 'var(--neon-purple)')
 
         // ── Tipos de Teste mais executados ──────────────────
-        const testesExecutados = {};
+        const testesExecutados = {}
 
-        dados.forEach(d => {
+        dados.forEach((d) => {
             // IMPORTANTE: buscar tipoTeste, não projeto
-            const teste = d.tipoTeste
-                || d.tipoteste
-                || d.tipoTestePista
-                || null;
+            const teste = d.tipoTeste || d.tipoteste || d.tipoTestePista || null
 
             // IGNORA se for nome de projeto (proteção extra)
-            const projetosConhecidos = dados
-                .map(x => x.projeto)
-                .filter(Boolean);
+            const projetosConhecidos = dados.map((x) => x.projeto).filter(Boolean)
 
-            if (!teste || projetosConhecidos.includes(teste)) return;
+            if (!teste || projetosConhecidos.includes(teste)) return
 
-            testesExecutados[teste] = (testesExecutados[teste] || 0) + 1;
-        });
+            testesExecutados[teste] = (testesExecutados[teste] || 0) + 1
+        })
 
-        this._renderBarras(
-            'anl-grafico-testes',
-            testesExecutados,
-            'turnos',
-            'var(--neon-cyan)'
-        );
-
+        this._renderBarras('anl-grafico-testes', testesExecutados, 'turnos', 'var(--neon-cyan)')
 
         // ── Km por Veículo ──────────────────────────────────
-        const kmPorVeiculo = {};
+        const kmPorVeiculo = {}
 
-        dados.forEach(d => {
-            const veiculo = d.veiculo || 'Sem Veículo';
-            kmPorVeiculo[veiculo] = (kmPorVeiculo[veiculo] || 0) + (parseFloat(d.trip) || 0);
-        });
+        dados.forEach((d) => {
+            const veiculo = d.veiculo || 'Sem Veículo'
+            kmPorVeiculo[veiculo] = (kmPorVeiculo[veiculo] || 0) + (parseFloat(d.trip) || 0)
+        })
 
-        this._renderBarras(
-            'anl-grafico-veiculos',
-            kmPorVeiculo,
-            'km',
-            'var(--neon-blue)'
-        );
+        this._renderBarras('anl-grafico-veiculos', kmPorVeiculo, 'km', 'var(--neon-blue)')
 
         // ── Estatísticas por operador ───────────────────────
-        const opStats = {};
+        const opStats = {}
 
-        dados.forEach(d => {
-            const operador = d.operador || 'Desconhecido';
+        dados.forEach((d) => {
+            const operador = d.operador || 'Desconhecido'
 
             if (!opStats[operador]) {
                 opStats[operador] = {
@@ -207,112 +186,104 @@ const AnalyticsEngine = {
                     ciclos: 0,
                     laps: 0,
                     frenagens: 0,
-                    execucoes: 0
-                };
+                    execucoes: 0,
+                }
             }
 
-            opStats[operador].turnos++;
-            opStats[operador].km += parseFloat(d.trip) || 0;
-            opStats[operador].issues += parseInt(d.issues) || 0;
+            opStats[operador].turnos++
+            opStats[operador].km += parseFloat(d.trip) || 0
+            opStats[operador].issues += parseInt(d.issues) || 0
 
-            const teste = d.tipoTeste || d.tipoteste || d.tipoTestePista || '';
+            const teste = d.tipoTeste || d.tipoteste || d.tipoTestePista || ''
 
             if (teste) {
-                opStats[operador].testes[teste] =
-                    (opStats[operador].testes[teste] || 0) + 1;
+                opStats[operador].testes[teste] = (opStats[operador].testes[teste] || 0) + 1
             }
 
-            const metricas = d.metricas || {};
+            const metricas = d.metricas || {}
 
-            opStats[operador].ciclos += parseFloat(metricas.ciclos) || 0;
-            opStats[operador].laps += parseFloat(metricas.laps) || 0;
-            opStats[operador].frenagens += parseFloat(metricas.frenagens) || 0;
-            opStats[operador].execucoes += parseFloat(metricas.execucoes) || 0;
-        });
+            opStats[operador].ciclos += parseFloat(metricas.ciclos) || 0
+            opStats[operador].laps += parseFloat(metricas.laps) || 0
+            opStats[operador].frenagens += parseFloat(metricas.frenagens) || 0
+            opStats[operador].execucoes += parseFloat(metricas.execucoes) || 0
+        })
 
-        this._renderTabelaOperadores('anl-tabela-operadores', opStats);
+        this._renderTabelaOperadores('anl-tabela-operadores', opStats)
 
         // Ocultar tabela de ranking de operadores no Analytics pessoal
-        const elTabela = document.getElementById('anl-tabela-operadores');
+        const elTabela = document.getElementById('anl-tabela-operadores')
         if (elTabela && elTabela.parentElement) {
-            elTabela.parentElement.style.display = 'none';
+            elTabela.parentElement.style.display = 'none'
         }
 
         // Forçar ocultação dos KPIs de gerente
-        this._ocultarKPIsGerente();
+        this._ocultarKPIsGerente()
 
         // ── Buscar Issues reais do Firestore ────────────────────
         try {
-            const db = firebase.firestore();
-            const dataLimite = new Date();
-            dataLimite.setDate(dataLimite.getDate() - this._periodo);
-            const uid = firebase.auth().currentUser?.uid;
+            const db = firebase.firestore()
+            const dataLimite = new Date()
+            dataLimite.setDate(dataLimite.getDate() - this._periodo)
+            const uid = firebase.auth().currentUser?.uid
 
-            let queryIssues = db.collection('vev_issues')
-                .where('criadoEm', '>=', dataLimite);
+            let queryIssues = db.collection('vev_issues').where('criadoEm', '>=', dataLimite)
 
             if (uid) {
-                queryIssues = queryIssues.where('uid', '==', uid);
+                queryIssues = queryIssues.where('uid', '==', uid)
             }
 
-            const snapIssues = await queryIssues.get();
+            const snapIssues = await queryIssues.get()
 
-            const issues = snapIssues.docs.map(doc => ({
+            const issues = snapIssues.docs.map((doc) => ({
                 id: doc.id,
-                ...doc.data()
-            }));
+                ...doc.data(),
+            }))
 
             // Atualiza card com total real
-            this._setCard('anl-total-issues', `${issues.length}`);
+            this._setCard('anl-total-issues', `${issues.length}`)
 
             // Issues por Projeto
-            const issuesPorProjeto = {};
-            issues.forEach(issue => {
-                const projeto = issue.projeto || 'Sem Projeto';
-                issuesPorProjeto[projeto] = (issuesPorProjeto[projeto] || 0) + 1;
-            });
+            const issuesPorProjeto = {}
+            issues.forEach((issue) => {
+                const projeto = issue.projeto || 'Sem Projeto'
+                issuesPorProjeto[projeto] = (issuesPorProjeto[projeto] || 0) + 1
+            })
 
-            this._renderBarras(
-                'anl-grafico-issues',
-                issuesPorProjeto,
-                'issues',
-                '#ef4444'
-            );
-
+            this._renderBarras('anl-grafico-issues', issuesPorProjeto, 'issues', '#ef4444')
         } catch (e) {
-            console.warn('[Analytics] Issues não carregados:', e);
+            console.warn('[Analytics] Issues não carregados:', e)
         }
-
     },
 
     // ─────────────────────────────────────────────────────────
     // Renderiza gráfico de barras horizontal
     // ─────────────────────────────────────────────────────────
     _renderBarras(containerId, dados, unidade, cor) {
-        const el = document.getElementById(containerId);
+        const el = document.getElementById(containerId)
 
-        if (!el) return;
+        if (!el) return
 
         const sorted = Object.entries(dados || {})
             .sort((a, b) => b[1] - a[1])
-            .slice(0, 6);
+            .slice(0, 6)
 
         if (sorted.length === 0) {
             el.innerHTML = `
                 <p style="color:var(--text-secondary);font-size:0.8rem;text-align:center;">
                     Sem dados
                 </p>
-            `;
-            return;
+            `
+            return
         }
 
-        const maximo = sorted[0][1] || 1;
+        const maximo = sorted[0][1] || 1
 
-        el.innerHTML = sorted.map(([label, valor]) => {
-            const pct = maximo > 0 ? (valor / maximo) * 100 : 0;
-            const valorFormatado = this._formatarValorGrafico(valor, unidade);
+        el.innerHTML = sorted
+            .map(([label, valor]) => {
+                const pct = maximo > 0 ? (valor / maximo) * 100 : 0
+                const valorFormatado = this._formatarValorGrafico(valor, unidade)
 
-            return `
+                return `
                 <div class="anl-barra-row">
                     <span class="anl-barra-label" title="${this._escapeHtml(label)}">
                         ${this._escapeHtml(label)}
@@ -326,49 +297,49 @@ const AnalyticsEngine = {
 
                     <span class="anl-barra-valor">${valorFormatado}</span>
                 </div>
-            `;
-        }).join('');
+            `
+            })
+            .join('')
     },
 
     // ─────────────────────────────────────────────────────────
     // Formata valores dos gráficos
     // ─────────────────────────────────────────────────────────
     _formatarValorGrafico(valor, unidade) {
-        const n = parseFloat(valor) || 0;
+        const n = parseFloat(valor) || 0
 
         if (unidade === 'km') {
-            return `${n.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} km`;
+            return `${n.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} km`
         }
 
         if (unidade === 'turnos') {
-            return `${n.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} turno(s)`;
+            return `${n.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} turno(s)`
         }
 
         if (unidade === 'L' || unidade === 'litros') {
-            return `${n.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} L`;
+            return `${n.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} L`
         }
 
-        return `${n.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} ${unidade || ''}`;
+        return `${n.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} ${unidade || ''}`
     },
 
     // ─────────────────────────────────────────────────────────
     // Renderiza tabela de operadores
     // ─────────────────────────────────────────────────────────
     _renderTabelaOperadores(containerId, opStats) {
-        const el = document.getElementById(containerId);
+        const el = document.getElementById(containerId)
 
-        if (!el) return;
+        if (!el) return
 
-        const sorted = Object.entries(opStats || {})
-            .sort((a, b) => b[1].km - a[1].km);
+        const sorted = Object.entries(opStats || {}).sort((a, b) => b[1].km - a[1].km)
 
         if (sorted.length === 0) {
             el.innerHTML = `
                 <p style="color:var(--text-secondary);font-size:0.8rem;text-align:center;">
                     Sem dados
                 </p>
-            `;
-            return;
+            `
+            return
         }
 
         el.innerHTML = `
@@ -384,10 +355,11 @@ const AnalyticsEngine = {
                 </thead>
 
                 <tbody>
-                    ${sorted.map(([nome, s], idx) => {
-            const especialidade = this._obterEspecialidade(s.testes);
+                    ${sorted
+                        .map(([nome, s], idx) => {
+                            const especialidade = this._obterEspecialidade(s.testes)
 
-            return `
+                            return `
                              <tr>
                                  <td>
                                      ${idx === 0 ? '1º' : idx === 1 ? '2º' : idx === 2 ? '3º' : ''}
@@ -404,72 +376,66 @@ const AnalyticsEngine = {
 
                                 <td>${s.issues}</td>
                             </tr>
-                        `;
-        }).join('')}
+                        `
+                        })
+                        .join('')}
                 </tbody>
             </table>
-        `;
+        `
     },
 
     // ─────────────────────────────────────────────────────────
     // Identifica especialidade operacional do analista
     // ─────────────────────────────────────────────────────────
     _obterEspecialidade(testes) {
-        const entradas = Object.entries(testes || {});
+        const entradas = Object.entries(testes || {})
 
-        if (entradas.length === 0) return '—';
+        if (entradas.length === 0) return '—'
 
-        const top = entradas.sort((a, b) => b[1] - a[1])[0];
+        const top = entradas.sort((a, b) => b[1] - a[1])[0]
 
-        return top ? top[0] : '—';
+        return top ? top[0] : '—'
     },
 
     // ─────────────────────────────────────────────────────────
     // KPIs exclusivos para Gerente
     // ─────────────────────────────────────────────────────────
     _renderKPIsGerente(dados, opStats) {
-        const container = document.getElementById('anl-kpis-gerente');
+        const container = document.getElementById('anl-kpis-gerente')
 
-        if (!container) return;
+        if (!container) return
 
-        container.style.display = 'block';
+        container.style.display = 'block'
 
-        const totalKm = dados.reduce((s, d) =>
-            s + (parseFloat(d.trip) || 0), 0);
+        const totalKm = dados.reduce((s, d) => s + (parseFloat(d.trip) || 0), 0)
 
-        const mediaKmTurno = dados.length > 0
-            ? totalKm / dados.length
-            : 0;
+        const mediaKmTurno = dados.length > 0 ? totalKm / dados.length : 0
 
-        const topOp = Object.entries(opStats || {})
-            .sort((a, b) => b[1].km - a[1].km)[0];
+        const topOp = Object.entries(opStats || {}).sort((a, b) => b[1].km - a[1].km)[0]
 
-        const veiculos = {};
-        dados.forEach(d => {
-            const veiculo = d.veiculo || 'N/A';
-            veiculos[veiculo] = (veiculos[veiculo] || 0) + 1;
-        });
+        const veiculos = {}
+        dados.forEach((d) => {
+            const veiculo = d.veiculo || 'N/A'
+            veiculos[veiculo] = (veiculos[veiculo] || 0) + 1
+        })
 
-        const topVeiculo = Object.entries(veiculos)
-            .sort((a, b) => b[1] - a[1])[0];
+        const topVeiculo = Object.entries(veiculos).sort((a, b) => b[1] - a[1])[0]
 
-        const projetos = {};
-        dados.forEach(d => {
-            const projeto = d.projeto || 'N/A';
-            projetos[projeto] = (projetos[projeto] || 0) + (parseFloat(d.trip) || 0);
-        });
+        const projetos = {}
+        dados.forEach((d) => {
+            const projeto = d.projeto || 'N/A'
+            projetos[projeto] = (projetos[projeto] || 0) + (parseFloat(d.trip) || 0)
+        })
 
-        const topProjeto = Object.entries(projetos)
-            .sort((a, b) => b[1] - a[1])[0];
+        const topProjeto = Object.entries(projetos).sort((a, b) => b[1] - a[1])[0]
 
-        const testes = {};
-        dados.forEach(d => {
-            const teste = d.tipoTeste || d.tipoteste || d.tipoTestePista || 'Não informado';
-            testes[teste] = (testes[teste] || 0) + 1;
-        });
+        const testes = {}
+        dados.forEach((d) => {
+            const teste = d.tipoTeste || d.tipoteste || d.tipoTestePista || 'Não informado'
+            testes[teste] = (testes[teste] || 0) + 1
+        })
 
-        const topTeste = Object.entries(testes)
-            .sort((a, b) => b[1] - a[1])[0];
+        const topTeste = Object.entries(testes).sort((a, b) => b[1] - a[1])[0]
 
         container.innerHTML = `
             <div class="analytics-section">
@@ -553,18 +519,18 @@ const AnalyticsEngine = {
 
                 </div>
             </div>
-        `;
+        `
     },
 
     // ─────────────────────────────────────────────────────────
     // Oculta KPIs de gerente quando cargo não for Gerente
     // ─────────────────────────────────────────────────────────
     _ocultarKPIsGerente() {
-        const container = document.getElementById('anl-kpis-gerente');
+        const container = document.getElementById('anl-kpis-gerente')
 
         if (container) {
-            container.style.display = 'none';
-            container.innerHTML = '';
+            container.style.display = 'none'
+            container.innerHTML = ''
         }
     },
 
@@ -572,59 +538,57 @@ const AnalyticsEngine = {
     // Limpa dashboard quando não há dados
     // ─────────────────────────────────────────────────────────
     _limparDashboard() {
-        this._setCard('anl-total-km', '—');
-        this._setCard('anl-total-turnos', '—');
-        this._setCard('anl-total-issues', '—');
-        this._setCard('anl-total-litros', '—');
-
-        [
+        this._setCard('anl-total-km', '—')
+        this._setCard('anl-total-turnos', '—')
+        this._setCard('anl-total-issues', '—')
+        this._setCard('anl-total-litros', '—')
+        ;[
             'anl-grafico-projetos',
             'anl-grafico-testes',
             'anl-grafico-veiculos',
-            'anl-tabela-operadores'
-        ].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.innerHTML = '';
-        });
+            'anl-tabela-operadores',
+        ].forEach((id) => {
+            const el = document.getElementById(id)
+            if (el) el.innerHTML = ''
+        })
 
-        this._ocultarKPIsGerente();
+        this._ocultarKPIsGerente()
     },
 
     // ─────────────────────────────────────────────────────────
     // Helpers visuais
     // ─────────────────────────────────────────────────────────
     _setCard(id, valor) {
-        const el = document.getElementById(id);
+        const el = document.getElementById(id)
 
-        if (el) el.innerText = valor;
+        if (el) el.innerText = valor
     },
 
     _mostrarLoading(show) {
-        const el = document.getElementById('anl-loading');
+        const el = document.getElementById('anl-loading')
 
-        if (el) el.style.display = show ? 'block' : 'none';
+        if (el) el.style.display = show ? 'block' : 'none'
     },
 
     _mostrarVazio(show) {
-        const el = document.getElementById('anl-vazio');
+        const el = document.getElementById('anl-vazio')
 
-        if (el) el.style.display = show ? 'block' : 'none';
-
-        [
+        if (el) el.style.display = show ? 'block' : 'none'
+        ;[
             'anl-grafico-projetos',
             'anl-grafico-testes',
             'anl-grafico-veiculos',
-            'anl-tabela-operadores'
-        ].forEach(id => {
-            const el2 = document.getElementById(id);
+            'anl-tabela-operadores',
+        ].forEach((id) => {
+            const el2 = document.getElementById(id)
 
             if (el2) {
-                el2.style.display = show ? 'none' : 'block';
+                el2.style.display = show ? 'none' : 'block'
             }
-        });
+        })
 
         if (show) {
-            this._ocultarKPIsGerente();
+            this._ocultarKPIsGerente()
         }
     },
 
@@ -635,23 +599,26 @@ const AnalyticsEngine = {
     async _salvarTurnoEncerrado(enc) {
         try {
             // Usar snapshot final que preserva abastecimentos e horaFim (capturado antes de TurnoEngine.encerrar())
-            const d = TurnoEngine._snapshotFinal || TurnoEngine.dados || {};
-            const trip = TurnoEngine.calcTrip(enc.kmFinal);
-            const db = firebase.firestore();
+            const d = TurnoEngine._snapshotFinal || TurnoEngine.dados || {}
+            const trip = TurnoEngine.calcTrip(enc.kmFinal)
+            const db = firebase.firestore()
 
-            const metricas = enc.metricas || {};
+            const metricas = enc.metricas || {}
 
             // Calcular totais de abastecimentos múltiplos
-            const abastecimentos = d.abastecimentos || [];
-            const totalLitros = abastecimentos.length > 0
-                ? abastecimentos.reduce((s, a) => s + (parseFloat(a.litros) || 0), 0)
-                : (parseFloat(enc.litros) || 0);
-            const postoFinal = abastecimentos.length > 0
-                ? abastecimentos[abastecimentos.length - 1].posto
-                : (enc.posto || '');
-            const tipoCombustivelFinal = abastecimentos.length > 0
-                ? abastecimentos[abastecimentos.length - 1].tipoCombustivel
-                : (enc.tipoCombustivel || '');
+            const abastecimentos = d.abastecimentos || []
+            const totalLitros =
+                abastecimentos.length > 0
+                    ? abastecimentos.reduce((s, a) => s + (parseFloat(a.litros) || 0), 0)
+                    : parseFloat(enc.litros) || 0
+            const postoFinal =
+                abastecimentos.length > 0
+                    ? abastecimentos[abastecimentos.length - 1].posto
+                    : enc.posto || ''
+            const tipoCombustivelFinal =
+                abastecimentos.length > 0
+                    ? abastecimentos[abastecimentos.length - 1].tipoCombustivel
+                    : enc.tipoCombustivel || ''
 
             const payloadTurno = {
                 uid: d.uid || firebase.auth().currentUser?.uid || '',
@@ -694,27 +661,28 @@ const AnalyticsEngine = {
 
                 issues: 0,
                 horaInicio: d.horaInicio || '',
-                horaFim: d.horaFim || new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+                horaFim:
+                    d.horaFim ||
+                    new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
 
                 turnoData: new Date().toISOString().split('T')[0],
                 dataEncerramento: firebase.firestore.FieldValue.serverTimestamp(),
-                criadoEm: firebase.firestore.FieldValue.serverTimestamp()
-            };
+                criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+            }
 
-            const turnoRef = await db.collection('vev_turnos_encerrados')
-                .add(payloadTurno);
+            const turnoRef = await db.collection('vev_turnos_encerrados').add(payloadTurno)
 
             // Salvar também no Realtime Database (RTDB)
             try {
                 const rtdbPayload = {
                     ...payloadTurno,
                     dataEncerramento: firebase.database.ServerValue.TIMESTAMP,
-                    criadoEm: firebase.database.ServerValue.TIMESTAMP
-                };
-                await firebase.database().ref('vev_turnos_encerrados').child(turnoRef.id).set(rtdbPayload);
-                console.log('[RTDB] Turno salvo com sucesso no Realtime Database.');
+                    criadoEm: firebase.database.ServerValue.TIMESTAMP,
+                }
+                firebase.database().ref('vev_turnos_encerrados').child(turnoRef.id).set(rtdbPayload)
+                console.log('[RTDB] Turno salvo com sucesso no Realtime Database.')
             } catch (rtdbErr) {
-                console.error('[RTDB] Erro ao salvar turno no Realtime Database:', rtdbErr);
+                console.error('[RTDB] Erro ao salvar turno no Realtime Database:', rtdbErr)
             }
 
             const sessaoData = {
@@ -750,39 +718,44 @@ const AnalyticsEngine = {
                 problemas: enc.problemas || '',
                 status: enc.statusOperacional || 'concluido',
 
-                criadoEm: firebase.firestore.FieldValue.serverTimestamp()
-            };
+                criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+            }
 
             // Sessão de teste — estrutura preparada para dashboards futuros
-            const sessaoRef = await db.collection('vev_sessoes_teste').add(sessaoData);
+            const sessaoRef = await db.collection('vev_sessoes_teste').add(sessaoData)
 
             // Salvar também a sessão de teste no RTDB
             try {
                 const rtdbSessao = {
                     ...sessaoData,
-                    criadoEm: firebase.database.ServerValue.TIMESTAMP
-                };
-                await firebase.database().ref('vev_sessoes_teste').child(sessaoRef.id).set(rtdbSessao);
-                console.log('[RTDB] Sessão de teste salva com sucesso no Realtime Database.');
+                    criadoEm: firebase.database.ServerValue.TIMESTAMP,
+                }
+                firebase.database().ref('vev_sessoes_teste').child(sessaoRef.id).set(rtdbSessao)
+                console.log('[RTDB] Sessão de teste salva com sucesso no Realtime Database.')
             } catch (rtdbSessaoErr) {
-                console.error('[RTDB] Erro ao salvar sessão de teste no Realtime Database:', rtdbSessaoErr);
+                console.error(
+                    '[RTDB] Erro ao salvar sessão de teste no Realtime Database:',
+                    rtdbSessaoErr
+                )
             }
 
             // Remover o registro de turno ativo no Realtime Database ao encerrar
             try {
-                const uid = payloadTurno.uid || firebase.auth().currentUser?.uid;
+                const uid = payloadTurno.uid || firebase.auth().currentUser?.uid
                 if (uid) {
-                    await firebase.database().ref('vev_turnos_ativos').child(uid).remove();
-                    console.log('[RTDB] Turno ativo removido do Realtime Database.');
+                    firebase.database().ref('vev_turnos_ativos').child(uid).remove()
+                    console.log('[RTDB] Turno ativo removido do Realtime Database.')
                 }
             } catch (rtdbRemoveErr) {
-                console.warn('[RTDB] Erro ao remover turno ativo no Realtime Database:', rtdbRemoveErr);
+                console.warn(
+                    '[RTDB] Erro ao remover turno ativo no Realtime Database:',
+                    rtdbRemoveErr
+                )
             }
 
-            console.log('[Analytics] Turno e sessão de teste salvos com sucesso.');
-
+            console.log('[Analytics] Turno e sessão de teste salvos com sucesso.')
         } catch (e) {
-            console.warn('[Analytics] Falha ao salvar turno encerrado:', e);
+            console.warn('[Analytics] Falha ao salvar turno encerrado:', e)
         }
     },
 
@@ -795,6 +768,6 @@ const AnalyticsEngine = {
             .replaceAll('<', '&lt;')
             .replaceAll('>', '&gt;')
             .replaceAll('"', '&quot;')
-            .replaceAll("'", '&#039;');
-    }
-};
+            .replaceAll("'", '&#039;')
+    },
+}

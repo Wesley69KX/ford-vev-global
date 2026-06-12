@@ -4,19 +4,18 @@
 // ============================================================
 
 const FormsEngine = {
-
     _modalId: 'modal-forms-projeto',
     _projetoAtual: null,
 
     // Inicializa e injeta o modal no DOM (chamado 1x)
     init() {
-        if (document.getElementById(this._modalId)) return;
+        if (document.getElementById(this._modalId)) return
 
-        const modal = document.createElement('div');
-        modal.id    = this._modalId;
-        modal.className = 'modal-forms-overlay';
-        modal.setAttribute('role', 'dialog');
-        modal.setAttribute('aria-modal', 'true');
+        const modal = document.createElement('div')
+        modal.id = this._modalId
+        modal.className = 'modal-forms-overlay'
+        modal.setAttribute('role', 'dialog')
+        modal.setAttribute('aria-modal', 'true')
 
         modal.innerHTML = `
             <div class="modal-forms-box">
@@ -41,82 +40,84 @@ const FormsEngine = {
                 </div>
 
             </div>
-        `;
+        `
 
-        document.body.appendChild(modal);
+        document.body.appendChild(modal)
 
         // Fechar ao clicar fora do box
         modal.addEventListener('click', (e) => {
-            if (e.target === modal) this.fechar();
-        });
+            if (e.target === modal) this.fechar()
+        })
 
         // Fechar com ESC
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') this.fechar();
-        });
+            if (e.key === 'Escape') this.fechar()
+        })
 
-        console.log('[FormsEngine] Modal inicializado.');
+        console.log('[FormsEngine] Modal inicializado.')
     },
 
     // Abre o modal para um projeto específico
     abrir(nomeProjeto) {
-        this.init();
+        this.init()
 
-        const projeto = FormsData.getProjeto(nomeProjeto);
+        const projeto = FormsData.getProjeto(nomeProjeto)
         if (!projeto || !projeto.necessitaFormulario) {
-            console.warn('[FormsEngine] Projeto sem formulários:', nomeProjeto);
-            return;
+            console.warn('[FormsEngine] Projeto sem formulários:', nomeProjeto)
+            return
         }
 
-        this._projetoAtual = nomeProjeto;
+        this._projetoAtual = nomeProjeto
 
         // Nome do projeto no header
-        document.getElementById('forms-projeto-nome').textContent = nomeProjeto;
+        document.getElementById('forms-projeto-nome').textContent = nomeProjeto
 
         // Renderiza os botões
-        const lista = document.getElementById('forms-lista-botoes');
-        lista.innerHTML = '';
+        const lista = document.getElementById('forms-lista-botoes')
+        lista.innerHTML = ''
 
         projeto.formularios.forEach((form, i) => {
-            const a = document.createElement('a');
-            a.href   = form.url;
-            a.target = '_blank';
-            a.rel    = 'noopener noreferrer';
-            a.className = 'forms-btn-card';
-            a.style.animationDelay = `${i * 55}ms`;
+            const a = document.createElement('a')
+            a.href = form.url
+            a.target = '_blank'
+            a.rel = 'noopener noreferrer'
+            a.className = 'forms-btn-card'
+            a.style.animationDelay = `${i * 55}ms`
             a.innerHTML = `
                 <span class="forms-btn-icone"><span class="material-icons">${form.icone}</span></span>
                 <span class="forms-btn-nome">${form.nome}</span>
                 <span class="forms-btn-seta">↗</span>
-            `;
-            lista.appendChild(a);
-        });
+            `
+            lista.appendChild(a)
+        })
 
         // Exibe com animação
-        const overlay = document.getElementById(this._modalId);
-        overlay.style.display = 'flex';
+        const overlay = document.getElementById(this._modalId)
+        overlay.style.display = 'flex'
         requestAnimationFrame(() => {
-            requestAnimationFrame(() => overlay.classList.add('ativo'));
-        });
+            requestAnimationFrame(() => overlay.classList.add('ativo'))
+        })
     },
 
     // Fecha o modal
     fechar() {
-        const overlay = document.getElementById(this._modalId);
-        if (!overlay) return;
-        overlay.classList.remove('ativo');
-        setTimeout(() => { overlay.style.display = 'none'; }, 280);
-        this._projetoAtual = null;
+        const overlay = document.getElementById(this._modalId)
+        if (!overlay) return
+        overlay.classList.remove('ativo')
+        setTimeout(() => {
+            overlay.style.display = 'none'
+        }, 280)
+        this._projetoAtual = null
     },
 
     // Ponto de entrada: chamar quando projeto for selecionado
     verificarEExibir(nomeProjeto) {
-        if (!nomeProjeto) return;
+        if (!nomeProjeto) return
         if (FormsData.necessitaFormulario(nomeProjeto)) {
-            this.abrir(nomeProjeto);
+            this.abrir(nomeProjeto)
         }
-    }
-};
+    },
+}
 
 // Auto-inicializa
-document.addEventListener('DOMContentLoaded', () => FormsEngine.init());
+document.addEventListener('DOMContentLoaded', () => FormsEngine.init())

@@ -9,78 +9,88 @@
 // 2. CONTEXTO DO TURNO ATIVO
 // ─────────────────────────────────────────────────────────────
 const LaudoContexto = {
-
     // Retorna dados do turno ativo para herdar no laudo
     obterDoTurno() {
-        const d = (typeof TurnoEngine !== 'undefined')
-            ? TurnoEngine.dados
-            : null;
+        const d = typeof TurnoEngine !== 'undefined' ? TurnoEngine.dados : null
 
         if (!d) {
             return {
-                projeto:   (typeof app !== 'undefined' && app.projetoAtual) || 'N/A',
+                projeto: (typeof app !== 'undefined' && app.projetoAtual) || 'N/A',
                 tipoTeste: (typeof app !== 'undefined' && app.testeAtual) || 'N/A',
-                operador:  (typeof app !== 'undefined' && app.operadorAtual) || localStorage.getItem('app_vev_operador') || 'N/A',
-                veiculo:   (typeof app !== 'undefined' && app.veiculoAtual) || localStorage.getItem('app_vev_veiculo') || 'N/A',
-                vin:       (typeof app !== 'undefined' && app.vinGlobal) || 'N/A',
-                eja:       '',
-                cc:        '',
-                uid:       firebase.auth().currentUser?.uid || 'anonimo',
-                turnoData: (typeof app !== 'undefined' ? app.obterDataDoTurno() : new Date().toISOString().split('T')[0]),
-                horaAtual: new Date().toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
-            };
+                operador:
+                    (typeof app !== 'undefined' && app.operadorAtual) ||
+                    localStorage.getItem('app_vev_operador') ||
+                    'N/A',
+                veiculo:
+                    (typeof app !== 'undefined' && app.veiculoAtual) ||
+                    localStorage.getItem('app_vev_veiculo') ||
+                    'N/A',
+                vin: (typeof app !== 'undefined' && app.vinGlobal) || 'N/A',
+                eja: '',
+                cc: '',
+                uid: firebase.auth().currentUser?.uid || 'anonimo',
+                turnoData:
+                    typeof app !== 'undefined'
+                        ? app.obterDataDoTurno()
+                        : new Date().toISOString().split('T')[0],
+                horaAtual: new Date().toLocaleTimeString('pt-BR', {
+                    timeZone: 'America/Sao_Paulo',
+                }),
+            }
         }
 
         return {
-            projetoId:  d.projetoId  || '',
-            projeto:    d.projeto    || d.tipoTeste || '',
-            tipoTeste:  d.tipoTeste  || '',
-            operador:   d.operador   || '',
-            veiculo:    d.veiculo    || '',
-            veiculoId:  d.veiculoId  || '',
-            vin:        d.vin        || '',
-            eja:        d.eja        || '',
-            cc:         d.cc         || '',
-            uid:        d.uid        || firebase.auth().currentUser?.uid || '',
-            turnoData:  (typeof app !== 'undefined' ? app.obterDataDoTurno() : new Date().toISOString().split('T')[0]),
-            horaAtual:  new Date().toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
-            kmInicial:  d.kmInicial  || '',
+            projetoId: d.projetoId || '',
+            projeto: d.projeto || d.tipoTeste || '',
+            tipoTeste: d.tipoTeste || '',
+            operador: d.operador || '',
+            veiculo: d.veiculo || '',
+            veiculoId: d.veiculoId || '',
+            vin: d.vin || '',
+            eja: d.eja || '',
+            cc: d.cc || '',
+            uid: d.uid || firebase.auth().currentUser?.uid || '',
+            turnoData:
+                typeof app !== 'undefined'
+                    ? app.obterDataDoTurno()
+                    : new Date().toISOString().split('T')[0],
+            horaAtual: new Date().toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+            kmInicial: d.kmInicial || '',
             horaInicio: d.horaInicio || '',
-        };
+        }
     },
 
     // Preenche o painel de contexto no topo do modal
     preencherPainel() {
-        const ctx = this.obterDoTurno();
+        const ctx = this.obterDoTurno()
 
         const set = (id, val) => {
-            const el = document.getElementById(id);
-            if (el) el.innerText = val || '—';
-        };
+            const el = document.getElementById(id)
+            if (el) el.innerText = val || '—'
+        }
 
-        set('laudo-ctx-projeto',   ctx.projeto);
-        set('laudo-ctx-teste',     ctx.tipoTeste);
-        set('laudo-ctx-operador',  ctx.operador);
-        set('laudo-ctx-veiculo',   ctx.veiculo);
-        set('laudo-ctx-vin',       ctx.vin);
-        set('laudo-ctx-eja',       ctx.eja);
-        set('laudo-ctx-cc',        ctx.cc);
-        set('laudo-ctx-data',
-            `${ctx.turnoData} ${ctx.horaAtual}`);
+        set('laudo-ctx-projeto', ctx.projeto)
+        set('laudo-ctx-teste', ctx.tipoTeste)
+        set('laudo-ctx-operador', ctx.operador)
+        set('laudo-ctx-veiculo', ctx.veiculo)
+        set('laudo-ctx-vin', ctx.vin)
+        set('laudo-ctx-eja', ctx.eja)
+        set('laudo-ctx-cc', ctx.cc)
+        set('laudo-ctx-data', `${ctx.turnoData} ${ctx.horaAtual}`)
 
         // Alerta visual se não houver turno ativo
-        const alerta = document.getElementById('laudo-ctx-sem-turno');
-        const painel = document.getElementById('laudo-ctx-painel');
+        const alerta = document.getElementById('laudo-ctx-sem-turno')
+        const painel = document.getElementById('laudo-ctx-painel')
 
         if (!ctx.projeto && !ctx.operador) {
-            if (alerta) alerta.style.display = 'flex';
-            if (painel) painel.style.opacity = '0.5';
+            if (alerta) alerta.style.display = 'flex'
+            if (painel) painel.style.opacity = '0.5'
         } else {
-            if (alerta) alerta.style.display = 'none';
-            if (painel) painel.style.opacity = '1';
+            if (alerta) alerta.style.display = 'none'
+            if (painel) painel.style.opacity = '1'
         }
-    }
-};
+    },
+}
 
 // ─────────────────────────────────────────────────────────────
 // 3. IA ENGINE
@@ -91,301 +101,399 @@ const IAEngine = {
     provider: 'MOCK_LOCAL',
 
     setProvider(valor) {
-        this.provider = valor;
-        console.log(`[IAEngine] Provider: ${valor}`);
-        this._atualizarBadgeProvider();
+        this.provider = valor
+        console.log(`[IAEngine] Provider: ${valor}`)
+        this._atualizarBadgeProvider()
     },
 
     _atualizarBadgeProvider() {
-        const badge = document.getElementById('ia-provider-badge-header');
-        if (!badge) return;
+        const badge = document.getElementById('ia-provider-badge-header')
+        if (!badge) return
 
         const config = {
             MOCK_LOCAL: {
                 label: 'MOCK LOCAL',
-                style: 'background:rgba(59,130,246,0.15);color:#60a5fa;border-color:#3b82f6;'
+                style: 'background:rgba(59,130,246,0.15);color:#60a5fa;border-color:#3b82f6;',
             },
             FORDLLM_OFICIAL: {
                 label: 'FordLLM Oficial',
-                style: 'background:rgba(34,197,94,0.15);color:#4ade80;border-color:#22c55e;'
-            }
-        };
+                style: 'background:rgba(34,197,94,0.15);color:#4ade80;border-color:#22c55e;',
+            },
+        }
 
-        const c = config[this.provider] || config.MOCK_LOCAL;
-        badge.innerText = c.label;
-        badge.style.cssText = c.style +
+        const c = config[this.provider] || config.MOCK_LOCAL
+        badge.innerText = c.label
+        badge.style.cssText =
+            c.style +
             'padding:4px 10px;border-radius:20px;font-size:0.7rem;' +
-            'font-weight:700;border:1px solid;display:inline-block;';
+            'font-weight:700;border:1px solid;display:inline-block;'
     },
 
     async analisarLaudo({ texto, imagemBase64, imagemNome, contexto }) {
         switch (this.provider) {
             case 'MOCK_LOCAL':
-                return await this._mockAnalise({ texto, imagemBase64, imagemNome, contexto });
+                return await this._mockAnalise({ texto, imagemBase64, imagemNome, contexto })
             case 'FORDLLM_OFICIAL':
-                return await this._fordllmAnalise({ texto, imagemBase64, contexto });
+                return await this._fordllmAnalise({ texto, imagemBase64, contexto })
             default:
-                throw new Error(`Provider desconhecido: ${this.provider}`);
+                throw new Error(`Provider desconhecido: ${this.provider}`)
         }
     },
 
     async _mockAnalise({ texto, imagemBase64, contexto }) {
-        const inicio = Date.now();
-        await this._simularEtapas();
+        const inicio = Date.now()
+        await this._simularEtapas()
 
-        const t = (texto || '').toLowerCase();
+        const t = (texto || '').toLowerCase()
 
         const mapa = {
-            'Freios':        ['freio','frenagem','pastilha','disco','abs','pinça','pedal','fluido de freio','desaceleração'],
-            'Suspensão':     ['suspensão','amortecedor','mola','barra estabilizadora','pivô','bandeja','cubo','rolamento'],
-            'Motor':         ['motor','temperatura','superaquecimento','óleo','ruído','vibração','potência','rpm','rotação','escapamento'],
-            'Elétrico':      ['elétrico','sensor','falha','dtc','bateria','alternador','chicote','conector','módulo','tensão'],
-            'Transmissão':   ['câmbio','transmissão','marcha','embreagem','diferencial','eixo','caixa de câmbio'],
-            'Direção':       ['direção','volante','assistência','servo','cremalheira','esterçamento'],
-            'Carroceria':    ['lataria','porta','vidro','borracha','vedação','ruído interno','acabamento','rangido'],
-            'Pneus':         ['pneu','desgaste','pressão','rodagem','alinhamento','balanceamento','carcaça'],
-            'Arrefecimento': ['arrefecimento','radiador','líquido','temperatura do motor','ventoinha','termostato'],
-        };
-
-        let category = 'Geral';
-        let maxM = 0;
-
-        for (const [cat, kws] of Object.entries(mapa)) {
-            const m = kws.filter(k => t.includes(k)).length;
-            if (m > maxM) { maxM = m; category = cat; }
+            Freios: [
+                'freio',
+                'frenagem',
+                'pastilha',
+                'disco',
+                'abs',
+                'pinça',
+                'pedal',
+                'fluido de freio',
+                'desaceleração',
+            ],
+            Suspensão: [
+                'suspensão',
+                'amortecedor',
+                'mola',
+                'barra estabilizadora',
+                'pivô',
+                'bandeja',
+                'cubo',
+                'rolamento',
+            ],
+            Motor: [
+                'motor',
+                'temperatura',
+                'superaquecimento',
+                'óleo',
+                'ruído',
+                'vibração',
+                'potência',
+                'rpm',
+                'rotação',
+                'escapamento',
+            ],
+            Elétrico: [
+                'elétrico',
+                'sensor',
+                'falha',
+                'dtc',
+                'bateria',
+                'alternador',
+                'chicote',
+                'conector',
+                'módulo',
+                'tensão',
+            ],
+            Transmissão: [
+                'câmbio',
+                'transmissão',
+                'marcha',
+                'embreagem',
+                'diferencial',
+                'eixo',
+                'caixa de câmbio',
+            ],
+            Direção: ['direção', 'volante', 'assistência', 'servo', 'cremalheira', 'esterçamento'],
+            Carroceria: [
+                'lataria',
+                'porta',
+                'vidro',
+                'borracha',
+                'vedação',
+                'ruído interno',
+                'acabamento',
+                'rangido',
+            ],
+            Pneus: [
+                'pneu',
+                'desgaste',
+                'pressão',
+                'rodagem',
+                'alinhamento',
+                'balanceamento',
+                'carcaça',
+            ],
+            Arrefecimento: [
+                'arrefecimento',
+                'radiador',
+                'líquido',
+                'temperatura do motor',
+                'ventoinha',
+                'termostato',
+            ],
         }
 
-        const criticos  = ['crítico','grave','parada','perigo','urgente','severo','trinca','ruptura','quebrou','falha total','fumaça','incêndio'];
-        const moderados = ['moderado','intermitente','esporádico','eventual','anormal','reduzido','oscila','instável','irregular'];
+        let category = 'Geral'
+        let maxM = 0
 
-        let severidade = 'Leve';
-        if (criticos.some(p => t.includes(p)))    severidade = 'Crítico';
-        else if (moderados.some(p => t.includes(p))) severidade = 'Moderado';
+        for (const [cat, kws] of Object.entries(mapa)) {
+            const m = kws.filter((k) => t.includes(k)).length
+            if (m > maxM) {
+                maxM = m
+                category = cat
+            }
+        }
+
+        const criticos = [
+            'crítico',
+            'grave',
+            'parada',
+            'perigo',
+            'urgente',
+            'severo',
+            'trinca',
+            'ruptura',
+            'quebrou',
+            'falha total',
+            'fumaça',
+            'incêndio',
+        ]
+        const moderados = [
+            'moderado',
+            'intermitente',
+            'esporádico',
+            'eventual',
+            'anormal',
+            'reduzido',
+            'oscila',
+            'instável',
+            'irregular',
+        ]
+
+        let severidade = 'Leve'
+        if (criticos.some((p) => t.includes(p))) severidade = 'Crítico'
+        else if (moderados.some((p) => t.includes(p))) severidade = 'Moderado'
 
         const titulos = {
-            'Freios':        `Anomalia no Sistema de Frenagem — ${severidade}`,
-            'Suspensão':     `Ocorrência em Componente de Suspensão — ${severidade}`,
-            'Motor':         `Anomalia de Powertrain Detectada — ${severidade}`,
-            'Elétrico':      `Falha em Sistema Elétrico/Eletrônico — ${severidade}`,
-            'Transmissão':   `Anomalia no Sistema de Transmissão — ${severidade}`,
-            'Direção':       `Ocorrência no Sistema de Direção — ${severidade}`,
-            'Carroceria':    `Ocorrência em Carroceria/NVH — ${severidade}`,
-            'Pneus':         `Anomalia em Sistema de Rodagem — ${severidade}`,
-            'Arrefecimento': `Falha no Sistema de Arrefecimento — ${severidade}`,
-            'Geral':         `Ocorrência Técnica em Campo de Provas — ${severidade}`,
-        };
+            Freios: `Anomalia no Sistema de Frenagem — ${severidade}`,
+            Suspensão: `Ocorrência em Componente de Suspensão — ${severidade}`,
+            Motor: `Anomalia de Powertrain Detectada — ${severidade}`,
+            Elétrico: `Falha em Sistema Elétrico/Eletrônico — ${severidade}`,
+            Transmissão: `Anomalia no Sistema de Transmissão — ${severidade}`,
+            Direção: `Ocorrência no Sistema de Direção — ${severidade}`,
+            Carroceria: `Ocorrência em Carroceria/NVH — ${severidade}`,
+            Pneus: `Anomalia em Sistema de Rodagem — ${severidade}`,
+            Arrefecimento: `Falha no Sistema de Arrefecimento — ${severidade}`,
+            Geral: `Ocorrência Técnica em Campo de Provas — ${severidade}`,
+        }
 
         const causas = {
-            'Freios':        'Desgaste acentuado. Inspeção de discos/pastilhas recomendada.',
-            'Suspensão':     'Ruído/folga estrutural. Verificar fixações.',
-            'Motor':         'Anomalia de powertrain. Verificar OBD/lubrificação.',
-            'Elétrico':      'Falha de sinal/sensor. Verificar chicote e DTCs.',
-            'Transmissão':   'Patinação ou tranco. Verificar fluido e torque.',
-            'Direção':       'Rigidez/desalinhamento. Verificar servo e cremalheira.',
-            'Carroceria':    'NVH elevado / vibração. Verificar vedação/acabamento.',
-            'Pneus':         'Desgaste irregular. Requer alinhamento/calibragem.',
-            'Arrefecimento': 'Líquido no mínimo. Vazamento ou sobreaquecimento.',
-            'Geral':         'Anomalia técnica sob investigação.',
-        };
+            Freios: 'Desgaste acentuado. Inspeção de discos/pastilhas recomendada.',
+            Suspensão: 'Ruído/folga estrutural. Verificar fixações.',
+            Motor: 'Anomalia de powertrain. Verificar OBD/lubrificação.',
+            Elétrico: 'Falha de sinal/sensor. Verificar chicote e DTCs.',
+            Transmissão: 'Patinação ou tranco. Verificar fluido e torque.',
+            Direção: 'Rigidez/desalinhamento. Verificar servo e cremalheira.',
+            Carroceria: 'NVH elevado / vibração. Verificar vedação/acabamento.',
+            Pneus: 'Desgaste irregular. Requer alinhamento/calibragem.',
+            Arrefecimento: 'Líquido no mínimo. Vazamento ou sobreaquecimento.',
+            Geral: 'Anomalia técnica sob investigação.',
+        }
 
-        const textoCorrigido = (texto || '').trim().charAt(0).toUpperCase() +
-            (texto || '').trim().slice(1);
+        const textoCorrigido =
+            (texto || '').trim().charAt(0).toUpperCase() + (texto || '').trim().slice(1)
 
-        const parecerFinal = `Sistema: ${category}. Condição: ${causas[category]} Relato: "${textoCorrigido}".`;
+        const parecerFinal = `Sistema: ${category}. Condição: ${causas[category]} Relato: "${textoCorrigido}".`
 
-        const tempoMs = Date.now() - inicio;
+        const tempoMs = Date.now() - inicio
 
         return {
-            titulo:       titulos[category],
-            categoria:    category,
+            titulo: titulos[category],
+            categoria: category,
             severidade,
-            causaRaiz:    causas[category],
+            causaRaiz: causas[category],
             parecerFinal,
             contexto,
 
             // Transparência de IA
             ia: {
-                provider:      'MOCK_LOCAL',
-                modelo:        'TPG Keyword Engine v1.0',
-                versao:        '1.0.0',
+                provider: 'MOCK_LOCAL',
+                modelo: 'TPG Keyword Engine v1.0',
+                versao: '1.0.0',
                 tempoMs,
-                confianca:     maxM > 2 ? 'Alta' : maxM > 0 ? 'Média' : 'Baixa',
-                isMock:        true,
-                timestamp:     new Date().toISOString(),
+                confianca: maxM > 2 ? 'Alta' : maxM > 0 ? 'Média' : 'Baixa',
+                isMock: true,
+                timestamp: new Date().toISOString(),
             },
 
             timestamp: new Date().toLocaleString('pt-BR'),
-        };
+        }
     },
 
     async _simularEtapas() {
-        const steps  = ['ia-step-1','ia-step-2','ia-step-3','ia-step-4'];
+        const steps = ['ia-step-1', 'ia-step-2', 'ia-step-3', 'ia-step-4']
         const labels = [
             'Processando relato técnico',
             'Categorizando anomalia',
             'Analisando imagem',
-            'Gerando parecer técnico'
-        ];
-        const delays = [700, 600, 900, 500];
+            'Gerando parecer técnico',
+        ]
+        const delays = [700, 600, 900, 500]
 
-        const first = document.getElementById(steps[0]);
-        if (first) first.classList.add('ativo');
+        const first = document.getElementById(steps[0])
+        if (first) first.classList.add('ativo')
 
         for (let i = 0; i < steps.length; i++) {
-            await new Promise(r => setTimeout(r, delays[i]));
+            await new Promise((r) => setTimeout(r, delays[i]))
 
-            const curr = document.getElementById(steps[i]);
+            const curr = document.getElementById(steps[i])
             if (curr) {
-                curr.classList.remove('ativo');
-                curr.classList.add('concluido');
-                curr.textContent = `${labels[i]}`;
+                curr.classList.remove('ativo')
+                curr.classList.add('concluido')
+                curr.textContent = `${labels[i]}`
             }
 
             if (i < steps.length - 1) {
-                const next = document.getElementById(steps[i + 1]);
-                if (next) next.classList.add('ativo');
+                const next = document.getElementById(steps[i + 1])
+                if (next) next.classList.add('ativo')
             }
         }
 
-        await new Promise(r => setTimeout(r, 300));
+        await new Promise((r) => setTimeout(r, 300))
     },
 
     async _fordllmAnalise({ texto, imagemBase64, contexto }) {
         throw new Error(
             'FordLLM Oficial requer credenciais corporativas Ford.\n' +
-            'Configure o backend intermediário antes de ativar.'
-        );
-    }
-};
+                'Configure o backend intermediário antes de ativar.'
+        )
+    },
+}
 
 // ─────────────────────────────────────────────────────────────
 // 4. SALVAR ISSUE NO FIRESTORE
 // ─────────────────────────────────────────────────────────────
 async function salvarIssueNoFirestore(resultado, textoOriginal, midiasInfo) {
     try {
-        const ctx = LaudoContexto.obterDoTurno();
-        const db  = firebase.firestore();
+        const ctx = LaudoContexto.obterDoTurno()
+        const db = firebase.firestore()
 
         const payload = {
             // Contexto do turno
-            uid:        ctx.uid,
-            projetoId:  ctx.projetoId  || '',
-            projeto:    ctx.projeto     || '',
-            tipoTeste:  ctx.tipoTeste   || '',
-            operador:   ctx.operador    || '',
-            veiculoId:  ctx.veiculoId   || '',
-            veiculo:    ctx.veiculo     || '',
-            vin:        ctx.vin         || '',
-            eja:        ctx.eja         || '',
-            cc:         ctx.cc          || '',
-            turnoData:  ctx.turnoData,
+            uid: ctx.uid,
+            projetoId: ctx.projetoId || '',
+            projeto: ctx.projeto || '',
+            tipoTeste: ctx.tipoTeste || '',
+            operador: ctx.operador || '',
+            veiculoId: ctx.veiculoId || '',
+            veiculo: ctx.veiculo || '',
+            vin: ctx.vin || '',
+            eja: ctx.eja || '',
+            cc: ctx.cc || '',
+            turnoData: ctx.turnoData,
             horaRegistro: ctx.horaAtual,
 
             // Dados do issue
             relatoOriginal: textoOriginal || '',
-            titulo:         resultado.titulo      || '',
-            categoria:      resultado.categoria   || '',
-            severidade:     resultado.severidade  || '',
-            causaRaiz:      resultado.causaRaiz   || '',
-            parecerFinal:   resultado.parecerFinal || '',
-            status:         'aberto',
+            titulo: resultado.titulo || '',
+            categoria: resultado.categoria || '',
+            severidade: resultado.severidade || '',
+            causaRaiz: resultado.causaRaiz || '',
+            parecerFinal: resultado.parecerFinal || '',
+            status: 'aberto',
 
             // Mídias
-            totalMidias:    midiasInfo?.total    || 0,
-            totalImagens:   midiasInfo?.imagens  || 0,
-            totalVideos:    midiasInfo?.videos   || 0,
+            totalMidias: midiasInfo?.total || 0,
+            totalImagens: midiasInfo?.imagens || 0,
+            totalVideos: midiasInfo?.videos || 0,
 
             // Dados de IA — transparência total
             ia: resultado.ia || {},
 
             // Timestamps
             criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
-        };
+        }
 
-        const ref = await db.collection('vev_issues').add(payload);
+        const ref = await db.collection('vev_issues').add(payload)
 
-// Notifica se for Crítico
-if (payload.severidade === 'Crítico') {
-    if (window.app && typeof window.app._dispararNotificacaoCritico === 'function') {
-        window.app._dispararNotificacaoCritico(payload);
-    }
-}
+        // Notifica se for Crítico
+        if (payload.severidade === 'Crítico') {
+            if (window.app && typeof window.app._dispararNotificacaoCritico === 'function') {
+                window.app._dispararNotificacaoCritico(payload)
+            }
+        }
 
-        console.log('[Laudo] Issue salvo:', ref.id);
+        console.log('[Laudo] Issue salvo:', ref.id)
 
-        return ref.id;
-
+        return ref.id
     } catch (e) {
-        console.warn('[Laudo] Falha ao salvar issue:', e);
-        return null;
+        console.warn('[Laudo] Falha ao salvar issue:', e)
+        return null
     }
 }
 
 // ─────────────────────────────────────────────────────────────
 // 5. FUNÇÕES PRINCIPAIS
 // ─────────────────────────────────────────────────────────────
-let _ultimoResultadoIA   = null;
-let _textoOriginalLaudo  = '';
+let _ultimoResultadoIA = null
+let _textoOriginalLaudo = ''
 
 async function acionarAnaliseIA() {
-    const texto     = document.getElementById('i-obs')?.value.trim() || '';
-    const container = document.getElementById('ia-resultado-container');
+    const texto = document.getElementById('i-obs')?.value.trim() || ''
+    const container = document.getElementById('ia-resultado-container')
 
     if (!texto && !_temMidia()) {
-        alert('Descreva a anomalia por texto ou anexe uma foto.');
-        return;
+        alert('Descreva a anomalia por texto ou anexe uma foto.')
+        return
     }
 
     if (texto.length > 0 && texto.length < 8) {
-        alert('Descreva a anomalia com mais detalhes para uma análise precisa.');
-        return;
+        alert('Descreva a anomalia com mais detalhes para uma análise precisa.')
+        return
     }
 
-    _textoOriginalLaudo = texto;
+    _textoOriginalLaudo = texto
 
-    const imgData  = await _obterPrimeiraImagem();
-    const contexto = LaudoContexto.obterDoTurno();
+    const imgData = await _obterPrimeiraImagem()
+    const contexto = LaudoContexto.obterDoTurno()
 
-    container.innerHTML = _htmlLoading();
-    container.style.display = 'block';
-    container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    container.innerHTML = _htmlLoading()
+    container.style.display = 'block'
+    container.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
 
     try {
-        const seletor = document.getElementById('seletor-ia');
-        if (seletor) IAEngine.setProvider(seletor.value);
+        const seletor = document.getElementById('seletor-ia')
+        if (seletor) IAEngine.setProvider(seletor.value)
 
         const resultado = await IAEngine.analisarLaudo({
-            texto:        texto || 'Imagem anexada para análise',
+            texto: texto || 'Imagem anexada para análise',
             imagemBase64: imgData?.base64,
-            imagemNome:   imgData?.nome,
+            imagemNome: imgData?.nome,
             contexto,
-        });
+        })
 
-        _ultimoResultadoIA = resultado;
-        container.innerHTML = _htmlResultado(resultado);
-        container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
+        _ultimoResultadoIA = resultado
+        container.innerHTML = _htmlResultado(resultado)
+        container.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     } catch (erro) {
-        console.error('[IAEngine]', erro);
-        container.innerHTML = _htmlErro(erro.message);
+        console.error('[IAEngine]', erro)
+        container.innerHTML = _htmlErro(erro.message)
     }
 }
 
 async function aplicarResultadoIA() {
-    if (!_ultimoResultadoIA) return;
+    if (!_ultimoResultadoIA) return
 
-    const r = _ultimoResultadoIA;
+    const r = _ultimoResultadoIA
 
-    const ta = document.getElementById('i-obs');
+    const ta = document.getElementById('i-obs')
     if (ta) {
-        ta.value = r.parecerFinal;
-        ta.dataset.tituloIA = r.titulo || 'Ocorrência';
-        ta.dataset.categoriaIA = r.categoria || 'Geral';
-        ta.dataset.severidadeIA = r.severidade || 'N/A';
-        ta.dataset.causaRaizIA = r.causaRaiz || '';
+        ta.value = r.parecerFinal
+        ta.dataset.tituloIA = r.titulo || 'Ocorrência'
+        ta.dataset.categoriaIA = r.categoria || 'Geral'
+        ta.dataset.severidadeIA = r.severidade || 'N/A'
+        ta.dataset.causaRaizIA = r.causaRaiz || ''
     }
 
-    const container = document.getElementById('ia-resultado-container');
+    const container = document.getElementById('ia-resultado-container')
 
     if (container) {
         container.innerHTML = `
@@ -404,68 +512,79 @@ async function aplicarResultadoIA() {
                     Você pode agora clicar em EMITIR RELATÓRIO ou DEIXAR EM ABERTO.
                 </p>
             </div>
-        `;
+        `
     }
 
     document.getElementById('i-obs')?.scrollIntoView({
-        behavior: 'smooth', block: 'center'
-    });
+        behavior: 'smooth',
+        block: 'center',
+    })
 
-    _ultimoResultadoIA  = null;
+    _ultimoResultadoIA = null
 }
 
 function descartarResultadoIA() {
-    _ultimoResultadoIA  = null;
-    _textoOriginalLaudo = '';
+    _ultimoResultadoIA = null
+    _textoOriginalLaudo = ''
 
-    const c = document.getElementById('ia-resultado-container');
-    if (c) { c.innerHTML = ''; c.style.display = 'none'; }
+    const c = document.getElementById('ia-resultado-container')
+    if (c) {
+        c.innerHTML = ''
+        c.style.display = 'none'
+    }
 }
 
 // ─────────────────────────────────────────────────────────────
 // 6. ABRIR MODAL DO LAUDO — herda dados do turno
 // ─────────────────────────────────────────────────────────────
 function abrirModalLaudo() {
-    appUI.abrirModal('modal-laudo');
+    appUI.abrirModal('modal-laudo')
 
     // Preenche painel de contexto automaticamente
-    LaudoContexto.preencherPainel();
+    LaudoContexto.preencherPainel()
 
     // Atualiza badge do provider
-    IAEngine._atualizarBadgeProvider();
+    IAEngine._atualizarBadgeProvider()
 }
 
 function fecharModalLaudo() {
-    appUI.fecharModal('modal-laudo');
+    appUI.fecharModal('modal-laudo')
 
-    const c = document.getElementById('ia-resultado-container');
-    if (c) { c.innerHTML = ''; c.style.display = 'none'; }
+    const c = document.getElementById('ia-resultado-container')
+    if (c) {
+        c.innerHTML = ''
+        c.style.display = 'none'
+    }
 
-    _ultimoResultadoIA  = null;
-    _textoOriginalLaudo = '';
+    _ultimoResultadoIA = null
+    _textoOriginalLaudo = ''
+
+    if (typeof LaudoPendente !== 'undefined') {
+        LaudoPendente.indexEdicao = null
+    }
 }
 
 // ─────────────────────────────────────────────────────────────
 // 7. HELPERS
 // ─────────────────────────────────────────────────────────────
 function _temMidia() {
-    const g = document.getElementById('galeria-avaria');
-    return g && g.children.length > 0;
+    const g = document.getElementById('galeria-avaria')
+    return g && g.children.length > 0
 }
 
 async function _obterPrimeiraImagem() {
-    const input = document.getElementById('media-input');
-    if (!input?.files?.length) return null;
+    const input = document.getElementById('media-input')
+    if (!input?.files?.length) return null
 
-    const file = input.files[0];
-    if (!file.type.startsWith('image/')) return null;
+    const file = input.files[0]
+    if (!file.type.startsWith('image/')) return null
 
-    return new Promise(res => {
-        const r = new FileReader();
-        r.onload  = e => res({ base64: e.target.result, nome: file.name });
-        r.onerror = () => res(null);
-        r.readAsDataURL(file);
-    });
+    return new Promise((res) => {
+        const r = new FileReader()
+        r.onload = (e) => res({ base64: e.target.result, nome: file.name })
+        r.onerror = () => res(null)
+        r.readAsDataURL(file)
+    })
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -488,20 +607,21 @@ function _htmlLoading() {
                 <li class="ia-loading-step" id="ia-step-4">Gerando parecer técnico</li>
             </ul>
         </div>
-    `;
+    `
 }
 
 function _htmlResultado(r) {
-    const icones  = { 'Crítico': 'Critico', 'Moderado': 'Moderado', 'Leve': 'Leve' };
-    const classes = { 'Crítico': 'critico', 'Moderado': 'moderado', 'Leve': 'leve' };
-    const ia      = r.ia || {};
+    // Texto de severidade sem emojis (padrão IATF 16949)
+    const textoSev = { Crítico: 'CRITICO', Moderado: 'MODERADO', Leve: 'LEVE' }
+    const classes = { Crítico: 'critico', Moderado: 'moderado', Leve: 'leve' }
+    const ia = r.ia || {}
 
     // Badge de transparência de IA
-    const isMock     = ia.isMock === true;
-    const badgeLabel = isMock ? 'MODO SIMULADO' : 'IA REAL';
+    const isMock = ia.isMock === true
+    const badgeLabel = isMock ? 'MODO SIMULADO' : 'IA REAL'
     const badgeStyle = isMock
         ? 'background:rgba(251,191,36,0.15);color:#fbbf24;border:1px solid #fbbf24;'
-        : 'background:rgba(34,197,94,0.15);color:#4ade80;border:1px solid #22c55e;';
+        : 'background:rgba(34,197,94,0.15);color:#4ade80;border:1px solid #22c55e;'
 
     // Bloco de informações de IA
     const iaInfoHTML = `
@@ -549,18 +669,24 @@ function _htmlResultado(r) {
                 </div>
             </div>
 
-            ${isMock ? `
+            ${
+                isMock
+                    ? `
                 <div style="margin-top:8px;font-size:0.68rem;color:#fbbf24;
                              border-top:1px solid rgba(255,255,255,0.06);padding-top:6px;">
                     Análise baseada em palavras-chave. Conecte FordLLM para IA real.
                 </div>
-            ` : ''}
+            `
+                    : ''
+            }
         </div>
-    `;
+    `
 
     // Contexto do turno no resultado
-    const ctx = r.contexto || {};
-    const ctxHTML = (ctx.projeto || ctx.operador) ? `
+    const ctx = r.contexto || {}
+    const ctxHTML =
+        ctx.projeto || ctx.operador
+            ? `
         <div style="background:rgba(59,130,246,0.06);
                     border:1px solid rgba(59,130,246,0.15);
                     border-radius:10px;padding:10px 14px;margin-bottom:12px;
@@ -569,14 +695,15 @@ function _htmlResultado(r) {
                 CONTEXTO DO TURNO
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
-                ${ctx.projeto   ? `<div>Projeto: ${ctx.projeto}</div>` : ''}
+                ${ctx.projeto ? `<div>Projeto: ${ctx.projeto}</div>` : ''}
                 ${ctx.tipoTeste ? `<div>Teste: ${ctx.tipoTeste}</div>` : ''}
-                ${ctx.operador  ? `<div>Operador: ${ctx.operador}</div>` : ''}
-                ${ctx.veiculo   ? `<div>Veículo: ${ctx.veiculo}</div>` : ''}
-                ${ctx.vin       ? `<div>VIN: ${ctx.vin}</div>` : ''}
+                ${ctx.operador ? `<div>Operador: ${ctx.operador}</div>` : ''}
+                ${ctx.veiculo ? `<div>Veículo: ${ctx.veiculo}</div>` : ''}
+                ${ctx.vin ? `<div>VIN: ${ctx.vin}</div>` : ''}
             </div>
         </div>
-    ` : '';
+    `
+            : ''
 
     return `
         <div class="ia-result-card">
@@ -610,7 +737,7 @@ function _htmlResultado(r) {
                         ${r.categoria}
                     </span>
                     <span class="ia-badge ia-badge-severidade ${classes[r.severidade]}">
-                        ${icones[r.severidade]} ${r.severidade}
+                        ${textoSev[r.severidade] || r.severidade}
                     </span>
                 </div>
 
@@ -644,9 +771,22 @@ function _htmlResultado(r) {
                     </button>
                 </div>
 
+                <!-- Botao de emissao de Relatorio Formal IATF 16949 -->
+                <div style="margin-top:10px;">
+                    <button onclick="emitirRelatorioFormal()"
+                        style="width:100%;padding:12px;border-radius:12px;border:1px solid rgba(0,51,153,0.4);
+                               background:rgba(0,51,153,0.12);color:#6ea3f7;
+                               font-size:0.82rem;font-weight:700;font-family:inherit;cursor:pointer;
+                               display:flex;align-items:center;justify-content:center;gap:8px;
+                               transition:all 0.2s;">
+                        <span class="material-icons" style="font-size:1rem;">description</span>
+                        Emitir Relatorio de Inconformidade (IATF 16949)
+                    </button>
+                </div>
+
             </div>
         </div>
-    `;
+    `
 }
 
 function _htmlErro(msg) {
@@ -675,33 +815,35 @@ function _htmlErro(msg) {
                 Fechar
             </button>
         </div>
-    `;
+    `
 }
 
 // ─────────────────────────────────────────────────────────────
 // 6. LAUDOS EM ABERTO (SALVAR LOCALMENTE E FINALIZAR COM TURNO)
 // ─────────────────────────────────────────────────────────────
 const LaudoPendente = {
+    indexEdicao: null,
+
     salvarEmAberto() {
         if (typeof TurnoEngine === 'undefined' || !TurnoEngine.dados) {
-            alert("Atenção: Você precisa iniciar um turno para deixar o laudo em aberto.");
-            return;
+            alert('Atenção: Você precisa iniciar um turno para deixar o laudo em aberto.')
+            return
         }
 
-        const d = TurnoEngine.dados;
-        const obsEl = document.getElementById('i-obs');
-        const relato = obsEl ? obsEl.value.trim() : '';
+        const d = TurnoEngine.dados
+        const obsEl = document.getElementById('i-obs')
+        const relato = obsEl ? obsEl.value.trim() : ''
 
         if (!relato && (!app.fotos || app.fotos.length === 0)) {
-            alert("Por favor, relate a ocorrência ou anexe uma foto antes de salvar.");
-            return;
+            alert('Por favor, relate a ocorrência ou anexe uma foto antes de salvar.')
+            return
         }
 
-        const titulo = obsEl.dataset.tituloIA || 'Ocorrência Manual';
-        const categoria = obsEl.dataset.categoriaIA || 'Geral';
-        const severidade = obsEl.dataset.severidadeIA || 'N/A';
-        const causaRaiz = obsEl.dataset.causaRaizIA || '';
-        const parecerFinal = relato;
+        const titulo = obsEl.dataset.tituloIA || 'Ocorrência Manual'
+        const categoria = obsEl.dataset.categoriaIA || 'Geral'
+        const severidade = obsEl.dataset.severidadeIA || 'N/A'
+        const causaRaiz = obsEl.dataset.causaRaizIA || ''
+        const parecerFinal = relato
 
         const laudo = {
             relatoOriginal: relato,
@@ -711,66 +853,280 @@ const LaudoPendente = {
             causaRaiz,
             parecerFinal,
             fotos: JSON.parse(JSON.stringify(app.fotos || [])),
-            timestamp: new Date().toISOString()
-        };
-
-        if (!d.laudosPendentes) {
-            d.laudosPendentes = [];
+            timestamp: new Date().toISOString(),
         }
 
-        d.laudosPendentes.push(laudo);
+        if (!d.laudosPendentes) {
+            d.laudosPendentes = []
+        }
 
-        TurnoEngine._cache = d;
-        localStorage.setItem(TurnoEngine._chave(), JSON.stringify(d));
+        if (this.indexEdicao !== null && this.indexEdicao !== undefined && this.indexEdicao >= 0) {
+            d.laudosPendentes[this.indexEdicao] = laudo
+            this.indexEdicao = null
+        } else {
+            d.laudosPendentes.push(laudo)
+        }
+
+        TurnoEngine._cache = d
+        localStorage.setItem(TurnoEngine._chave(), JSON.stringify(d))
 
         try {
             firebase.database().ref('vev_turnos_ativos').child(d.uid).update({
-                laudosPendentes: d.laudosPendentes
-            });
+                laudosPendentes: d.laudosPendentes,
+            })
         } catch (e) {
-            console.warn('[LaudoPendente] Erro ao sincronizar RTDB:', e);
+            console.warn('[LaudoPendente] Erro ao sincronizar RTDB:', e)
         }
 
-        alert("Laudo salvo em aberto com sucesso! Ele será finalizado junto com o encerramento do turno.");
+        alert(
+            'Laudo salvo em aberto com sucesso! Ele será finalizado junto com o encerramento do turno.'
+        )
 
         if (typeof app !== 'undefined' && typeof app.resetarFormularioLaudo === 'function') {
-            app.resetarFormularioLaudo();
+            app.resetarFormularioLaudo()
         }
 
         if (obsEl) {
-            delete obsEl.dataset.tituloIA;
-            delete obsEl.dataset.categoriaIA;
-            delete obsEl.dataset.severidadeIA;
-            delete obsEl.dataset.causaRaizIA;
+            delete obsEl.dataset.tituloIA
+            delete obsEl.dataset.categoriaIA
+            delete obsEl.dataset.severidadeIA
+            delete obsEl.dataset.causaRaizIA
         }
 
         if (typeof fecharModalLaudo === 'function') {
-            fecharModalLaudo();
+            fecharModalLaudo()
         }
 
-        this.atualizarContagemHome();
+        this.atualizarContagemHome()
     },
 
     obterQuantidade() {
-        if (typeof TurnoEngine === 'undefined') return 0;
-        const d = TurnoEngine.dados;
-        if (!d || !d.laudosPendentes) return 0;
-        return d.laudosPendentes.length;
+        if (typeof TurnoEngine === 'undefined') return 0
+        const d = TurnoEngine.dados
+        if (!d || !d.laudosPendentes) return 0
+        return d.laudosPendentes.length
     },
 
     atualizarContagemHome() {
-        const qtd = this.obterQuantidade();
-        const el = document.getElementById('home-laudos-abertos-indicador');
-        const txt = document.getElementById('home-laudos-abertos-text');
+        const qtd = this.obterQuantidade()
+        const el = document.getElementById('home-laudos-abertos-indicador')
+        const txt = document.getElementById('home-laudos-abertos-text')
         if (el) {
             if (qtd > 0) {
-                el.style.display = 'inline-flex';
-                if (txt) txt.innerText = `${qtd} laudo(s) em aberto`;
+                el.style.display = 'inline-flex'
+                if (txt) txt.innerText = `${qtd} laudo(s) em aberto`
             } else {
-                el.style.display = 'none';
+                el.style.display = 'none'
             }
         }
-    }
-};
+    },
 
-window.LaudoPendente = LaudoPendente;
+    abrirModalPendentes() {
+        if (typeof appUI !== 'undefined') {
+            appUI.abrirModal('modal-laudos-pendentes')
+        } else {
+            const el = document.getElementById('modal-laudos-pendentes')
+            if (el) el.style.display = 'flex'
+            document.body.style.overflow = 'hidden'
+        }
+        this.renderListaPendentes()
+    },
+
+    renderListaPendentes() {
+        const container = document.getElementById('lista-laudos-pendentes')
+        if (!container) return
+
+        if (typeof TurnoEngine === 'undefined') {
+            container.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text-2);">Erro: TurnoEngine não disponível.</div>`
+            return
+        }
+
+        const d = TurnoEngine.dados
+        const laudos = d?.laudosPendentes || []
+
+        if (laudos.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center;padding:2rem;color:var(--text-2);">
+                    <span class="material-icons" style="font-size:2.5rem;opacity:0.3;display:block;margin-bottom:8px;">inbox</span>
+                    Nenhum laudo em aberto no turno ativo.
+                </div>`
+            return
+        }
+
+        container.innerHTML = laudos
+            .map((laudo, idx) => {
+                const dataStr = laudo.timestamp
+                    ? new Date(laudo.timestamp).toLocaleString('pt-BR')
+                    : '—'
+                const relatoResumido = laudo.relatoOriginal
+                    ? laudo.relatoOriginal.length > 80
+                        ? laudo.relatoOriginal.substring(0, 80) + '...'
+                        : laudo.relatoOriginal
+                    : 'Sem relato técnico'
+
+                const icones = { Crítico: 'warning', Moderado: 'info', Leve: 'check_circle' }
+                const classes = { Crítico: 'critico', Moderado: 'moderado', Leve: 'leve' }
+                const sevClass = classes[laudo.severidade] || 'leve'
+                const sevIcon = icones[laudo.severidade] || 'check_circle'
+
+                return `
+                <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);padding:14px;border-radius:14px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px;">
+                        <span style="font-size:0.75rem;font-weight:700;color:var(--text-2);">
+                            ${dataStr}
+                        </span>
+                        <span class="ia-badge ia-badge-severidade ${sevClass}" style="margin: 0; padding: 2px 8px; font-size: 0.65rem; font-weight:700; border-radius:20px; display:inline-flex; align-items:center; gap:4px;">
+                            <span class="material-icons" style="font-size:10px;">${sevIcon}</span>
+                            ${laudo.severidade || 'N/A'}
+                        </span>
+                    </div>
+                    <div style="font-size:0.9rem;font-weight:700;color:var(--text);margin-bottom:6px;">
+                        ${laudo.titulo || 'Ocorrência'}
+                    </div>
+                    <div style="font-size:0.8rem;color:var(--text-2);margin-bottom:12px;white-space:pre-wrap;line-height:1.4;">${relatoResumido}</div>
+                    
+                    <div style="display:flex;justify-content:flex-end;gap:8px;border-top:1px solid rgba(255,255,255,0.05);padding-top:10px;">
+                        <button class="btn-refinar-ia" style="padding: 6px 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); color: #f87171;" onclick="LaudoPendente.excluirLaudo(${idx})">
+                            <span class="material-icons" style="font-size:0.9rem;">delete</span> Excluir
+                        </button>
+                        <button class="btn-refinar-ia" style="padding: 6px 12px; background: rgba(96, 165, 250, 0.1); border: 1px solid rgba(96, 165, 250, 0.25); color: #60a5fa;" onclick="LaudoPendente.retomarLaudo(${idx})">
+                            <span class="material-icons" style="font-size:0.9rem;">edit</span> Editar / Emitir
+                        </button>
+                    </div>
+                </div>
+            `
+            })
+            .join('')
+    },
+
+    async excluirLaudo(idx) {
+        const confirmar = window.VEVAlert
+            ? await VEVAlert.confirm(
+                  'Tem certeza que deseja excluir permanentemente este laudo em aberto?',
+                  {
+                      title: 'Excluir Laudo em Aberto',
+                      type: 'error',
+                      confirmText: 'Excluir',
+                      cancelText: 'Cancelar',
+                      confirmDanger: true,
+                  }
+              )
+            : confirm('Tem certeza que deseja excluir permanentemente este laudo em aberto?')
+
+        if (!confirmar) {
+            return
+        }
+
+        if (typeof TurnoEngine === 'undefined') return
+        const d = TurnoEngine.dados
+        if (!d || !d.laudosPendentes || !d.laudosPendentes[idx]) return
+
+        d.laudosPendentes.splice(idx, 1)
+
+        TurnoEngine._cache = d
+        localStorage.setItem(TurnoEngine._chave(), JSON.stringify(d))
+
+        try {
+            firebase.database().ref('vev_turnos_ativos').child(d.uid).update({
+                laudosPendentes: d.laudosPendentes,
+            })
+        } catch (e) {
+            console.warn('[LaudoPendente] Erro ao sincronizar RTDB:', e)
+        }
+
+        if (typeof Toast !== 'undefined') {
+            Toast.show('Laudo em aberto excluído.')
+        } else {
+            alert('Laudo em aberto excluído.')
+        }
+
+        this.atualizarContagemHome()
+        this.renderListaPendentes()
+    },
+
+    retomarLaudo(idx) {
+        if (typeof TurnoEngine === 'undefined') return
+        const d = TurnoEngine.dados
+        if (!d || !d.laudosPendentes || !d.laudosPendentes[idx]) return
+
+        const laudo = d.laudosPendentes[idx]
+
+        // Preenche o formulário
+        const obsEl = document.getElementById('i-obs')
+        if (obsEl) {
+            obsEl.value = laudo.relatoOriginal || ''
+            obsEl.dataset.tituloIA = laudo.titulo || ''
+            obsEl.dataset.categoriaIA = laudo.categoria || ''
+            obsEl.dataset.severidadeIA = laudo.severidade || ''
+            obsEl.dataset.causaRaizIA = laudo.causaRaiz || ''
+        }
+
+        if (typeof app !== 'undefined') {
+            app.fotos = JSON.parse(JSON.stringify(laudo.fotos || []))
+            if (typeof app.renderGaleria === 'function') {
+                app.renderGaleria()
+            }
+        }
+
+        // Armazena qual laudo estamos editando
+        this.indexEdicao = idx
+
+        // Fecha modal de pendentes e abre o de laudo
+        appUI.fecharModal('modal-laudos-pendentes')
+
+        // Abre o modal de laudo
+        if (typeof abrirModalLaudo === 'function') {
+            abrirModalLaudo()
+        } else {
+            appUI.abrirModal('modal-laudo')
+        }
+    },
+}
+
+window.LaudoPendente = LaudoPendente
+
+// ─────────────────────────────────────────────────────────────
+// EMITIR RELATÓRIO DE INCONFORMIDADE FORMAL (IATF 16949)
+// Usa o módulo RelatórioInconformidade para gerar texto/PDF
+// ─────────────────────────────────────────────────────────────
+async function emitirRelatorioFormal() {
+    if (!window.RelatorioInconformidade && !window.RelatórioInconformidade) {
+        alert('Módulo de relatório não disponível. Verifique se relatorio-inconformidade.js foi carregado.')
+        return
+    }
+
+    const modulo = window.RelatorioInconformidade || window.RelatórioInconformidade
+
+    // Obter resultado da IA ou dados manuais do formulário
+    const r = _ultimoResultadoIA
+    const obsEl = document.getElementById('i-obs')
+    const contexto = LaudoContexto.obterDoTurno()
+
+    // Obter campos extras se existirem no formulário
+    const tipoInconformidade = document.getElementById('laudo-tipo-inconformidade')?.value || 'tecnica'
+    const localizacaoVeiculo = document.getElementById('laudo-localizacao-veiculo')?.value || 'geral'
+
+    const dados = {
+        // Contexto do turno
+        ...contexto,
+
+        // Dados da análise IA (ou manual se não houver IA)
+        titulo: r?.titulo || obsEl?.dataset?.tituloIA || 'Ocorrencia Tecnica',
+        categoria: r?.categoria || obsEl?.dataset?.categoriaIA || 'Geral',
+        severidade: r?.severidade || obsEl?.dataset?.severidadeIA || 'Leve',
+        causaRaiz: r?.causaRaiz || obsEl?.dataset?.causaRaizIA || 'Investigacao em andamento.',
+        parecerFinal: r?.parecerFinal || obsEl?.value || '',
+        relatoOriginal: _textoOriginalLaudo || obsEl?.value || '',
+        ia: r?.ia || null,
+
+        // Campos de classificação
+        tipoInconformidade,
+        localizacaoVeiculo,
+        status: 'aberto',
+        timestamp: new Date().toISOString(),
+    }
+
+    await modulo.emitirDoResultadoIA(r || { titulo: dados.titulo, categoria: dados.categoria, severidade: dados.severidade, causaRaiz: dados.causaRaiz, parecerFinal: dados.parecerFinal, ia: dados.ia }, contexto)
+}
+
+window.emitirRelatorioFormal = emitirRelatorioFormal

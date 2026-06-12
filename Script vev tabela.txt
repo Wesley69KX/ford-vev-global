@@ -1,0 +1,433 @@
+// ============================================================
+// FORD VEV — SINCRONIZAÇÃO COMPLETA FIREBASE RTDB → GOOGLE SHEETS
+// Versão: 4.0 (Data Only — Todas as abas de dados)
+// ============================================================
+
+const FIREBASE_URL = "https://ford-vev-default-rtdb.firebaseio.com/";
+
+// ── MESTRE ──────────────────────────────────────────────────
+function sincronizarFirebaseComPlanilha() {
+  atualizarTurnosEncerrados();
+  atualizarAbastecimentos();
+  atualizarSessoesTeste();
+  atualizarTurnosAtivos();
+  atualizarTurnos();
+  atualizarGpsBatch();
+  atualizarLaudos();
+}
+
+// ════════════════════════════════════════════════════════════
+// 1. TURNOS ENCERRADOS — dados completos finais
+// ════════════════════════════════════════════════════════════
+function atualizarTurnosEncerrados() {
+  const url = FIREBASE_URL + "vev_turnos_encerrados.json";
+  const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+  const dados = JSON.parse(res.getContentText());
+  if (!dados) return;
+
+  const planilha = obterAba("Turnos_Encerrados");
+
+  const cabecalho = [
+    "ID", "Data", "Dia Semana", "Mês", "Semana",
+    "Hora Início", "Hora Fim", "Duração (min)",
+    "Operador", "UID", "Cargo",
+    "Veículo", "VIN", "Tipo Teste", "Projeto", "CC", "EJA",
+    "KM Inicial", "KM Final", "Trip KM",
+    "Litros", "Consumo Médio (km/l)", "Posto", "Tipo Combustível",
+    "Valor Pago (R$)", "Saldo (R$)", "Autonomia (km)", "Temperatura",
+    "Ciclos R389", "Laps Frenagem", "Laps Desaceleração", "KM Rodagem",
+    "Total Ocorrências", "Críticas", "Moderadas", "Leves",
+    "Qtd Abastecimentos", "Total Litros Abast.",
+    "Problemas", "Status Operacional", "Tempo (min)",
+    "Timestamp"
+  ];
+
+  const linhas = [cabecalho];
+
+  for (let id in dados) {
+    const t = dados[id];
+    if (!t) continue;
+
+    const abs = t.abastecimentos;
+    let listaAbs = [];
+    if (Array.isArray(abs)) listaAbs = abs;
+    else if (abs && typeof abs === "object") listaAbs = Object.values(abs);
+    const totalLitrosAbast = listaAbs.reduce((s, a) => s + (parseFloat(a.litros) || 0), 0);
+
+    linhas.push([
+      id,
+      t.data || t.turnoData || "",
+      t.diaSemana || "", t.mes || "", t.semana || "",
+      t.horaInicio || "", t.horaFim || "",
+      calcularDuracao(t.horaInicio, t.horaFim),
+      t.operador || "", t.uid || "", t.cargo || "",
+      t.veiculo || "", t.vin || "", t.tipoTeste || "",
+      t.projeto || "", t.cc || "", t.eja || "",
+      t.kmInicial || 0, t.kmFinal || 0, t.tripKm || t.trip || 0,
+      t.litros || 0, t.consumoMedio || t.consumo || 0,
+      t.posto || "", t.tipoCombustivel || "",
+      t.valorPago || 0, t.saldo || 0, t.autonomia || 0,
+      t.temperatura || "",
+      t.ciclosR389 || 0, t.lapsFrenagem || 0,
+      t.lapsDesaceleracao || 0, t.kmRodagem || 0,
+      t.totalOcorrencias || 0, t.ocorrenciasCritico || 0,
+      t.ocorrenciasModerat || 0, t.ocorrenciasLeve || 0,
+      listaAbs.length, totalLitrosAbast.toFixed(2),
+      t.problemas || "", t.statusOperacional || "", t.tempo || "",
+      t.timestamp || ""
+    ]);
+  }
+
+  escreverPlanilha(planilha, linhas, "#0f172a");
+}
+
+// ════════════════════════════════════════════════════════════
+// 2. ABASTECIMENTOS — cada abastecimento individual
+// ════════════════════════════════════════════════════════════
+function atualizarAbastecimentos() {
+  const url = FIREBASE_URL + "vev_turnos_encerrados.json";
+  const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+  const dados = JSON.parse(res.getContentText());
+  if (!dados) return;
+
+  const planilha = obterAba("Abastecimentos");
+
+  const cabecalho = [
+    "Turno ID", "Data", "Operador", "Veículo", "VIN", "Projeto",
+    "Hora Abast.", "Posto", "Tipo Combustível", "Litros",
+    "KM Atual", "KM Final Turno", "Diferença KM"
+  ];
+  const linhas = [cabecalho];
+
+  for (let id in dados) {
+    const t = dados[id];
+    if (!t) continue;
+
+    const abs = t.abastecimentos;
+    let lista = [];
+    if (Array.isArray(abs)) lista = abs;
+    else if (abs && typeof abs === "object") lista = Object.values(abs);
+
+    if (lista.length === 0) {
+      linhas.push([
+        id, t.data || "", t.operador || "", t.veiculo || "",
+        t.vin || "", t.projeto || "",
+        "", "", "", t.litros || 0, t.kmFinal || 0, t.kmFinal || 0, 0
+      ]);
+    } else {
+      lista.forEach(a => {
+        const kmAtual = parseFloat(a.kmAtual) || 0;
+        const kmFinal = parseFloat(t.kmFinal) || 0;
+        linhas.push([
+          id, t.data || "", t.operador || "", t.veiculo || "",
+          t.vin || "", t.projeto || "",
+          a.hora || "", a.posto || "", a.tipoCombustivel || "",
+          a.litros || 0, kmAtual, kmFinal,
+          kmFinal > 0 && kmAtual > 0 ? (kmFinal - kmAtual).toFixed(1) : 0
+        ]);
+      });
+    }
+  }
+
+  escreverPlanilha(planilha, linhas, "#059669");
+}
+
+// ════════════════════════════════════════════════════════════
+// 3. SESSÕES DE TESTE — métricas por sessão
+// ════════════════════════════════════════════════════════════
+function atualizarSessoesTeste() {
+  const url = FIREBASE_URL + "vev_sessoes_teste.json";
+  const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+  const dados = JSON.parse(res.getContentText());
+  if (!dados) return;
+
+  const planilha = obterAba("Sessoes_Teste");
+
+  const cabecalho = [
+    "ID", "Data", "Operador", "UID",
+    "Projeto", "Tipo Teste",
+    "Veículo", "VIN", "CC", "EJA",
+    "Ciclos R389", "Laps Frenagem", "Frenagens", "Execuções",
+    "KM Rodado", "Tempo Execução",
+    "Observações", "Problemas", "Status",
+    "Turno ID", "Timestamp"
+  ];
+  const linhas = [cabecalho];
+
+  for (let id in dados) {
+    const s = dados[id];
+    if (!s) continue;
+    linhas.push([
+      id, s.data || "", s.operador || "", s.uid || "",
+      s.projeto || "", s.tipoTeste || "",
+      s.veiculo || "", s.vin || "", s.cc || "", s.eja || "",
+      s.ciclos || 0, s.laps || 0, s.frenagens || 0, s.execucoes || 0,
+      s.kmRodado || 0, s.tempoExecucao || "",
+      s.observacoes || "", s.problemas || "", s.status || "",
+      s.turnoId || "", s.criadoEm || ""
+    ]);
+  }
+
+  escreverPlanilha(planilha, linhas, "#7c3aed");
+}
+
+// ════════════════════════════════════════════════════════════
+// 4. TURNOS ATIVOS — turnos acontecendo agora
+// ════════════════════════════════════════════════════════════
+function atualizarTurnosAtivos() {
+  const url = FIREBASE_URL + "vev_turnos_ativos.json";
+  const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+  const dados = JSON.parse(res.getContentText());
+  if (!dados) return;
+
+  const planilha = obterAba("Turnos_Ativos");
+
+  const cabecalho = [
+    "UID", "Operador", "Veículo", "VIN",
+    "Hora Início", "KM Inicial",
+    "Projeto", "Tipo Teste", "CC", "EJA",
+    "Qtd Abastecimentos", "Total Litros",
+    "Qtd Laudos Pendentes",
+    "Outras Info", "Último Timestamp"
+  ];
+  const linhas = [cabecalho];
+
+  for (let uid in dados) {
+    const t = dados[uid];
+    if (!t) continue;
+
+    const abs = t.abastecimentos;
+    let lista = [];
+    if (Array.isArray(abs)) lista = abs;
+    else if (abs && typeof abs === "object") lista = Object.values(abs);
+    const totalLitros = lista.reduce((s, a) => s + (parseFloat(a.litros) || 0), 0);
+
+    const laudosPend = t.laudosPendentes;
+    const qtdLaudos = Array.isArray(laudosPend) ? laudosPend.length
+      : (laudosPend && typeof laudosPend === "object" ? Object.keys(laudosPend).length : 0);
+
+    linhas.push([
+      uid, t.operador || "", t.veiculo || "", t.vin || "",
+      t.horaInicio || "", t.kmInicial || 0,
+      t.projeto || "", t.tipoTeste || "", t.cc || "", t.eja || "",
+      lista.length, totalLitros.toFixed(2),
+      qtdLaudos,
+      t.outrasInfo || "", t.timestamp || ""
+    ]);
+  }
+
+  escreverPlanilha(planilha, linhas, "#d97706");
+}
+
+// ════════════════════════════════════════════════════════════
+// 5. TURNOS (live state) — R389, Frenagens, Desaceleração
+// ════════════════════════════════════════════════════════════
+function atualizarTurnos() {
+  const url = FIREBASE_URL + "vev_turnos.json";
+  const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+  const dados = JSON.parse(res.getContentText());
+  if (!dados) return;
+
+  const planilha = obterAba("Turnos_Live");
+
+  const cabecalho = [
+    "Data", "Operador",
+    "VIN Global",
+    "Distância Rodagem (km)",
+    "Última Atualização",
+    "Etapa R389 Atual", "Qtd R389 Check-ins",
+    "Etapa Desaceleração Atual", "Qtd Desaceleração Check-ins",
+    "Qtd Ciclos Frenagem",
+    "Qtd Eventos Log Rodagem",
+    "Velocidade Média GPS (km/h)",
+    "Velocidade Máxima GPS (km/h)",
+    "Total Pontos GPS"
+  ];
+  const linhas = [cabecalho];
+
+  for (let dataBanco in dados) {
+    for (let operador in dados[dataBanco]) {
+      const turno = dados[dataBanco][operador];
+      if (!turno) continue;
+
+      const checkins = turno.checkins;
+      const qtdCheckins = Array.isArray(checkins) ? checkins.length
+        : (checkins && typeof checkins === "object" ? Object.keys(checkins).length : 0);
+
+      const checkinsDes = turno.checkinsDesaceleracao;
+      const qtdCheckinsDes = Array.isArray(checkinsDes) ? checkinsDes.length
+        : (checkinsDes && typeof checkinsDes === "object" ? Object.keys(checkinsDes).length : 0);
+
+      const ciclosFren = turno.ciclosFrenagem;
+      const qtdCiclosFren = Array.isArray(ciclosFren) ? ciclosFren.length
+        : (ciclosFren && typeof ciclosFren === "object" ? Object.keys(ciclosFren).length : 0);
+
+      const logRod = turno.logRodagem;
+      const qtdLogRod = Array.isArray(logRod) ? logRod.length
+        : (logRod && typeof logRod === "object" ? Object.keys(logRod).length : 0);
+
+      const gps = turno.rastroGps;
+      const pontos = Array.isArray(gps) ? gps : (gps && typeof gps === "object" ? Object.values(gps) : []);
+      let velMax = 0, somaVel = 0;
+      pontos.forEach(p => {
+        const v = parseFloat(p.vel) || 0;
+        if (v > velMax) velMax = v;
+        somaVel += v;
+      });
+      const velMedia = pontos.length > 0 ? (somaVel / pontos.length) : 0;
+
+      linhas.push([
+        dataBanco, operador,
+        turno.vinGlobal || "",
+        turno.rodagemDistanciaMts ? (turno.rodagemDistanciaMts / 1000).toFixed(2) : 0,
+        turno.ultimaAtualizacao || "",
+        turno.etapaAtualIndex || 0, qtdCheckins,
+        turno.etapaDesaceleracaoIndex || 0, qtdCheckinsDes,
+        qtdCiclosFren, qtdLogRod,
+        parseFloat(velMedia.toFixed(1)),
+        parseFloat(velMax.toFixed(1)),
+        pontos.length
+      ]);
+    }
+  }
+
+  escreverPlanilha(planilha, linhas, "#0891b2");
+}
+
+// ════════════════════════════════════════════════════════════
+// 6. GPS BATCH — pontos de GPS agregados
+// ════════════════════════════════════════════════════════════
+function atualizarGpsBatch() {
+  const url = FIREBASE_URL + "vev_gps_batch.json";
+  const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+  const dados = JSON.parse(res.getContentText());
+  if (!dados) return;
+
+  const planilha = obterAba("GPS_Batch");
+
+  const cabecalho = [
+    "Data", "Operador", "Índice",
+    "Latitude", "Longitude", "Velocidade (km/h)"
+  ];
+  const linhas = [cabecalho];
+  let totalGeral = 0;
+
+  for (let data in dados) {
+    for (let operador in dados[data]) {
+      const pontos = dados[data][operador];
+      if (!pontos) continue;
+      const lista = Array.isArray(pontos) ? pontos : Object.values(pontos);
+      lista.forEach((p, idx) => {
+        if (p && typeof p.lat !== "undefined") {
+          linhas.push([
+            data, operador, idx + 1,
+            p.lat, p.lng, p.vel || 0
+          ]);
+          totalGeral++;
+        }
+      });
+    }
+  }
+
+  escreverPlanilha(planilha, linhas, "#dc2626");
+  Logger.log(`[GPS] Total de ${totalGeral} pontos GPS sincronizados.`);
+}
+
+// ════════════════════════════════════════════════════════════
+// 7. LAUDOS — todos os laudos extraídos dos turnos encerrados
+// ════════════════════════════════════════════════════════════
+function atualizarLaudos() {
+  const url = FIREBASE_URL + "vev_turnos_encerrados.json";
+  const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+  const dados = JSON.parse(res.getContentText());
+  if (!dados) return;
+
+  const planilha = obterAba("Laudos");
+
+  const cabecalho = [
+    "Turno ID", "Data", "Operador", "Veículo", "VIN",
+    "Hora Laudo", "Descrição", "Severidade",
+    "Categoria", "Projeto"
+  ];
+  const linhas = [cabecalho];
+
+  for (let id in dados) {
+    const t = dados[id];
+    if (!t) continue;
+
+    const laudos = t.laudos;
+    let lista = [];
+    if (Array.isArray(laudos)) lista = laudos;
+    else if (laudos && typeof laudos === "object") lista = Object.values(laudos);
+
+    if (lista.length === 0) continue;
+
+    lista.forEach(l => {
+      linhas.push([
+        id, t.data || "", t.operador || "",
+        t.veiculo || "", t.vin || "",
+        l.hora || "", l.descricao || "",
+        l.severidade || "", l.categoria || "",
+        t.projeto || ""
+      ]);
+    });
+  }
+
+  if (linhas.length > 1) {
+    escreverPlanilha(planilha, linhas, "#e11d48");
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// UTILITÁRIOS
+// ════════════════════════════════════════════════════════════
+function obterAba(nome) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let aba = ss.getSheetByName(nome);
+  if (!aba) aba = ss.insertSheet(nome);
+  return aba;
+}
+
+function escreverPlanilha(planilha, dados, corHex) {
+  if (dados.length === 0) return;
+  planilha.clear();
+  const range = planilha.getRange(1, 1, dados.length, dados[0].length);
+  range.setValues(dados);
+  planilha.getRange(1, 1, 1, dados[0].length)
+    .setFontWeight("bold")
+    .setBackground(corHex)
+    .setFontColor("#ffffff");
+  planilha.setFrozenRows(1);
+  planilha.autoResizeColumns(1, dados[0].length);
+}
+
+function calcularDuracao(inicio, fim) {
+  if (!inicio || !fim) return "";
+  try {
+    const parseHora = (str) => {
+      const partes = str.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?/i);
+      if (!partes) return null;
+      let h = parseInt(partes[1]), m = parseInt(partes[2]);
+      if (partes[4] && /PM/i.test(partes[4]) && h !== 12) h += 12;
+      if (partes[4] && /AM/i.test(partes[4]) && h === 12) h = 0;
+      return h * 60 + m;
+    };
+    const minI = parseHora(inicio);
+    const minF = parseHora(fim);
+    if (minI === null || minF === null) return "";
+    let diff = minF - minI;
+    if (diff < 0) diff += 1440;
+    return Math.round(diff);
+  } catch (e) {
+    return "";
+  }
+}
+
+// ── Funções individuais ─────────────────────────────────────
+function atualizarApenasTurnosEncerrados() { atualizarTurnosEncerrados(); }
+function atualizarApenasAbastecimentos() { atualizarAbastecimentos(); }
+function atualizarApenasSessoes() { atualizarSessoesTeste(); }
+function atualizarApenasAtivos() { atualizarTurnosAtivos(); }
+function atualizarApenasTurnosLive() { atualizarTurnos(); }
+function atualizarApenasGps() { atualizarGpsBatch(); }
+function atualizarApenasLaudos() { atualizarLaudos(); }

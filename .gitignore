@@ -2,3 +2,13 @@
 .firebaserc
 firebase.debug.log
 node_modules/
+dist/
+*.local
+.venv/
+venv/
+__pycache__/
+*.pyc
+dashboard/build/
+dashboard/dist/
+*.spec
+Jsonfirebase/

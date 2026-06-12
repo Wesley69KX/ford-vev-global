@@ -1,12 +1,17 @@
 {
-  "name": "Ford VEV 2748",
-  "short_name": "VEV 2748",
+  "name": "Ford VEV - Central Operacional",
+  "short_name": "Ford VEV",
+  "description": "Sistema de telemetria e gestão de turnos para Campo de Provas Ford Tatuí.",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f1f5f9",
-  "theme_color": "#003478",
+  "orientation": "portrait",
+  "background_color": "#121214",
+  "theme_color": "#003399",
+  "categories": ["productivity", "utilities"],
+  "lang": "pt-BR",
   "icons": [
-    { "src": "logo.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "logo.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "/ford_logo_icon_145825.png", "sizes": "144x144", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ]
 }
