@@ -23,6 +23,12 @@ const STATIC_FILES_TO_COPY = [
     'ford_logo_icon_145825.png',
     'icon-192.png',
     'icon-512.png',
+    'entrada-ford.jpg',
+    'entrada1-ford.jpeg',
+    'abastecimento.js',
+    'classifier.js',
+    'extractor-dash.js',
+    'extractor-receipt.js',
 ]
 
 function copyStaticFiles() {

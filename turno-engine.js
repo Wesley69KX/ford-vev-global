@@ -282,7 +282,7 @@ const TurnoEngine = {
             msg += `\n*Status Operacional:* ${statusMap[enc.statusOperacional] || enc.statusOperacional}\n`
         }
 
-        msg += `\n_Enviado via VEV — Ford VEV Tatuí_`
+        msg += `\n_Enviado via ${window.APP_NOME || 'VEV'} — Tatuí_`
 
         return encodeURIComponent(msg)
     },
@@ -359,13 +359,16 @@ const TurnoUI = {
 
         // 1. Carregar do localStorage imediatamente (UX instantânea)
         let projetos = JSON.parse(localStorage.getItem('vev_pc_projetos') || '[]')
-        if (projetos.length === 0) {
+        if (projetos.length < 6 || projetos.some(p => p.id === 'EET-DRIVE' || p.nome === '1M Mile')) {
             projetos = [
-                { id: 'EET-DRIVE', nome: 'EET Ranger 2024 - Drive Team' },
-                { id: 'VOCF-BR', nome: 'Ranger VoCF - Brasil' },
+                { id: '1MMILE', nome: '1 Millions Mile' },
+                { id: 'RANGER100K', nome: 'Ranger 100k' },
+                { id: 'TERRITORY100K', nome: 'Territory 100k' },
+                { id: 'HOMOLOG', nome: 'Homologação' },
+                { id: 'VOC', nome: 'VoC' },
                 { id: 'ESP', nome: 'Testes Especiais' },
-                { id: '1MMILE', nome: '1M Mile' },
             ]
+            localStorage.setItem('vev_pc_projetos', JSON.stringify(projetos))
         }
         this._cacheProjetos = projetos
         populateSelect('it-projeto', projetos, 'Selecione o projeto...', (p) => p.nome)
@@ -546,6 +549,9 @@ const TurnoUI = {
         const projetoId = sel.value
         const projetoNome = sel.options[sel.selectedIndex]?.text || ''
         console.log('[TurnoUI] Projeto selecionado:', projetoNome)
+        if (typeof FormsEngine !== 'undefined' && projetoNome) {
+            FormsEngine.renderizarLinksHome(projetoNome)
+        }
         if (!projetoId) return
         this._filtrarVeiculosPorProjeto(projetoId)
     },
@@ -1006,6 +1012,7 @@ const TurnoUI = {
             if (inactiveSection) inactiveSection.style.display = 'block'
             const activeActions = document.getElementById('turno-active-actions')
             if (activeActions) activeActions.style.display = 'none'
+            if (typeof FormsEngine !== 'undefined') FormsEngine.renderizarLinksHome(null)
             return
         }
 
@@ -1014,6 +1021,7 @@ const TurnoUI = {
         if (infoStrip) infoStrip.style.display = 'grid'
         if (inactiveSection) inactiveSection.style.display = 'none'
         if (btnEncerrar) btnEncerrar.style.display = 'flex'
+        if (typeof FormsEngine !== 'undefined') FormsEngine.renderizarLinksHome(d.projeto)
 
         // Mostrar botão de encerrar + abastecimento na home quando turno está ativo
         const activeActions = document.getElementById('turno-active-actions')
@@ -2216,7 +2224,7 @@ const TurnoUI = {
         return true
     },
 
-    _syncWesleyHidden(enc) {
+    _syncRelatorioForm(enc) {
         const d = TurnoEngine.dados || {}
         const trip = TurnoEngine.calcTrip(enc.kmFinal)
 
@@ -2309,7 +2317,7 @@ const TurnoUI = {
         }
 
         try {
-            this._syncWesleyHidden(enc)
+            this._syncRelatorioForm(enc)
 
             // Salvar todos os laudos que ficaram em aberto no Firestore
             const laudosPendentes = d?.laudosPendentes || []
@@ -2901,7 +2909,7 @@ const HistoricoUI = {
             doc.setFontSize(7)
             doc.setTextColor(150, 150, 150)
             doc.text(
-                `Ford VEV - Central Operacional  |  Página ${i} de ${totalPaginas}`,
+                `${window.APP_NOME || 'Ford VEV'} - Central Operacional  |  Página ${i} de ${totalPaginas}`,
                 105,
                 287,
                 { align: 'center' }

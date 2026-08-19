@@ -13,14 +13,20 @@ const LaudoContexto = {
     obterDoTurno() {
         const d = typeof TurnoEngine !== 'undefined' ? TurnoEngine.dados : null
 
+        // Helper: formata nome + cargo do usuário logado
+        const _nomeOperadorCompleto = () => {
+            const nome = (typeof app !== 'undefined' && app.operadorAtual) ||
+                localStorage.getItem('app_vev_operador') || 'N/A'
+            const cargo = localStorage.getItem('app_vev_cargo') ||
+                (typeof RoleEngine !== 'undefined' ? RoleEngine.perfil?.cargo : '') || ''
+            return cargo ? `${nome} — ${cargo}` : nome
+        }
+
         if (!d) {
             return {
                 projeto: (typeof app !== 'undefined' && app.projetoAtual) || 'N/A',
                 tipoTeste: (typeof app !== 'undefined' && app.testeAtual) || 'N/A',
-                operador:
-                    (typeof app !== 'undefined' && app.operadorAtual) ||
-                    localStorage.getItem('app_vev_operador') ||
-                    'N/A',
+                operador: _nomeOperadorCompleto(),
                 veiculo:
                     (typeof app !== 'undefined' && app.veiculoAtual) ||
                     localStorage.getItem('app_vev_veiculo') ||
@@ -39,11 +45,18 @@ const LaudoContexto = {
             }
         }
 
+        // Complementar operador com cargo, se disponível
+        const operadorNome = d.operador || ''
+        const cargo = d.cargo ||
+            localStorage.getItem('app_vev_cargo') ||
+            (typeof RoleEngine !== 'undefined' ? RoleEngine.perfil?.cargo : '') || ''
+        const operadorComCargo = operadorNome && cargo ? `${operadorNome} — ${cargo}` : operadorNome
+
         return {
             projetoId: d.projetoId || '',
             projeto: d.projeto || d.tipoTeste || '',
             tipoTeste: d.tipoTeste || '',
-            operador: d.operador || '',
+            operador: operadorComCargo || '',
             veiculo: d.veiculo || '',
             veiculoId: d.veiculoId || '',
             vin: d.vin || '',
@@ -598,7 +611,7 @@ function _htmlLoading() {
                 Analisando com IA...
             </p>
             <p style="color:var(--text-secondary);font-size:0.75rem;">
-                TPG Insight AI · Ford VEV
+                TPG Insight AI · ${window.APP_NOME || 'Ford VEV'}
             </p>
             <ul class="ia-loading-steps">
                 <li class="ia-loading-step" id="ia-step-1">Processando relato técnico</li>
@@ -757,7 +770,7 @@ function _htmlResultado(r) {
                 </div>
 
                 <div style="text-align:center;font-size:0.7rem;color:var(--text-secondary);">
-                    Gerado em ${r.timestamp} · TPG Insight AI · Ford VEV
+                    Gerado em ${r.timestamp} · TPG Insight AI · ${window.APP_NOME || 'Ford VEV'}
                 </div>
 
                 <div class="ia-action-row">

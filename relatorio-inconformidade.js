@@ -217,7 +217,7 @@ const RelatórioInconformidade = {
             sublinha,
             pad('  Projeto', dados.projeto),
             pad('  Tipo de Teste', dados.tipoTeste),
-            pad('  Operador / Analista', dados.operador),
+            pad('  Resp. / Analista', dados.operador),
             pad('  Veiculo', dados.veiculo),
             pad('  VIN', dados.vin),
             pad('  EJA', dados.eja),
@@ -284,7 +284,7 @@ const RelatórioInconformidade = {
             '',
             linha,
             `  Emitido em: ${dt.completo}`,
-            `  Sistema: Ford VEV Global — TPG Engenharia — Campo de Provas Tatu\u00ed`,
+            `  Sistema: ${window.APP_NOME || 'Ford VEV'} Global — TPG Engenharia — Campo de Provas Tatu\u00ed`,
             `  Norma de Referencia: IATF 16949:2016 / Ford Q1 / SAE J1739`,
             linha,
             '',
@@ -408,7 +408,7 @@ const RelatórioInconformidade = {
         secao('Secao 2 — Dados do Turno Operacional')
         campo('Projeto', dados.projeto)
         campo('Tipo de Teste', dados.tipoTeste)
-        campo('Operador / Analista', dados.operador)
+        campo('Resp. / Analista', dados.operador, true)
         campo('Veiculo', dados.veiculo)
         campo('VIN', dados.vin)
         campo('EJA', dados.eja)
@@ -542,7 +542,7 @@ const RelatórioInconformidade = {
             doc.text('Assinatura: ________________', x + 3, y + 17)
         }
 
-        assinatura('Responsavel Tecnico', dados.operador, 0)
+        assinatura('Responsavel Tecnico / Analista', dados.operador, 0)
         assinatura('Revisado por', '', 1)
         y += 24
 
@@ -569,7 +569,7 @@ const RelatórioInconformidade = {
             doc.setFontSize(6)
             doc.setFont('helvetica', 'normal')
             doc.setTextColor(100, 110, 140)
-            doc.text(`Relatorio ${numero} | Ford VEV — Campo de Provas Tatu\u00ed | IATF 16949 / Ford Q1`, 14, 289)
+            doc.text(`Relatorio ${numero} | ${window.APP_NOME || 'Ford VEV'} — Campo de Provas Tatu\u00ed | IATF 16949 / Ford Q1`, 14, 289)
             doc.text(`Pagina ${i} de ${totalPages}`, pageW - 14, 289, { align: 'right' })
         }
     },

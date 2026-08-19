@@ -1,71 +1,248 @@
 // ─────────────────────────────────────────────────────────────
 // DADOS MESTRES — Projetos e Tipos de Teste de Pista
-// Ford VEV · TPG Insight AI
+// Ford VEV · Sincronizado com a planilha de rodagem (Forms - Rodagem.xlsx)
 // ─────────────────────────────────────────────────────────────
 
 const DadosMestres = {
     // ─────────────────────────────────────────────────────────
-    // PROJETOS PADRÃO
+    // PROJETOS PADRÃO COM FORMULÁRIOS VINCULADOS
     // ─────────────────────────────────────────────────────────
     PROJETOS: [
         {
-            nome: 'EET Ranger 2024 - Drive Team',
-            codigo: 'EET-DRIVE',
+            nome: '1 Millions Mile',
+            codigo: '1MMILE',
+            apelido: '1MM',
+            descricao: 'Programa de Durabilidade Estendida — 1 Million Miles',
+            icone: 'directions_car',
+            cor: '#1c69d4',
             formularios: [
                 {
-                    nome: 'Forms Km Interno',
-                    icone: 'add_road',
-                    url: 'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=eruQyfRRm0O9NpwH-xBBwP_dTP0IZDtLtTBWw5vI8tFUNFlUN1VMVEYzWUMxUDRGUFIzNkdGM1lLSiQlQCN0PWcu',
-                },
-                {
-                    nome: 'Check List de Inspeção de Segurança',
-                    icone: 'check_circle',
-                    url: 'https://forms.office.com/r/LGrPxcte1T',
-                },
-                {
-                    nome: 'Forms de Abastecimento',
-                    icone: 'local_gas_station',
-                    url: 'https://forms.office.com/r/FmGd5gJF5e',
-                },
-                {
-                    nome: 'Drive Team Issues',
-                    icone: 'warning',
+                    nome: 'FORMS Issue Próprio',
+                    tipo: 'issue',
+                    icone: 'report_problem',
+                    cor: '#ef4444',
                     url: 'https://forms.office.com/r/KqBNKV9zjS',
+                    descricao: 'Reportar falhas, anomalias e quebras no programa 1MM',
+                    badge: 'Ocorrências'
                 },
-            ],
+                {
+                    nome: 'FORMS Abastecimento Próprio',
+                    tipo: 'abastecimento',
+                    icone: 'local_gas_station',
+                    cor: '#f59e0b',
+                    url: 'https://forms.office.com/r/FmGd5gJF5e',
+                    descricao: 'Registro de abastecimento e litros do programa 1MM',
+                    badge: 'Abastecimento'
+                },
+                {
+                    nome: 'FORMS KM - Durability',
+                    tipo: 'km',
+                    icone: 'speed',
+                    cor: '#3b82f6',
+                    url: 'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=eruQyfRRm0O9NpwH-xBBwP_dTP0IZDtLtTBWw5vI8tFUNFlUN1VMVEYzWUMxUDRGUFIzNkdGM1lLSiQlQCN0PWcu&origin=Invitation&channel=1',
+                    descricao: 'Registro de quilometragem e horários do turno',
+                    badge: 'Quilometragem'
+                },
+                {
+                    nome: 'Inspeção de Segurança - Durability',
+                    tipo: 'seguranca',
+                    icone: 'verified_user',
+                    cor: '#10b981',
+                    url: 'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=eruQyfRRm0O9NpwH-xBBwEz6JfaQaUtJqXKHV06yxwtUQ1JVRkIyQ05IVUZDS0RKT0tTSjIzQzFZRy4u',
+                    descricao: 'Checklist obrigatório de segurança veicular e pista',
+                    badge: 'Segurança'
+                }
+            ]
         },
         {
-            nome: 'Ranger VoCF - Brasil',
-            codigo: 'VOCF-BR',
+            nome: 'Ranger 100k',
+            codigo: 'RANGER100K',
+            apelido: 'Ranger 100k',
+            descricao: 'Teste de Durabilidade 100.000 KM — Linha Ranger',
+            icone: 'local_shipping',
+            cor: '#0ea5e9',
             formularios: [
                 {
-                    nome: 'Forms Km Interno',
-                    icone: 'add_road',
-                    url: 'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=eruQyfRRm0O9NpwH-xBBwP_dTP0IZDtLtTBWw5vI8tFUNFlUN1VMVEYzWUMxUDRGUFIzNkdGM1lLSiQlQCN0PWcu',
+                    nome: 'FORMS Issue - Durability',
+                    tipo: 'issue',
+                    icone: 'report_problem',
+                    cor: '#ef4444',
+                    url: 'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=eruQyfRRm0O9NpwH-xBBwMbiyYR43kVDhboTj33D64NUMDEwSFJROUlHNVg1RTRQMFlJU1ZCNk9KSy4u',
+                    descricao: 'Reportar problemas e ocorrências durante a rodagem Ranger 100k',
+                    badge: 'Ocorrências'
                 },
                 {
-                    nome: 'Check List início de Turno',
-                    icone: 'play_circle',
-                    url: 'https://forms.office.com/r/AAq0BNZ9xW',
+                    nome: 'FORMS Abastecimento - Durability',
+                    tipo: 'abastecimento',
+                    icone: 'local_gas_station',
+                    cor: '#f59e0b',
+                    url: 'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=eruQyfRRm0O9NpwH-xBBwMbiyYR43kVDhboTj33D64NUNTlPV1JUUlBHODFFRzhaMTNaWlhLTExHVC4u',
+                    descricao: 'Registro de abastecimento do veículo Ranger 100k',
+                    badge: 'Abastecimento'
                 },
                 {
-                    nome: 'Check List Final de Turno',
-                    icone: 'stop_circle',
-                    url: 'https://forms.office.com/r/n9QkaX0E0X',
+                    nome: 'FORMS KM - Durability',
+                    tipo: 'km',
+                    icone: 'speed',
+                    cor: '#3b82f6',
+                    url: 'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=eruQyfRRm0O9NpwH-xBBwP_dTP0IZDtLtTBWw5vI8tFUNFlUN1VMVEYzWUMxUDRGUFIzNkdGM1lLSiQlQCN0PWcu&origin=Invitation&channel=1',
+                    descricao: 'Registro de quilometragem e horários do turno',
+                    badge: 'Quilometragem'
                 },
                 {
-                    nome: 'Forms Fim de Turno',
-                    icone: 'flag',
-                    url: 'https://forms.cloud.microsoft/r/QRptN3RzyH',
-                },
-            ],
+                    nome: 'Inspeção de Segurança - Durability',
+                    tipo: 'seguranca',
+                    icone: 'verified_user',
+                    cor: '#10b981',
+                    url: 'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=eruQyfRRm0O9NpwH-xBBwEz6JfaQaUtJqXKHV06yxwtUQ1JVRkIyQ05IVUZDS0RKT0tTSjIzQzFZRy4u',
+                    descricao: 'Checklist obrigatório de segurança veicular e pista',
+                    badge: 'Segurança'
+                }
+            ]
         },
-        { nome: 'Testes Especiais', codigo: 'ESP', formularios: [] },
-        { nome: '1M Mile', codigo: '1MMILE', formularios: [] },
+        {
+            nome: 'Territory 100k',
+            codigo: 'TERRITORY100K',
+            apelido: 'Territory 100k',
+            descricao: 'Teste de Durabilidade 100.000 KM — Linha Territory',
+            icone: 'directions_car',
+            cor: '#6366f1',
+            formularios: [
+                {
+                    nome: 'FORMS Issue - Durability',
+                    tipo: 'issue',
+                    icone: 'report_problem',
+                    cor: '#ef4444',
+                    url: 'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=eruQyfRRm0O9NpwH-xBBwMbiyYR43kVDhboTj33D64NUMDEwSFJROUlHNVg1RTRQMFlJU1ZCNk9KSy4u',
+                    descricao: 'Reportar problemas e ocorrências no Territory 100k',
+                    badge: 'Ocorrências'
+                },
+                {
+                    nome: 'FORMS Abastecimento - Durability',
+                    tipo: 'abastecimento',
+                    icone: 'local_gas_station',
+                    cor: '#f59e0b',
+                    url: 'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=eruQyfRRm0O9NpwH-xBBwMbiyYR43kVDhboTj33D64NUNTlPV1JUUlBHODFFRzhaMTNaWlhLTExHVC4u',
+                    descricao: 'Registro de abastecimento do veículo Territory 100k',
+                    badge: 'Abastecimento'
+                },
+                {
+                    nome: 'FORMS KM - Durability',
+                    tipo: 'km',
+                    icone: 'speed',
+                    cor: '#3b82f6',
+                    url: 'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=eruQyfRRm0O9NpwH-xBBwP_dTP0IZDtLtTBWw5vI8tFUNFlUN1VMVEYzWUMxUDRGUFIzNkdGM1lLSiQlQCN0PWcu&origin=Invitation&channel=1',
+                    descricao: 'Registro de quilometragem e horários do turno',
+                    badge: 'Quilometragem'
+                },
+                {
+                    nome: 'Inspeção de Segurança - Durability',
+                    tipo: 'seguranca',
+                    icone: 'verified_user',
+                    cor: '#10b981',
+                    url: 'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=eruQyfRRm0O9NpwH-xBBwEz6JfaQaUtJqXKHV06yxwtUQ1JVRkIyQ05IVUZDS0RKT0tTSjIzQzFZRy4u',
+                    descricao: 'Checklist obrigatório de segurança veicular e pista',
+                    badge: 'Segurança'
+                }
+            ]
+        },
+        {
+            nome: 'Homologação',
+            codigo: 'HOMOLOG',
+            apelido: 'Homologação',
+            descricao: 'Protocolos de Ensaios e Homologação Veicular',
+            icone: 'fact_check',
+            cor: '#8b5cf6',
+            formularios: [
+                {
+                    nome: 'FORMS Issue - Durability',
+                    tipo: 'issue',
+                    icone: 'report_problem',
+                    cor: '#ef4444',
+                    url: 'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=eruQyfRRm0O9NpwH-xBBwMbiyYR43kVDhboTj33D64NUMDEwSFJROUlHNVg1RTRQMFlJU1ZCNk9KSy4u',
+                    descricao: 'Reportar problemas e apontamentos do ensaio de Homologação',
+                    badge: 'Ocorrências'
+                },
+                {
+                    nome: 'FORMS KM - Durability',
+                    tipo: 'km',
+                    icone: 'speed',
+                    cor: '#3b82f6',
+                    url: 'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=eruQyfRRm0O9NpwH-xBBwP_dTP0IZDtLtTBWw5vI8tFUNFlUN1VMVEYzWUMxUDRGUFIzNkdGM1lLSiQlQCN0PWcu&origin=Invitation&channel=1',
+                    descricao: 'Registro de quilometragem e horários do turno',
+                    badge: 'Quilometragem'
+                },
+                {
+                    nome: 'Inspeção de Segurança - Durability',
+                    tipo: 'seguranca',
+                    icone: 'verified_user',
+                    cor: '#10b981',
+                    url: 'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=eruQyfRRm0O9NpwH-xBBwEz6JfaQaUtJqXKHV06yxwtUQ1JVRkIyQ05IVUZDS0RKT0tTSjIzQzFZRy4u',
+                    descricao: 'Checklist obrigatório de segurança veicular e pista',
+                    badge: 'Segurança'
+                }
+            ]
+        },
+        {
+            nome: 'VoC',
+            codigo: 'VOC',
+            apelido: 'VoC',
+            descricao: 'Voice of Customer — Avaliação de Percepção do Cliente',
+            icone: 'record_voice_over',
+            cor: '#ec4899',
+            formularios: [
+                {
+                    nome: 'FORMS KM - Durability',
+                    tipo: 'km',
+                    icone: 'speed',
+                    cor: '#3b82f6',
+                    url: 'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=eruQyfRRm0O9NpwH-xBBwP_dTP0IZDtLtTBWw5vI8tFUNFlUN1VMVEYzWUMxUDRGUFIzNkdGM1lLSiQlQCN0PWcu&origin=Invitation&channel=1',
+                    descricao: 'Registro de quilometragem e horários do turno',
+                    badge: 'Quilometragem'
+                },
+                {
+                    nome: 'Inspeção de Segurança - Durability',
+                    tipo: 'seguranca',
+                    icone: 'verified_user',
+                    cor: '#10b981',
+                    url: 'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=eruQyfRRm0O9NpwH-xBBwEz6JfaQaUtJqXKHV06yxwtUQ1JVRkIyQ05IVUZDS0RKT0tTSjIzQzFZRy4u',
+                    descricao: 'Checklist obrigatório de segurança veicular e pista',
+                    badge: 'Segurança'
+                }
+            ]
+        },
+        {
+            nome: 'Testes Especiais',
+            codigo: 'ESP',
+            apelido: 'Especiais',
+            descricao: 'Ensaios Dinâmicos, Frenagem, R389 e Testes Customizados',
+            icone: 'auto_awesome',
+            cor: '#eab308',
+            formularios: [
+                {
+                    nome: 'FORMS KM - Durability',
+                    tipo: 'km',
+                    icone: 'speed',
+                    cor: '#3b82f6',
+                    url: 'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=eruQyfRRm0O9NpwH-xBBwP_dTP0IZDtLtTBWw5vI8tFUNFlUN1VMVEYzWUMxUDRGUFIzNkdGM1lLSiQlQCN0PWcu&origin=Invitation&channel=1',
+                    descricao: 'Registro de quilometragem e horários do turno',
+                    badge: 'Quilometragem'
+                },
+                {
+                    nome: 'Inspeção de Segurança - Durability',
+                    tipo: 'seguranca',
+                    icone: 'verified_user',
+                    cor: '#10b981',
+                    url: 'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=eruQyfRRm0O9NpwH-xBBwEz6JfaQaUtJqXKHV06yxwtUQ1JVRkIyQ05IVUZDS0RKT0tTSjIzQzFZRy4u',
+                    descricao: 'Checklist obrigatório de segurança veicular e pista',
+                    badge: 'Segurança'
+                }
+            ]
+        }
     ],
 
     // ─────────────────────────────────────────────────────────
-    // TIPOS DE TESTE DE PISTA — entidade separada
+    // TIPOS DE TESTE DE PISTA
     // ─────────────────────────────────────────────────────────
     TESTES_PISTA: [
         {
@@ -107,14 +284,7 @@ const DadosMestres = {
     ],
 
     // ─────────────────────────────────────────────────────────
-    // SEED NO FIRESTORE
-    // Função: sincronizar
-    // O que faz: sincroniza os arrays locais `PROJETOS` e `TESTES_PISTA`
-    //           com coleções do Firestore, criando documentos que
-    //           ainda não existam (comparando pelo campo `nome`).
-    // Recebe: nada.
-    // Retorna: Promise (resolve quando a sincronização termina).
-    // Observações: usa o SDK Firebase v8 (namespace `firebase`).
+    // SEED NO FIRESTORE E RTDB
     // ─────────────────────────────────────────────────────────
     async sincronizar() {
         const db = firebase.firestore()
@@ -136,6 +306,21 @@ const DadosMestres = {
                     criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
                 })
                 console.log('[DadosMestres] Projeto criado:', projeto.nome)
+            } else {
+                const doc = snap.docs[0]
+                const data = doc.data() || {}
+                // Se os formulários estiverem vazios no Firestore, atualiza com os padrões da planilha
+                if (!data.formularios || data.formularios.length === 0) {
+                    await db.collection('vev_projetos').doc(doc.id).update({
+                        formularios: projeto.formularios,
+                        codigo: projeto.codigo || data.codigo,
+                        apelido: projeto.apelido || data.apelido || projeto.nome,
+                        descricao: projeto.descricao || data.descricao || '',
+                        icone: projeto.icone || data.icone || 'directions_car',
+                        cor: projeto.cor || data.cor || '#1c69d4'
+                    })
+                    console.log('[DadosMestres] Formulários atualizados para:', projeto.nome)
+                }
             }
         }
 
@@ -158,7 +343,7 @@ const DadosMestres = {
             }
         }
 
-        // Sincronizar vev_projetos, vev_veiculos, vev_operadores e vev_postos do Firestore para o RTDB para consumo do dashboard
+        // Sincronizar vev_projetos, vev_veiculos, vev_operadores e vev_postos do Firestore para o RTDB
         try {
             const projSnap = await db.collection('vev_projetos').get()
             const rtdbProjRef = firebase.database().ref('vev_projetos')
@@ -198,11 +383,6 @@ const DadosMestres = {
 
     // ─────────────────────────────────────────────────────────
     // BUSCAR PROJETOS DO FIRESTORE
-    // Função: getProjetos
-    // O que faz: consulta a coleção `vev_projetos` filtrando por
-    //           documentos ativos e retorna um array com id + dados.
-    // Recebe: nada.
-    // Retorna: Promise<Array<Object>> — lista de projetos.
     // ─────────────────────────────────────────────────────────
     async getProjetos() {
         const snap = await firebase.firestore().collection('vev_projetos').get()
@@ -247,8 +427,8 @@ const DadosMestres = {
             .filter((d) => d.ativo !== false)
             .sort((a, b) => (a.nome || '').localeCompare(b.nome || ''))
     },
+}
 
-    // ─────────────────────────────────────────────────────────
-    // BUSCAR TESTES DO FIRESTORE (definição principal — usa sort)
-    // ─────────────────────────────────────────────────────────
+if (typeof window !== 'undefined') {
+    window.DadosMestres = DadosMestres
 }

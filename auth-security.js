@@ -1047,34 +1047,34 @@ firebase.auth().onAuthStateChanged(async (user) => {
         } else {
             // Importante:
             // Não remover turno ativo por usuário aqui.
-            // O TurnoEngine v2 usa chave vev_turno_ativo_UID.
-            // Assim, se o mesmo analista sair e voltar, o turno dele permanece.
-            localStorage.removeItem('app_vev_operador')
-            localStorage.removeItem('app_vev_cargo')
-
-            // Remove apenas chave antiga genérica, se sobrou de versão anterior.
-            localStorage.removeItem('vev_turno_ativo')
-
-            if (typeof TurnoEngine !== 'undefined') {
-                TurnoEngine._cache = null
+        } else {
+            // Modo Acesso Direto Sem Login — solicitado pelo usuário
+            const nome = localStorage.getItem('app_vev_operador') || 'Operador Ford'
+            const perfil = {
+                nome,
+                cargo: 'Operador',
+                status: 'aprovado',
+                hasFullAccess: true,
+                email: 'operador@ford.com',
             }
+            RoleEngine._perfil = perfil
+            document.body.dataset.cargo = 'Operador'
+            localStorage.setItem('app_vev_operador', nome)
+            localStorage.setItem('app_vev_cargo', 'Operador')
+
+            const loginEl = document.getElementById('modal-login')
+            if (loginEl) loginEl.style.display = 'none'
 
             const tp = document.getElementById('tela-pendente')
             if (tp) tp.style.display = 'none'
 
-            document.body.dataset.cargo = ''
-            RoleEngine._perfil = null
-
-            resetBtn()
-
-            // Esconde o App Shell ao deslogar
-            const shell = document.getElementById('app-shell')
-            if (shell) shell.classList.remove('visible')
-
-            document.getElementById('modal-login').style.display = 'flex'
-            document.body.style.overflow = 'hidden'
-
-            if (estaBloqueado()) iniciarContagem()
+            if (typeof mostrarAppShell === 'function') {
+                mostrarAppShell(nome)
+            } else {
+                const shell = document.getElementById('app-shell')
+                if (shell) shell.classList.add('visible')
+            }
+            document.body.style.overflow = 'auto'
         }
     } catch (e) {
         console.error('[AuthObserver]', e)

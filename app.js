@@ -1,4 +1,10 @@
 // ====================================================
+// 0. CONFIGURAÇÃO GLOBAL
+// ====================================================
+const APP_NOME = 'Ford VEV' // ← Altere aqui o nome que aparece nos relatórios
+window.APP_NOME = APP_NOME
+
+// ====================================================
 // 1. CONFIGURAÇÃO DO FIREBASE
 // ====================================================
 const firebaseConfig = {
@@ -1226,14 +1232,15 @@ const app = {
         doc.setTextColor(56, 189, 248)
         doc.setFontSize(13)
         doc.setFont(undefined, 'bold')
-        doc.text('RESUMO GERAL DO TURNO', 105, 16, { align: 'center' })
-        doc.setFontSize(8)
+        const nomeOper = this.operadorAtual || 'NÃO INFORMADO'
+        doc.text(`${APP_NOME} — RESUMO GERAL DO TURNO`, 105, 14, { align: 'center' })
+        doc.setFontSize(7)
         doc.setFont(undefined, 'normal')
         doc.setTextColor(180, 190, 200)
         doc.text(
-            `VIN: ${vin}  |  Data: ${new Date().toLocaleDateString('pt-BR')}  |  Analista: ${this.operadorAtual}`,
+            `Analista: ${nomeOper}  |  VIN: ${vin}  |  ${new Date().toLocaleDateString('pt-BR')}`,
             105,
-            26,
+            22,
             { align: 'center' }
         )
 
@@ -1700,7 +1707,7 @@ const app = {
         doc.setFontSize(7)
         doc.setFont(undefined, 'normal')
         doc.setTextColor(180, 190, 200)
-        doc.text(`Ford VEV  |  Emitido: ${dataAtual}`, pageW - 10, 11, { align: 'right' })
+        doc.text(`${APP_NOME}  |  Emitido: ${dataAtual}`, pageW - 10, 11, { align: 'right' })
 
         // Linha separadora sutil
         doc.setDrawColor(60, 72, 90)
@@ -2457,6 +2464,11 @@ window.toggleCopilotoModo = toggleCopilotoModo
 
 function iniciarCopilotoKX() {
     if (!navigator.geolocation) return alert('Dispositivo não suporta GPS.')
+    
+    // Liga a luminosidade mínima (simulada) ao ativar o copiloto
+    document.body.classList.add('copilot-active');
+    document.body.classList.remove('copilot-brightness-override');
+
     manterTelaLigada()
     const btnAtivar = document.getElementById('btn-ativar-kx')
     if (btnAtivar)
@@ -2722,6 +2734,10 @@ function iniciarCopilotoKX() {
 }
 
 function pararCopilotoKX() {
+    // Desliga a luminosidade mínima simulada ao parar o copiloto
+    document.body.classList.remove('copilot-active');
+    document.body.classList.remove('copilot-brightness-override');
+
     if (rastreadorGpsID !== null) {
         // Persiste a viagem antes de encerrar (somente modo Free-Rolling com distância mínima)
         const modoAtual = document.getElementById('gps-rota-selecionada')?.value
